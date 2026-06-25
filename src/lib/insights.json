@@ -1,0 +1,82 @@
+{
+  "liquidity": {
+    "safe": {
+      "title": "Dana Darurat Terjaga",
+      "message": "Aset likuid Anda mencukupi untuk 3+ bulan pengeluaran. Pertahankan kondisi ini dengan rutin menabung 10-20% pendapatan setiap bulan.",
+      "action": "Pertahankan",
+      "priority": "low"
+    },
+    "warning": {
+      "title": "Dana Darurat Menipis",
+      "message": "Aset likuid hanya menutupi 1-3 bulan pengeluaran. Targetkan minimal 3 bulan dengan mengurangi pengeluaran tidak penting.",
+      "action": "Tingkatkan Tabungan",
+      "priority": "medium"
+    },
+    "danger": {
+      "title": "Dana Darurat Kritis",
+      "message": "Aset likuid kurang dari 1 bulan pengeluaran. Prioritaskan membangun dana darurat Rp3-6 juta sebelum melakukan investasi atau pembelian besar.",
+      "action": "Segera Bangun Dana Darurat",
+      "priority": "high"
+    }
+  },
+  "savings": {
+    "safe": {
+      "title": "Kebiasaan Menabung Baik",
+      "message": "Anda menabung 20%+ dari pendapatan bulanan. Pertahankan kebiasaan ini untuk mencapai tujuan finansial jangka panjang.",
+      "action": "Investasikan Kelebihan",
+      "priority": "low"
+    },
+    "warning": {
+      "title": "Tabungan Bisa Ditingkatkan",
+      "message": "Rasio tabungan Anda 10-20%. Coba terapkan aturan 50/30/20: alokasikan 20% pendapatan untuk tabungan dan investasi.",
+      "action": "Evaluasi Pengeluaran",
+      "priority": "medium"
+    },
+    "danger": {
+      "title": "Tabungan Perlu Perhatian",
+      "message": "Tabungan bulanan di bawah 10%. Mulai dengan menyisihkan Rp50.000 per hari — jumlah kecil yang konsisten lebih baik daripada tidak sama sekali.",
+      "action": "Mulai Menabung Sekarang",
+      "priority": "high"
+    }
+  },
+  "debt": {
+    "safe": {
+      "title": "Manajemen Utang Sehat",
+      "message": "Cicilan utang Anda di bawah 30% pendapatan. Hindari menambah utang konsumtif baru agar rasio tetap terjaga.",
+      "action": "Tetap Disiplin",
+      "priority": "low"
+    },
+    "warning": {
+      "title": "Beban Utang Meningkat",
+      "message": "Cicilan mencapai 30-40% pendapatan. Segera susun strategi pelunasan — pertimbangkan metode Debt Snowball (lunasi utang terkecil dulu).",
+      "action": "Susun Strategi Pelunasan",
+      "priority": "medium"
+    },
+    "danger": {
+      "title": "Beban Utang Berbahaya",
+      "message": "Cicilan melebihi 40% pendapatan — ini adalah zona bahaya. Hubungi konselor keuangan atau pertimbangkan konsolidasi utang untuk menurunkan cicilan bulanan.",
+      "action": "Cari Bantuan Profesional",
+      "priority": "high"
+    }
+  },
+  "overall": {
+    "safe": {
+      "title": "Kesehatan Finansial Optimal",
+      "message": "Semua indikator keuangan Anda dalam kondisi baik. Fokus pada investasi jangka panjang dan perlindungan asuransi.",
+      "action": "Kembangkan Aset",
+      "priority": "low"
+    },
+    "warning": {
+      "title": "Perlu Sedikit Perbaikan",
+      "message": "Beberapa area masih perlu ditingkatkan. Fokus satu per satu — mulai dari yang paling mendesak (likuiditas, utang, atau tabungan).",
+      "action": "Tingkatkan satu Area",
+      "priority": "medium"
+    },
+    "danger": {
+      "title": "Aksi Segera Diperlukan",
+      "message": "Kondisi finansial memerlukan perhatian serius. Prioritaskan: (1) bangun dana darurat, (2) kurangi utang, (3) tingkatkan tabungan — secara bertahap.",
+      "action": "Konsultasi Finansial",
+      "priority": "high"
+    }
+  }
+}

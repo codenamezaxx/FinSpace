@@ -1,0 +1,68 @@
+/* ─── Dark Mode — Override baked Tailwind v4 utility classes ───
+   Tailwind v4 compiles utility classes with hardcoded values, not var(--color-*).
+   This separate file ensures these unlayered overrides are not purged.            */
+
+/* Backgrounds */
+[data-theme="dark"] .bg-background { background-color: #020617 !important; }
+[data-theme="dark"] .bg-surface { background-color: #1E293B !important; }
+[data-theme="dark"] .bg-surface-alt { background-color: #0F172A !important; }
+[data-theme="dark"] .bg-border { background-color: #334155 !important; }
+[data-theme="dark"] .bg-warning { background-color: #FFCF95 !important; }
+[data-theme="dark"] .bg-track { background-color: #334155 !important; }
+
+/* Background opacity variants */
+[data-theme="dark"] .bg-surface\/50 { background-color: rgba(30, 41, 59, 0.5) !important; }
+[data-theme="dark"] .bg-surface\/60 { background-color: rgba(30, 41, 59, 0.6) !important; }
+[data-theme="dark"] .bg-surface-alt\/50 { background-color: rgba(15, 23, 42, 0.5) !important; }
+[data-theme="dark"] .bg-danger\/10 { background-color: rgba(239, 68, 68, 0.1) !important; }
+[data-theme="dark"] .bg-danger\/15 { background-color: rgba(239, 68, 68, 0.15) !important; }
+[data-theme="dark"] .bg-success\/10 { background-color: rgba(34, 197, 94, 0.1) !important; }
+[data-theme="dark"] .bg-success\/15 { background-color: rgba(34, 197, 94, 0.15) !important; }
+[data-theme="dark"] .bg-primary\/10 { background-color: rgba(59, 130, 246, 0.1) !important; }
+[data-theme="dark"] .bg-accent-secondary\/10 { background-color: rgba(114, 62, 195, 0.1) !important; }
+
+
+/* Text */
+[data-theme="dark"] .text-text-primary { color: #FFFFFF !important; }
+[data-theme="dark"] .text-text-secondary { color: #94A3B8 !important; }
+[data-theme="dark"] .text-text-muted { color: #64748B !important; }
+
+/* Text opacity variants */
+[data-theme="dark"] .text-text-secondary\/70 { color: rgba(148, 163, 184, 0.7) !important; }
+
+/* Borders */
+[data-theme="dark"] .border-border { border-color: #334155 !important; }
+[data-theme="dark"] .border-border\/50 { border-color: rgba(51, 65, 85, 0.5) !important; }
+
+
+/* Placeholder */
+[data-theme="dark"] .placeholder-text-muted::placeholder { color: #64748B !important; }
+[data-theme="dark"] ::placeholder { color: #64748B !important; }
+
+/* Rings */
+[data-theme="dark"] .ring-primary\/30 { --tw-ring-color: rgba(59, 130, 246, 0.3) !important; }
+
+/* Shadows */
+[data-theme="dark"] .shadow-primary\/25 { --tw-shadow-color: rgba(59, 130, 246, 0.25) !important; }
+[data-theme="dark"] .shadow-success\/25 { --tw-shadow-color: rgba(34, 197, 94, 0.25) !important; }
+[data-theme="dark"] .shadow-danger\/25 { --tw-shadow-color: rgba(239, 68, 68, 0.25) !important; }
+[data-theme="dark"] .shadow-accent-secondary\/25 { --tw-shadow-color: rgba(114, 62, 195, 0.25) !important; }
+[data-theme="dark"] .shadow-black\/20 { --tw-shadow-color: rgba(0, 0, 0, 0.2) !important; }
+
+/* Hover variants */
+@media (hover: hover) {
+  [data-theme="dark"] .hover\:bg-surface:hover { background-color: #1E293B !important; }
+  [data-theme="dark"] .hover\:bg-surface-alt:hover { background-color: #0F172A !important; }
+  [data-theme="dark"] .hover\:bg-surface-alt\/50:hover { background-color: rgba(15, 23, 42, 0.5) !important; }
+  [data-theme="dark"] .hover\:text-text-primary:hover { color: #FFFFFF !important; }
+  [data-theme="dark"] .hover\:text-text-secondary:hover { color: #94A3B8 !important; }
+  [data-theme="dark"] .hover\:border-text-muted:hover { border-color: #64748B !important; }
+  [data-theme="dark"] .hover\:shadow-black\/30:hover { --tw-shadow-color: rgba(0,0,0,0.3) !important; }
+  [data-theme="dark"] .hover\:shadow-primary\/30:hover { --tw-shadow-color: rgba(59, 130, 246, 0.3) !important; }
+}
+
+/* Responsive (lg → sidebar breakpoint) */
+@media (min-width: 1024px) {
+  [data-theme="dark"] .lg\:bg-surface-alt { background-color: #0F172A !important; }
+  [data-theme="dark"] .lg\:border-border { border-color: #334155 !important; }
+}
