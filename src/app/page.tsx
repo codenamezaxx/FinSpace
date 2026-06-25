@@ -40,8 +40,12 @@ export default function HomePage() {
 
         <div className="relative z-10">
           {/* Logo mark */}
-          <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-accent-secondary shadow-lg shadow-accent-secondary/20">
-            <span className="text-3xl font-bold text-white font-mono">F</span>
+          <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center">
+            <img
+              src="/icons/icon-192x192.svg"
+              alt="FinSpace Logo"
+              className="h-24 w-24"
+            />
           </div>
 
           {/* Title */}

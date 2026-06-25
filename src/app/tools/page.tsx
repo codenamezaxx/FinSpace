@@ -1,10 +1,27 @@
+import { LoanCalculator } from "@/components/tools/LoanCalculator";
+import { SavingsGoal } from "@/components/tools/SavingsGoal";
+import { ExportCSV } from "@/components/tools/ExportCSV";
+import ReceiptGenerator from "@/components/tools/ReceiptGenerator";
+
 export default function ToolsPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-text-primary">Tools &amp; Receipts</h1>
+      <h1 className="text-2xl font-bold text-text-primary">Tools</h1>
       <p className="text-text-muted">
-        Alat dan struk Anda akan ditampilkan di sini.
+        Kalkulator, tabungan, dan ekspor data keuangan Anda.
       </p>
+
+      {/* Kalkulator + Tabungan */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <LoanCalculator />
+        <SavingsGoal />
+      </div>
+
+      {/* Struk + Ekspor CSV */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <ReceiptGenerator />
+        <ExportCSV />
+      </div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { Lightbulb, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import type { FinancialRatios, HealthStatus } from "@/lib/financialRatios";
 import { getStatusColor, getStatusLabel } from "@/lib/financialRatios";
+import { HealthScoreRing } from "./HealthScoreRing";
 import insightsData from "@/lib/insights.json";
 
 interface SmartInsightsProps {
@@ -80,6 +81,14 @@ export function SmartInsights({
 
   return (
     <div className="glass rounded-2xl p-6">
+      {/* Health Score Ring */}
+      <HealthScoreRing
+        liquidityStatus={liquidityStatus}
+        savingsStatus={savingsStatus}
+        debtStatus={debtStatus}
+        overallStatus={overallStatus}
+      />
+
       {/* Header */}
       <div className="flex items-center gap-2.5 mb-4">
         <Lightbulb className="h-5 w-5 text-accent" />

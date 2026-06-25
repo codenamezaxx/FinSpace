@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { NavigationBar } from "./NavigationBar";
+import { TopBar } from "./TopBar";
 import { FloatingActionButton } from "./FloatingActionButton";
 import { ChatbotSheet } from "@/components/ai/ChatbotSheet";
 
@@ -18,7 +19,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <NavigationBar />
-      <main className="relative z-10 flex-1 pb-20 lg:pb-0 lg:ml-64">
+      <TopBar />
+      <main className="relative z-10 flex-1 pt-16 pb-20 lg:pb-0 lg:ml-64">
         <div className="mx-auto w-full max-w-7xl px-4 py-6">
           {children}
         </div>

@@ -9,6 +9,7 @@ import {
   Wrench,
   Sun,
   Moon,
+  Plus,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useTheme } from "@/lib/theme-context";
@@ -50,27 +51,36 @@ export function NavigationBar() {
             </Link>
           );
         })}
-        {/* Theme toggle compact — both icons in DOM, CSS shows correct one */}
-        <button
-          onClick={toggleTheme}
-          className="flex flex-col items-center gap-1 rounded-lg px-2 py-2 text-text-muted transition-colors hover:text-text-secondary"
-          aria-label="Toggle theme"
-        >
-          <Sun className="h-5 w-5 light-only" />
-          <Moon className="h-5 w-5 dark-only" />
-        </button>
       </nav>
 
       {/* Desktop Sidebar */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-border lg:bg-surface-alt" style={{ boxShadow: "var(--sidebar-shadow)" }}>
         {/* Logo area */}
-        <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-white">
-            F
+        <div className="flex h-24 items-center gap-2 border-b border-border px-6">
+          <img
+            src="/icons/icon-192x192.svg"
+            alt="FinSpace Logo"
+            className="h-10 w-10"
+          />
+          <div className="flex flex-col">
+            <span className="text-xl font-bold text-text-primary">
+              FinSpace
+            </span>
+            <span className="text-xs text-text-muted">
+              Personal Finance Manager
+            </span>
           </div>
-          <span className="text-lg font-bold text-text-primary">
-            FinSpace
-          </span>
+        </div>
+
+        {/* Tambah Transaksi */}
+        <div className="px-4 pt-6 pb-4">
+          <button
+            type="button"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-mono text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
+          >
+            <Plus className="h-4 w-4" />
+            Tambah Transaksi
+          </button>
         </div>
 
         {/* Navigation */}
@@ -98,20 +108,6 @@ export function NavigationBar() {
             );
           })}
         </nav>
-
-        {/* Theme toggle at bottom — both icons in DOM, CSS shows correct one */}
-        <div className="border-t border-border p-4">
-          <button
-            onClick={toggleTheme}
-            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-xs font-medium text-text-muted transition-all duration-200 hover:bg-surface hover:text-text-secondary"
-            aria-label="Toggle theme"
-          >
-            <Sun className="h-5 w-5 light-only" />
-            <Moon className="h-5 w-5 dark-only" />
-            <span className="light-only">Dark Mode</span>
-            <span className="dark-only">Light Mode</span>
-          </button>
-        </div>
       </aside>
     </>
   );

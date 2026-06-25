@@ -2,12 +2,17 @@
 
 import { useMemo } from "react";
 import {
-  Wallet,
   TrendingUp,
   TrendingDown,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  Plus,
+  Wallet,
+  Gauge,
+  Wrench,
 } from "lucide-react";
+import Link from "next/link";
 import { SmartInsights } from "@/components/dashboard/SmartInsights";
-import { WealthSpeedometer } from "@/components/dashboard/WealthSpeedometer";
 import { TransactionHistory } from "@/components/dashboard/TransactionHistory";
 import { useTransactions } from "@/hooks/useTransactions";
 import {
@@ -33,38 +38,34 @@ function getGreeting(): string {
 
 function BalanceSkeleton() {
   return (
-    <div className="glass rounded-2xl p-6">
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 animate-pulse rounded-xl bg-border" />
-        <div className="h-4 w-28 animate-pulse rounded bg-border" />
+    <div className="glass rounded-2xl p-6 shadow-lg shadow-black/10">
+      <div className="h-3 w-24 animate-pulse rounded bg-border" />
+      <div className="mt-4 flex items-baseline gap-3">
+        <div className="h-9 w-40 animate-pulse rounded-lg bg-border" />
+        <div className="h-5 w-20 animate-pulse rounded-full bg-border" />
       </div>
-      <div className="mt-4 h-10 w-48 animate-pulse rounded-lg bg-border" />
-    </div>
-  );
-}
-
-function IncomeExpenseSkeleton() {
-  return (
-    <div className="grid grid-cols-2 gap-4">
-      {[1, 2].map((i) => (
-        <div key={i} className="glass rounded-2xl p-5">
-          <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 animate-pulse rounded-lg bg-border" />
-            <div className="h-3 w-16 animate-pulse rounded bg-border" />
-          </div>
-          <div className="mt-3 h-7 w-32 animate-pulse rounded bg-border" />
+      <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
+        <div className="space-y-2">
+          <div className="h-3 w-14 animate-pulse rounded bg-border" />
+          <div className="h-6 w-28 animate-pulse rounded bg-border" />
         </div>
-      ))}
+        <div className="space-y-2">
+          <div className="h-3 w-14 animate-pulse rounded bg-border" />
+          <div className="h-6 w-28 animate-pulse rounded bg-border" />
+        </div>
+      </div>
     </div>
   );
 }
 
-function SpeedometerSkeleton() {
+function CTASkeleton() {
   return (
     <div className="glass rounded-2xl p-5">
-      <div className="mx-auto h-[110px] w-[200px] animate-pulse rounded-full bg-border" />
-      <div className="mt-3 flex justify-center">
-        <div className="h-6 w-16 animate-pulse rounded-full bg-border" />
+      <div className="h-[52px] w-full animate-pulse rounded-xl bg-border" />
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-[68px] animate-pulse rounded-xl bg-border" />
+        ))}
       </div>
     </div>
   );
@@ -152,6 +153,8 @@ export default function DashboardPage() {
     return "safe";
   }, [liquidityStatus, savingsStatus, debtStatus]);
 
+  const isPositive = balance >= 0;
+
   /* ─── Loading ─── */
   if (loading) {
     return (
@@ -161,8 +164,7 @@ export default function DashboardPage() {
           <div className="mt-2 h-4 w-64 animate-pulse rounded bg-border" />
         </div>
         <BalanceSkeleton />
-        <IncomeExpenseSkeleton />
-        <SpeedometerSkeleton />
+        <CTASkeleton />
         <div className="glass rounded-2xl p-6">
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
@@ -192,99 +194,90 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* ── 1. Total Balance Card ── */}
-      <div className="glass relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:shadow-[var(--card-hover-shadow)]">
-        {/* Decorative gradient blob */}
-        <div
-          className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-20 blur-3xl"
-          style={{
-            background:
-              balance >= 0
-                ? "radial-gradient(circle, #22C55E, transparent)"
-                : "radial-gradient(circle, #EF4444, transparent)",
-          }}
-        />
-
-        <div className="relative flex items-center gap-3">
-          <div
-            className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-              balance >= 0 ? "bg-success/15" : "bg-danger/15"
-            }`}
-          >
-            <Wallet
-              className={`h-5 w-5 ${
-                balance >= 0 ? "text-success" : "text-danger"
-              }`}
-            />
-          </div>
-          <span className="font-mono text-xs font-medium uppercase tracking-widest text-text-muted">
-            Total Balance
-          </span>
-        </div>
-
-        <p
-          className={`relative mt-4 font-mono text-3xl font-bold tracking-tight sm:text-4xl ${
-            balance >= 0 ? "text-success" : "text-danger"
-          }`}
-        >
-          {formatCurrency(balance)}
+      {/* ── 1. Total Balance + Income/Expense (NetWorthCard style) ── */}
+      <div className="glass rounded-2xl p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30">
+        <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
+          Total Balance
         </p>
 
-        {/* Subtle bottom accent line */}
-        <div
-          className="absolute bottom-0 left-0 h-[2px] w-full"
-          style={{
-            background:
-              balance >= 0
-                ? "linear-gradient(90deg, transparent, #22C55E, transparent)"
-                : "linear-gradient(90deg, transparent, #EF4444, transparent)",
-            opacity: 0.4,
-          }}
-        />
-      </div>
-
-      {/* ── 2. Income & Expense Cards ── */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Income */}
-        <div className="glass rounded-2xl p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--card-hover-shadow)]">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10">
-              <TrendingUp className="h-4 w-4 text-success" />
-            </div>
-            <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-text-muted">
-              Income
-            </span>
-          </div>
-          <p className="mt-3 font-mono text-xl font-bold text-success sm:text-2xl">
-            {formatCurrency(income)}
+        <div className="mt-3 flex items-baseline gap-3">
+          <p className="font-mono text-3xl font-bold text-text-primary">
+            {formatCurrency(Math.abs(balance))}
           </p>
+          <div
+            className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+              isPositive
+                ? "bg-success/15 text-success"
+                : "bg-danger/15 text-danger"
+            }`}
+          >
+            {isPositive ? (
+              <ArrowUpIcon className="h-3.5 w-3.5" />
+            ) : (
+              <ArrowDownIcon className="h-3.5 w-3.5" />
+            )}
+            {isPositive ? "Positif" : "Negatif"}
+          </div>
         </div>
 
-        {/* Expenses */}
-        <div className="glass rounded-2xl p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--card-hover-shadow)]">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-danger/10">
-              <TrendingDown className="h-4 w-4 text-danger" />
-            </div>
-            <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-text-muted">
-              Expenses
-            </span>
+        <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
+          <div>
+            <p className="font-mono text-xs text-text-muted">Income</p>
+            <p className="mt-1 font-mono text-lg font-semibold text-success">
+              {formatCurrency(income)}
+            </p>
           </div>
-          <p className="mt-3 font-mono text-xl font-bold text-danger sm:text-2xl">
-            {formatCurrency(expenses)}
-          </p>
+          <div>
+            <p className="font-mono text-xs text-text-muted">Expenses</p>
+            <p className="mt-1 font-mono text-lg font-semibold text-danger">
+              {formatCurrency(expenses)}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* ── 3. Wealth Speedometer ── */}
-      <WealthSpeedometer
-        overallStatus={overallStatus}
-        liquidityStatus={liquidityStatus}
-        savingsStatus={savingsStatus}
-        debtStatus={debtStatus}
-      />
+      {/* ── 2. Quick Actions ── */}
+      <div className="glass rounded-2xl p-5">
+        <button
+          type="button"
+          className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-4 font-mono text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
+        >
+          <Plus className="h-5 w-5" />
+          Tambah Transaksi Baru
+        </button>
 
-      {/* ── 4. Smart Insights ── */}
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          <Link
+            href="/budget"
+            className="flex flex-col items-center gap-2 rounded-xl border border-border bg-surface-alt px-3 py-3.5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
+          >
+            <Wallet className="h-5 w-5 text-accent" />
+            <span className="font-mono text-[11px] font-semibold text-text-secondary">
+              Budget
+            </span>
+          </Link>
+          <Link
+            href="/wealth"
+            className="flex flex-col items-center gap-2 rounded-xl border border-border bg-surface-alt px-3 py-3.5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
+          >
+            <Gauge className="h-5 w-5 text-accent-secondary" />
+            <span className="font-mono text-[11px] font-semibold text-text-secondary">
+              Wealth
+            </span>
+          </Link>
+          <Link
+            href="/tools"
+            className="flex flex-col items-center gap-2 rounded-xl border border-border bg-surface-alt px-3 py-3.5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
+          >
+            <Wrench className="h-5 w-5 text-text-muted" />
+            <span className="font-mono text-[11px] font-semibold text-text-secondary">
+              Tools
+            </span>
+          </Link>
+        </div>
+      </div>
+
+      {/* ── 3. Smart Insights ── */}
       <SmartInsights
         ratios={ratioData}
         liquidityStatus={liquidityStatus}
@@ -293,7 +286,7 @@ export default function DashboardPage() {
         overallStatus={overallStatus}
       />
 
-      {/* ── 5. Transaction History ── */}
+      {/* ── 4. Transaction History ── */}
       <TransactionHistory transactions={transactions} />
     </div>
   );
