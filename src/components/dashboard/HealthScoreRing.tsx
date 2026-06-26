@@ -44,8 +44,8 @@ export function HealthScoreRing({
   const label = getStatusLabel(overallStatus, true);
 
   /* ── SVG ring ── */
-  const size = 112;
-  const strokeWidth = 10;
+  const size = 184;
+  const strokeWidth = 16;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (compositeScore / 100) * circumference;
@@ -91,7 +91,7 @@ export function HealthScoreRing({
           x={size / 2}
           y={size / 2 - 2}
           textAnchor="middle"
-          className="font-mono text-2xl font-bold"
+          className="font-mono text-3xl font-bold"
           fill="var(--color-text-primary)"
         >
           {compositeScore}

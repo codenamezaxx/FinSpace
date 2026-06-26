@@ -30,9 +30,15 @@ export const metadata: Metadata = {
   },
   description: APP_DESCRIPTION,
   manifest: "/manifest.json",
+  icons: {
+    apple: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: APP_DEFAULT_TITLE,
   },
   formatDetection: {
@@ -55,6 +61,11 @@ export const metadata: Metadata = {
     },
     description: APP_DESCRIPTION,
   },
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
@@ -75,7 +86,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("finspace-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.setAttribute("data-theme","dark")}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem("finspace-theme");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")}catch(e){}})()`,
           }}
         />
         <style>{`

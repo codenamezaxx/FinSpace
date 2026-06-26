@@ -34,14 +34,10 @@ function getStoredTheme(): Theme | null {
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
 
-  // On mount, read stored/system theme and sync to state
+  // On mount, read stored theme (fallback light) and sync to state
   useEffect(() => {
     const stored = getStoredTheme();
-    const active =
-      stored ??
-      (window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light");
+    const active = stored ?? "light";
     setThemeState(active);
     document.documentElement.setAttribute("data-theme", active);
   }, []);
@@ -59,20 +55,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const toggleTheme = useCallback(() => {
     setTheme(theme === "dark" ? "light" : "dark");
   }, [theme, setTheme]);
-
-  // Listen for system preference changes (only when no explicit theme stored)
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = (e: MediaQueryListEvent) => {
-      if (!window.localStorage.getItem("finspace-theme")) {
-        const next = e.matches ? "dark" : "light";
-        setThemeState(next);
-        document.documentElement.setAttribute("data-theme", next);
-      }
-    };
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
 
   const value = useMemo<ThemeContextValue>(
     () => ({ theme, toggleTheme, setTheme }),

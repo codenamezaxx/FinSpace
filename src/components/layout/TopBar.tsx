@@ -29,9 +29,9 @@ export function TopBar() {
             <img
               src="/icons/icon-192x192.svg"
               alt=""
-              className="h-5 w-5"
+              className="h-6 w-6"
             />
-            <span className="text-base font-bold text-text-primary">
+            <span className="text-base font-semibold text-text-primary">
               FinSpace
             </span>
           </div>

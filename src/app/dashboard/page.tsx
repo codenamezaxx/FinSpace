@@ -15,6 +15,7 @@ import Link from "next/link";
 import { SmartInsights } from "@/components/dashboard/SmartInsights";
 import { TransactionHistory } from "@/components/dashboard/TransactionHistory";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useTransactionModal } from "@/lib/transaction-modal-context";
 import {
   calculateAllRatios,
   getLiquidityStatus,
@@ -94,6 +95,7 @@ function TransactionSkeleton() {
 /* ─── Page ─── */
 
 export default function DashboardPage() {
+  const { openAddTransaction } = useTransactionModal();
   const now = new Date();
   const startOfMonth = new Date(
     now.getFullYear(),
@@ -181,12 +183,16 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 pb-8">
       {/* ── Header ── */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">
-          {getGreeting()} 👋
-        </h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Ringkasan keuangan bulan{" "}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary lg:text-3xl">
+            {getGreeting()} 👋
+          </h1>
+          <p className="mt-1 text-sm text-text-muted">
+            Berikut adalah ringkasan keuangan Anda
+          </p>
+        </div>
+        <p className="hidden text-right text-sm text-text-muted font-mono lg:block">
           {now.toLocaleDateString("id-ID", {
             month: "long",
             year: "numeric",
@@ -194,8 +200,8 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* ── 1. Total Balance + Income/Expense (NetWorthCard style) ── */}
-      <div className="glass rounded-2xl p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30">
+      {/* ── Mobile: Combined Balance + Income/Expense (1 card) ── */}
+      <div className="glass rounded-2xl p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 lg:hidden">
         <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
           Total Balance
         </p>
@@ -236,58 +242,106 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── 2. Quick Actions ── */}
-      <div className="glass rounded-2xl p-5">
-        <button
-          type="button"
-          className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-4 font-mono text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
-        >
-          <Plus className="h-5 w-5" />
-          Tambah Transaksi Baru
-        </button>
+      {/* ── Desktop: 3 separate metric cards ── */}
+      <div className="hidden gap-6 lg:grid lg:grid-cols-3">
+        {/* Balance */}
+        <div className="glass rounded-2xl p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30">
+          <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
+            Total Balance
+          </p>
+          <p className="mt-3 font-mono text-3xl font-bold text-text-primary">
+            {formatCurrency(Math.abs(balance))}
+          </p>
+          <div
+            className={`mt-2 flex items-center gap-1 text-xs font-semibold ${
+              isPositive ? "text-success" : "text-danger"
+            }`}
+          >
+            {isPositive ? (
+              <ArrowUpIcon className="h-3 w-3" />
+            ) : (
+              <ArrowDownIcon className="h-3 w-3" />
+            )}
+            {isPositive ? "Positif" : "Negatif"}
+          </div>
+        </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          <Link
-            href="/budget"
-            className="flex flex-col items-center gap-2 rounded-xl border border-border bg-surface-alt px-3 py-3.5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
-          >
-            <Wallet className="h-5 w-5 text-accent" />
-            <span className="font-mono text-[11px] font-semibold text-text-secondary">
-              Budget
-            </span>
-          </Link>
-          <Link
-            href="/wealth"
-            className="flex flex-col items-center gap-2 rounded-xl border border-border bg-surface-alt px-3 py-3.5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
-          >
-            <Gauge className="h-5 w-5 text-accent-secondary" />
-            <span className="font-mono text-[11px] font-semibold text-text-secondary">
-              Wealth
-            </span>
-          </Link>
-          <Link
-            href="/tools"
-            className="flex flex-col items-center gap-2 rounded-xl border border-border bg-surface-alt px-3 py-3.5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
-          >
-            <Wrench className="h-5 w-5 text-text-muted" />
-            <span className="font-mono text-[11px] font-semibold text-text-secondary">
-              Tools
-            </span>
-          </Link>
+        {/* Income */}
+        <div className="glass rounded-2xl p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30">
+          <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
+            Income
+          </p>
+          <p className="mt-3 font-mono text-3xl font-bold text-success">
+            {formatCurrency(income)}
+          </p>
+        </div>
+
+        {/* Expenses */}
+        <div className="glass rounded-2xl p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30">
+          <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
+            Expenses
+          </p>
+          <p className="mt-3 font-mono text-3xl font-bold text-danger">
+            {formatCurrency(expenses)}
+          </p>
         </div>
       </div>
 
-      {/* ── 3. Smart Insights ── */}
-      <SmartInsights
-        ratios={ratioData}
-        liquidityStatus={liquidityStatus}
-        savingsStatus={savingsStatus}
-        debtStatus={debtStatus}
-        overallStatus={overallStatus}
-      />
+      {/* ── Quick Actions ── */}
+      <div className="glass rounded-2xl p-4 lg:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <button
+            type="button"
+            onClick={() => openAddTransaction()}
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-4 font-mono text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30 lg:w-auto"
+          >
+            <Plus className="h-5 w-5" />
+            Tambah Transaksi Baru
+          </button>
 
-      {/* ── 4. Transaction History ── */}
-      <TransactionHistory transactions={transactions} />
+          <div className="flex items-center justify-center gap-3 lg:gap-4">
+            <Link
+              href="/budget"
+              className="flex flex-col items-center gap-1 rounded-xl border border-border bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5"
+            >
+              <Wallet className="h-5 w-5 text-accent" />
+              <span className="font-mono text-[11px] font-semibold text-text-secondary">
+                Budget
+              </span>
+            </Link>
+            <Link
+              href="/wealth"
+              className="flex flex-col items-center gap-1 rounded-xl border border-border bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5"
+            >
+              <Gauge className="h-5 w-5 text-accent-secondary" />
+              <span className="font-mono text-[11px] font-semibold text-text-secondary">
+                Wealth
+              </span>
+            </Link>
+            <Link
+              href="/tools"
+              className="flex flex-col items-center gap-1 rounded-xl border border-border bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5"
+            >
+              <Wrench className="h-5 w-5 text-text-muted" />
+              <span className="font-mono text-[11px] font-semibold text-text-secondary">
+                Tools
+              </span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Bottom: Smart Insights + Transaction History ── */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SmartInsights
+          ratios={ratioData}
+          liquidityStatus={liquidityStatus}
+          savingsStatus={savingsStatus}
+          debtStatus={debtStatus}
+          overallStatus={overallStatus}
+        />
+        <TransactionHistory transactions={transactions} />
+      </div>
     </div>
   );
 }

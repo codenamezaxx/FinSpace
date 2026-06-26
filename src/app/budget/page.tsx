@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Plus } from "lucide-react";
 import { TransactionList } from "@/components/shared/TransactionList";
-import { AddTransactionForm } from "@/components/budget/AddTransactionForm";
 import { BudgetRing } from "@/components/budget/BudgetRing";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useTransactionModal } from "@/lib/transaction-modal-context";
 import {
   calculateBudgetAllocation,
   checkBudgetStatus,
@@ -13,7 +13,7 @@ import {
 } from "@/lib/budgetRules";
 
 export default function BudgetPage() {
-  const [showAddForm, setShowAddForm] = useState(false);
+  const { openAddTransaction } = useTransactionModal();
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
@@ -76,7 +76,7 @@ export default function BudgetPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowAddForm(true)}
+          onClick={() => openAddTransaction()}
           className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" />
@@ -140,11 +140,7 @@ export default function BudgetPage() {
         <TransactionList />
       </div>
 
-      {/* Add Transaction Modal */}
-      <AddTransactionForm
-        isOpen={showAddForm}
-        onClose={() => setShowAddForm(false)}
-      />
+
     </div>
   );
 }

@@ -1,15 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
+import { useEffect, useState } from "react";
+import { ResponsiveModal } from "./ResponsiveModal";
+import { useTransactionModal } from "@/lib/transaction-modal-context";
 import { useTransactions } from "@/hooks/useTransactions";
 
-interface AddTransactionFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const CATEGORIES = [
+const EXPENSE_CATEGORIES = [
   "Makanan & Minuman",
   "Transportasi",
   "Belanja",
@@ -17,22 +13,33 @@ const CATEGORIES = [
   "Tagihan",
   "Kesehatan",
   "Pendidikan",
-  "Gaji",
-  "Freelance",
-  "Investasi",
 ];
 
 const PAYMENT_METHODS = ["Cash", "Transfer Bank", "Kartu Kredit", "E-Wallet"];
 
-export function AddTransactionForm({ isOpen, onClose }: AddTransactionFormProps) {
+export function GlobalTransactionModal() {
+  const { isOpen, closeAddTransaction, initialTab } = useTransactionModal();
   const { addTransaction } = useTransactions();
-  const [type, setType] = useState<"income" | "expense">("expense");
+
+  const [tab, setTab] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
   const [merchant, setMerchant] = useState("");
-  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [category, setCategory] = useState(EXPENSE_CATEGORIES[0]);
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Reset form state every time modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setTab(initialTab);
+      setAmount("");
+      setMerchant("");
+      setCategory(EXPENSE_CATEGORIES[0]);
+      setPaymentMethod(PAYMENT_METHODS[0]);
+      setError("");
+    }
+  }, [isOpen, initialTab]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +51,11 @@ export function AddTransactionForm({ isOpen, onClose }: AddTransactionFormProps)
       return;
     }
     if (!merchant.trim()) {
-      setError("Masukkan nama merchant.");
+      setError(
+        tab === "income"
+          ? "Masukkan asal pemasukkan."
+          : "Masukkan tujuan pengeluaran."
+      );
       return;
     }
 
@@ -52,17 +63,12 @@ export function AddTransactionForm({ isOpen, onClose }: AddTransactionFormProps)
     try {
       await addTransaction({
         amount: numAmount,
-        type,
-        category,
+        type: tab,
+        category: tab === "income" ? "Pemasukkan" : category,
         merchant: merchant.trim(),
         payment_method: paymentMethod,
       });
-      setAmount("");
-      setMerchant("");
-      setCategory(CATEGORIES[0]);
-      setPaymentMethod(PAYMENT_METHODS[0]);
-      setType("expense");
-      onClose();
+      closeAddTransaction();
     } catch {
       setError("Gagal menyimpan transaksi.");
     } finally {
@@ -71,29 +77,33 @@ export function AddTransactionForm({ isOpen, onClose }: AddTransactionFormProps)
   };
 
   return (
-    <ResponsiveModal isOpen={isOpen} onClose={onClose} title="Tambah Transaksi">
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={closeAddTransaction}
+      title="Tambah Transaksi"
+    >
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Type Toggle */}
+        {/* ── Tab Toggle ── */}
         <div className="flex rounded-xl border border-border bg-surface-alt p-1">
           {(["expense", "income"] as const).map((t) => (
             <button
               key={t}
               type="button"
-              onClick={() => setType(t)}
+              onClick={() => setTab(t)}
               className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-all duration-200 ${
-                type === t
+                tab === t
                   ? t === "expense"
                     ? "bg-primary text-white shadow-md shadow-primary/25"
                     : "bg-success text-white shadow-md shadow-success/25"
                   : "text-text-muted hover:text-text-secondary hover:bg-surface"
               }`}
             >
-              {t === "expense" ? "Pengeluaran" : "Pemasukan"}
+              {t === "expense" ? "Pengeluaran" : "Pemasukkan"}
             </button>
           ))}
         </div>
 
-        {/* Amount */}
+        {/* ── Amount ── */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-text-secondary">
             Jumlah (Rp)
@@ -108,39 +118,45 @@ export function AddTransactionForm({ isOpen, onClose }: AddTransactionFormProps)
           />
         </div>
 
-        {/* Merchant */}
+        {/* ── Merchant / Source (label changes per tab) ── */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-            Merchant
+            {tab === "income" ? "Asal Pemasukkan" : "Tujuan Pengeluaran"}
           </label>
           <input
             type="text"
-            placeholder="Nama toko atau merchant"
+            placeholder={
+              tab === "income"
+                ? "Contoh: Gaji, Freelance"
+                : "Nama toko atau merchant"
+            }
             value={merchant}
             onChange={(e) => setMerchant(e.target.value)}
             className="w-full rounded-lg border border-border bg-surface-alt px-4 py-3 text-sm text-text-primary placeholder-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors"
           />
         </div>
 
-        {/* Category */}
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-            Kategori
-          </label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full rounded-lg border border-border bg-surface-alt px-4 py-3 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors appearance-none"
-          >
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* ── Category (expense only) ── */}
+        {tab === "expense" && (
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+              Jenis Pengeluaran
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full appearance-none rounded-lg border border-border bg-surface-alt px-4 py-3 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors"
+            >
+              {EXPENSE_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
-        {/* Payment Method */}
+        {/* ── Payment Method ── */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-text-secondary">
             Metode Pembayaran
@@ -148,7 +164,7 @@ export function AddTransactionForm({ isOpen, onClose }: AddTransactionFormProps)
           <select
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value)}
-            className="w-full rounded-lg border border-border bg-surface-alt px-4 py-3 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors appearance-none"
+            className="w-full appearance-none rounded-lg border border-border bg-surface-alt px-4 py-3 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors"
           >
             {PAYMENT_METHODS.map((m) => (
               <option key={m} value={m}>
@@ -158,16 +174,14 @@ export function AddTransactionForm({ isOpen, onClose }: AddTransactionFormProps)
           </select>
         </div>
 
-        {/* Error */}
-        {error && (
-          <p className="text-xs font-medium text-danger">{error}</p>
-        )}
+        {/* ── Error ── */}
+        {error && <p className="text-xs font-medium text-danger">{error}</p>}
 
-        {/* Submit */}
+        {/* ── Submit ── */}
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {submitting ? "Menyimpan..." : "Simpan Transaksi"}
         </button>

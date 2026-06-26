@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useTheme } from "@/lib/theme-context";
+import { useTransactionModal } from "@/lib/transaction-modal-context";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -24,6 +25,7 @@ const navItems = [
 export function NavigationBar() {
   const pathname = usePathname();
   const { toggleTheme } = useTheme();
+  const { openAddTransaction } = useTransactionModal();
 
   return (
     <>
@@ -76,6 +78,7 @@ export function NavigationBar() {
         <div className="px-4 pt-6 pb-4">
           <button
             type="button"
+            onClick={() => openAddTransaction()}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-mono text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
           >
             <Plus className="h-4 w-4" />
