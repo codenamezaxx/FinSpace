@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { AppShell } from "@/components/layout/AppShell";
 import { ClientSerwistProvider } from "@/components/layout/ClientSerwistProvider";
 import { ThemeProvider } from "@/lib/theme-context";
+import { AssetLiabilityModalProvider } from "@/lib/asset-liability-modal-context";
 import "./globals.css";
 
 const inter = Inter({
@@ -130,7 +131,9 @@ export default function RootLayout({
       <body className="min-h-full bg-background text-text-secondary">
         <ThemeProvider>
           <ClientSerwistProvider>
-            <AppShell>{children}</AppShell>
+            <AssetLiabilityModalProvider>
+              <AppShell>{children}</AppShell>
+            </AssetLiabilityModalProvider>
           </ClientSerwistProvider>
         </ThemeProvider>
       </body>

@@ -72,6 +72,15 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Cleanup: update ~offline page, tools page to use new design tokens
 - [x] AGENTS.md: replace old finance-* palette with new design tokens documentation
 
+## Phase 5e: Dashboard UI Polish — Gradient Cards, Layout & Mobile Switcher Refactor
+- [x] Wrapping balance / net worth cards in gradient glass (desktop + mobile)
+- [x] Refactor `MobileCardSwitcher`: simplified to dots-only navigation + swipe gestures; cards are fully independent divs with gradient
+- [x] `NetWorthCard`: added `className` + `style` props for external gradient styling
+- [x] `NetWorthCard`: replaced `glass` class with `bg-surface` + `backdrop-blur-xl` + `border-border` to avoid `!important` override conflict with inline gradient
+- [x] `HealthScoreRing`: simplified animation implementation, removed redundant root-level CSS
+- [x] `SmartInsights`: visual polish pass — alignment, spacing, icon sizing
+- [x] Export `getLiquidityStatus`, `getSavingsRateStatus`, `getDebtToIncomeStatus` from `financialRatios.ts` for wealth page
+
 ## Phase 5d: Glassmorphism + Theme Toggle
 - [x] Add `.glass` utility class (frosted glass: backdrop-blur, semi-transparent bg, subtle border)
 - [x] Add `ThemeContext` + `ThemeProvider` with localStorage persistence + system preference detection

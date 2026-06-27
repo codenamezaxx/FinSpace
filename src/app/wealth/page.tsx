@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { NetWorthCard } from "@/components/wealth/NetWorthCard";
 import { RatioCard } from "@/components/wealth/RatioCard";
 import { Speedometer } from "@/components/wealth/Speedometer";
-import { AssetLiabilityForm } from "@/components/wealth/AssetLiabilityForm";
 import { useTransactions } from "@/hooks/useTransactions";
 import { calculateNetWorth, formatCurrency } from "@/lib/netWorth";
+import { useAssetLiabilityModal } from "@/lib/asset-liability-modal-context";
 import {
   calculateAllRatios,
   calculateHealthScore,
@@ -39,6 +39,7 @@ function loadFromStorage<T>(key: string, fallback: T[]): T[] {
 }
 
 export default function WealthPage() {
+  const { openAssetLiabilityModal } = useAssetLiabilityModal();
   const now = new Date();
   const startOfMonth = new Date(
     now.getFullYear(),
@@ -61,22 +62,22 @@ export default function WealthPage() {
 
   const [assets, setAssets] = useState<AssetEntry[]>([]);
   const [liabilities, setLiabilities] = useState<LiabilityEntry[]>([]);
-  const [isFormOpen, setIsFormOpen] = useState(false);
 
-  useEffect(() => {
-    setAssets(loadFromStorage<AssetEntry>(ASSETS_KEY, []));
-    setLiabilities(loadFromStorage<LiabilityEntry>(LIABILITIES_KEY, []));
+  const loadData = useCallback(() => {
+    setAssets(
+      loadFromStorage<AssetEntry>(ASSETS_KEY, [])
+    );
+    setLiabilities(
+      loadFromStorage<LiabilityEntry>(LIABILITIES_KEY, [])
+    );
   }, []);
 
-  function saveAssets(newAssets: AssetEntry[]) {
-    setAssets(newAssets);
-    localStorage.setItem(ASSETS_KEY, JSON.stringify(newAssets));
-  }
-
-  function saveLiabilities(newLiabilities: LiabilityEntry[]) {
-    setLiabilities(newLiabilities);
-    localStorage.setItem(LIABILITIES_KEY, JSON.stringify(newLiabilities));
-  }
+  useEffect(() => {
+    loadData();
+    window.addEventListener("finspace-assets-updated", loadData);
+    return () =>
+      window.removeEventListener("finspace-assets-updated", loadData);
+  }, [loadData]);
 
   const netWorthData = useMemo(
     () => calculateNetWorth(assets, liabilities),
@@ -127,20 +128,16 @@ export default function WealthPage() {
     return "safe";
   }, [ratios]);
 
-  function handleAddItem(item: AssetEntry | LiabilityEntry) {
-    if ("type" in item) {
-      saveAssets([...assets, item]);
-    } else {
-      saveLiabilities([...liabilities, item]);
-    }
-  }
-
   function removeAsset(id: string) {
-    saveAssets(assets.filter((a) => a.id !== id));
+    const updated = assets.filter((a) => a.id !== id);
+    setAssets(updated);
+    localStorage.setItem(ASSETS_KEY, JSON.stringify(updated));
   }
 
   function removeLiability(id: string) {
-    saveLiabilities(liabilities.filter((l) => l.id !== id));
+    const updated = liabilities.filter((l) => l.id !== id);
+    setLiabilities(updated);
+    localStorage.setItem(LIABILITIES_KEY, JSON.stringify(updated));
   }
 
   return (
@@ -155,7 +152,7 @@ export default function WealthPage() {
         </div>
         <button
           type="button"
-          onClick={() => setIsFormOpen(true)}
+          onClick={() => openAssetLiabilityModal()}
           className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-mono text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
         >
           <Plus className="h-4 w-4" />
@@ -290,13 +287,6 @@ export default function WealthPage() {
           )}
         </div>
       </div>
-
-      {/* Add Asset/Liability Modal */}
-      <AssetLiabilityForm
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSave={handleAddItem}
-      />
     </div>
   );
 }
