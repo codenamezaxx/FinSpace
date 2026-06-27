@@ -1,27 +1,32 @@
 "use client";
 
 import { memo } from "react";
+import type { CSSProperties } from "react";
 import { NetWorthResult, formatCurrency } from "@/lib/netWorth";
 import { ArrowUpIcon, ArrowDownIcon } from "lucide-react";
 
 interface NetWorthCardProps {
   data: NetWorthResult;
+  className?: string;
+  style?: CSSProperties;
 }
 
 export const NetWorthCard = memo(function NetWorthCard({
   data,
+  className = "",
+  style,
 }: NetWorthCardProps) {
   const { totalAssets, totalLiabilities, netWorth } = data;
   const isPositive = netWorth >= 0;
 
   return (
-    <div className="glass rounded-2xl p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30">
+    <div className={`rounded-2xl border border-border bg-surface p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 ${className}`} style={style}>
       <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
         Net Worth
       </p>
 
       <div className="mt-3 flex items-baseline gap-3">
-        <p className="font-mono text-3xl font-bold text-text-primary">
+        <p className="text-3xl font-bold text-text-primary">
           {formatCurrency(Math.abs(netWorth))}
         </p>
         <div

@@ -63,6 +63,35 @@ export function calculateAllRatios(
   };
 }
 
+/**
+ * Shared composite health score (0–100) using the same formula everywhere.
+ * Uses actual ratio values rather than status categories.
+ */
+export function calculateHealthScore(ratios: FinancialRatios): number {
+  const liquidityScore = Math.min(100, (ratios.liquidityRatio / 6) * 100);
+  const savingsScore = Math.min(100, (ratios.savingsRate / 30) * 100);
+  const dtiScore = Math.max(0, 100 - ratios.debtToIncome);
+  return Math.round((liquidityScore + savingsScore + dtiScore) / 3);
+}
+
+/**
+ * Derive a label from the numeric score.
+ */
+export function scoreToLabel(score: number): string {
+  if (score >= 70) return "Aman";
+  if (score >= 40) return "Waspada";
+  return "Bahaya";
+}
+
+/**
+ * Derive a color from the numeric score.
+ */
+export function scoreToColor(score: number): string {
+  if (score >= 70) return "#22C55E";
+  if (score >= 40) return "#EAB393";
+  return "#EF4444";
+}
+
 // Health status helpers
 
 export function getLiquidityStatus(ratio: number): HealthStatus {

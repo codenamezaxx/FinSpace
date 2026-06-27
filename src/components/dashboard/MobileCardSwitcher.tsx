@@ -22,18 +22,18 @@ export function MobileCardSwitcher({
   }
 
   return (
-    <div className="glass rounded-2xl shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30">
-      {/* ── Dot indicators ── */}
-      <div className="flex items-center justify-end gap-2 px-6 pt-4">
+    <div className="space-y-2">
+      {/* ── Card selector dots ── */}
+      <div className="flex items-center justify-end gap-2 px-1">
         {views.map((_, i) => (
           <button
             key={i}
             type="button"
             onClick={() => switchTo(i)}
-            className={`h-2 w-2 rounded-full transition-all duration-300 ${
+            className={`h-2 rounded-full transition-all duration-300 ${
               i === active
-                ? "bg-primary w-5"
-                : "bg-border hover:bg-text-muted"
+                ? "w-5 bg-primary"
+                : "w-2 bg-border hover:bg-text-muted"
             }`}
             aria-label={labels[i]}
           />
@@ -41,7 +41,7 @@ export function MobileCardSwitcher({
       </div>
 
       {/* ── Animated card slot ── */}
-      <div className="relative overflow-hidden px-6 pb-6">
+      <div className="relative overflow-hidden">
         <div
           className="flex transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${active * 100}%)` }}

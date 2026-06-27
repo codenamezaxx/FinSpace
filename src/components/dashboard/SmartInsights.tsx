@@ -9,6 +9,7 @@ import insightsData from "@/lib/insights.json";
 
 interface SmartInsightsProps {
   ratios: FinancialRatios;
+  healthScore: number;
   liquidityStatus: HealthStatus;
   savingsStatus: HealthStatus;
   debtStatus: HealthStatus;
@@ -35,6 +36,7 @@ function getStatusBg(status: HealthStatus): string {
 
 export function SmartInsights({
   ratios,
+  healthScore,
   liquidityStatus,
   savingsStatus,
   debtStatus,
@@ -82,12 +84,7 @@ export function SmartInsights({
   return (
     <div className="glass rounded-2xl p-6">
       {/* Health Score Ring */}
-      <HealthScoreRing
-        liquidityStatus={liquidityStatus}
-        savingsStatus={savingsStatus}
-        debtStatus={debtStatus}
-        overallStatus={overallStatus}
-      />
+      <HealthScoreRing score={healthScore} />
 
       {/* Header */}
       <div className="flex items-center gap-2.5 mb-4">

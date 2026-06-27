@@ -1,54 +1,21 @@
 "use client";
 
-import type { HealthStatus } from "@/lib/financialRatios";
-import { getStatusLabel } from "@/lib/financialRatios";
-
-function statusToScore(status: HealthStatus): number {
-  switch (status) {
-    case "safe": return 100;
-    case "warning": return 50;
-    case "danger": return 0;
-  }
-}
-
-function scoreToColor(score: number): string {
-  if (score >= 67) return "#22C55E";
-  if (score >= 34) return "#EAB393";
-  return "#EF4444";
-}
+import { scoreToColor, scoreToLabel } from "@/lib/financialRatios";
 
 interface HealthScoreRingProps {
-  liquidityStatus: HealthStatus;
-  savingsStatus: HealthStatus;
-  debtStatus: HealthStatus;
-  overallStatus: HealthStatus;
+  score: number;
 }
 
-export function HealthScoreRing({
-  liquidityStatus,
-  savingsStatus,
-  debtStatus,
-  overallStatus,
-}: HealthScoreRingProps) {
-  /* ── Composite score ── */
-  const scores = [
-    statusToScore(liquidityStatus),
-    statusToScore(savingsStatus),
-    statusToScore(debtStatus),
-  ];
-  const compositeScore = Math.round(
-    scores.reduce((a, b) => a + b, 0) / scores.length
-  );
-
-  const color = scoreToColor(compositeScore);
-  const label = getStatusLabel(overallStatus, true);
+export function HealthScoreRing({ score }: HealthScoreRingProps) {
+  const color = scoreToColor(score);
+  const label = scoreToLabel(score);
 
   /* ── SVG ring ── */
   const size = 184;
   const strokeWidth = 16;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (compositeScore / 100) * circumference;
+  const offset = circumference - (score / 100) * circumference;
 
   return (
     <div className="mb-4 flex flex-col items-center">
@@ -59,7 +26,7 @@ export function HealthScoreRing({
         width={size}
         height={size}
         viewBox={`0 0 ${size} ${size}`}
-        aria-label={`Skor kesehatan keuangan: ${compositeScore}`}
+        aria-label={`Skor kesehatan keuangan: ${score}`}
       >
         {/* Background ring */}
         <circle
@@ -94,7 +61,7 @@ export function HealthScoreRing({
           className="font-mono text-3xl font-bold"
           fill="var(--color-text-primary)"
         >
-          {compositeScore}
+          {score}
         </text>
 
         {/* Status label */}

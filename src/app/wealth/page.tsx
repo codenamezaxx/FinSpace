@@ -9,6 +9,7 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { calculateNetWorth, formatCurrency } from "@/lib/netWorth";
 import {
   calculateAllRatios,
+  calculateHealthScore,
   getLiquidityStatus,
   getSavingsRateStatus,
   getDebtToIncomeStatus,
@@ -113,12 +114,7 @@ export default function WealthPage() {
     [netWorthData.liquidAssets, monthlyData]
   );
 
-  const healthScore = useMemo(() => {
-    const liquidityScore = Math.min(100, (ratios.liquidityRatio / 6) * 100);
-    const savingsScore = Math.min(100, (ratios.savingsRate / 30) * 100);
-    const dtiScore = Math.max(0, 100 - ratios.debtToIncome);
-    return Math.round((liquidityScore + savingsScore + dtiScore) / 3);
-  }, [ratios]);
+  const healthScore = useMemo(() => calculateHealthScore(ratios), [ratios]);
 
   const overallStatus: HealthStatus = useMemo(() => {
     const statuses = [

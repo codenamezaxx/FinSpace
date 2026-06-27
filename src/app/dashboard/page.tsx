@@ -239,12 +239,18 @@ export default function DashboardPage() {
         <MobileCardSwitcher
           views={[
             /* Balance View */
-            <div key="balance" className="pt-2">
+            <div
+              key="balance"
+              className="rounded-2xl border border-border p-6 shadow-lg shadow-black/20 backdrop-blur-xl"
+              style={{
+                background: 'linear-gradient(135deg, rgba(59,130,246,0.10), rgba(30,41,59,0.55), rgba(114,62,195,0.04))',
+              }}
+            >
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
                 Total Balance
               </p>
               <div className="mt-3 flex items-baseline gap-3">
-                <p className="font-mono text-3xl font-bold text-text-primary">
+                <p className="text-3xl font-bold text-text-primary">
                   {formatCurrency(Math.abs(balance))}
                 </p>
                 <div
@@ -279,7 +285,13 @@ export default function DashboardPage() {
             </div>,
 
             /* Net Worth View */
-            <div key="networth" className="pt-2">
+            <div
+              key="networth"
+              className="rounded-2xl border border-border p-6 shadow-lg shadow-black/20 backdrop-blur-xl"
+              style={{
+                background: 'linear-gradient(135deg, rgba(59,130,246,0.10), rgba(30,41,59,0.55), rgba(114,62,195,0.04))',
+              }}
+            >
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
                 Net Worth
               </p>
@@ -324,7 +336,12 @@ export default function DashboardPage() {
       {/* ── Desktop: 2-column grid — Balance + Net Worth ── */}
       <div className="hidden gap-6 lg:grid lg:grid-cols-2">
         {/* Combined Balance + Income/Expense */}
-        <div className="glass rounded-2xl p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30">
+        <div
+          className="rounded-2xl border border-border p-6 shadow-lg shadow-black/20 backdrop-blur-xl"
+          style={{
+            background: 'linear-gradient(135deg, rgba(59,130,246,0.10), rgba(30,41,59,0.55), rgba(114,62,195,0.04))',
+          }}
+        >
           <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
             Total Balance
           </p>
@@ -364,7 +381,13 @@ export default function DashboardPage() {
         </div>
 
         {/* Net Worth Card */}
-        <NetWorthCard data={netWorthData} />
+        <NetWorthCard
+          data={netWorthData}
+          className=""
+          style={{
+            background: 'linear-gradient(135deg, rgba(59,130,246,0.10), rgba(30,41,59,0.55), rgba(114,62,195,0.04))',
+          }}
+        />
       </div>
 
       {/* ── Quick Actions ── */}
