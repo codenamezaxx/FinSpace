@@ -1,9 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
-  TrendingUp,
-  TrendingDown,
   ArrowUpIcon,
   ArrowDownIcon,
   Plus,
@@ -13,17 +11,21 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { SmartInsights } from "@/components/dashboard/SmartInsights";
+import { MobileCardSwitcher } from "@/components/dashboard/MobileCardSwitcher";
 import { TransactionHistory } from "@/components/dashboard/TransactionHistory";
+import { NetWorthCard } from "@/components/wealth/NetWorthCard";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionModal } from "@/lib/transaction-modal-context";
 import {
   calculateAllRatios,
+  calculateHealthScore,
   getLiquidityStatus,
   getSavingsRateStatus,
   getDebtToIncomeStatus,
 } from "@/lib/financialRatios";
-import { formatCurrency } from "@/lib/netWorth";
+import { formatCurrency, calculateNetWorth } from "@/lib/netWorth";
 import type { HealthStatus } from "@/lib/financialRatios";
+import type { NetWorthResult, AssetEntry, LiabilityEntry } from "@/lib/netWorth";
 
 /* ─── Helpers ─── */
 
@@ -106,11 +108,42 @@ export default function DashboardPage() {
     startTime: startOfMonth,
   });
 
+  /* ── Share data with Wealth page via localStorage ── */
+  const [liquidAssets, setLiquidAssets] = useState(0);
+  const [netWorthData, setNetWorthData] = useState<NetWorthResult>({
+    totalAssets: 0,
+    totalLiabilities: 0,
+    netWorth: 0,
+    liquidAssets: 0,
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const rawAssets = localStorage.getItem("finspace_assets");
+        const rawLiabilities = localStorage.getItem("finspace_liabilities");
+
+        const assets: AssetEntry[] = rawAssets ? JSON.parse(rawAssets) : [];
+        const liabilities: LiabilityEntry[] = rawLiabilities ? JSON.parse(rawLiabilities) : [];
+
+        const cash = assets
+          .filter((a) => a.type === "liquid")
+          .reduce((sum, a) => sum + a.amount, 0);
+        setLiquidAssets(cash);
+
+        setNetWorthData(calculateNetWorth(assets, liabilities));
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }, []);
+
   const {
     income,
     expenses,
     balance,
     ratioData,
+    healthScore,
     liquidityStatus,
     savingsStatus,
     debtStatus,
@@ -131,7 +164,7 @@ export default function DashboardPage() {
       .reduce((sum, t) => sum + t.amount, 0);
 
     const ratios = calculateAllRatios(
-      0,
+      liquidAssets,
       expensesTotal,
       incomeTotal,
       debtPayments
@@ -142,11 +175,12 @@ export default function DashboardPage() {
       expenses: expensesTotal,
       balance: incomeTotal - expensesTotal,
       ratioData: ratios,
+      healthScore: calculateHealthScore(ratios),
       liquidityStatus: getLiquidityStatus(ratios.liquidityRatio),
       savingsStatus: getSavingsRateStatus(ratios.savingsRate),
       debtStatus: getDebtToIncomeStatus(ratios.debtToIncome),
     };
-  }, [transactions]);
+  }, [transactions, liquidAssets]);
 
   const overallStatus: HealthStatus = useMemo(() => {
     const statuses = [liquidityStatus, savingsStatus, debtStatus];
@@ -200,91 +234,137 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* ── Mobile: Combined Balance + Income/Expense (1 card) ── */}
-      <div className="glass rounded-2xl p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 lg:hidden">
-        <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-          Total Balance
-        </p>
+      {/* ── Mobile: Switchable Balance / Net Worth card ── */}
+      <div className="lg:hidden">
+        <MobileCardSwitcher
+          views={[
+            /* Balance View */
+            <div key="balance" className="pt-2">
+              <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
+                Total Balance
+              </p>
+              <div className="mt-3 flex items-baseline gap-3">
+                <p className="font-mono text-3xl font-bold text-text-primary">
+                  {formatCurrency(Math.abs(balance))}
+                </p>
+                <div
+                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                    isPositive
+                      ? "bg-success/15 text-success"
+                      : "bg-danger/15 text-danger"
+                  }`}
+                >
+                  {isPositive ? (
+                    <ArrowUpIcon className="h-3.5 w-3.5" />
+                  ) : (
+                    <ArrowDownIcon className="h-3.5 w-3.5" />
+                  )}
+                  {isPositive ? "Positif" : "Negatif"}
+                </div>
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
+                <div>
+                  <p className="font-mono text-xs text-text-muted">Income</p>
+                  <p className="mt-1 font-mono text-lg font-semibold text-success">
+                    {formatCurrency(income)}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-mono text-xs text-text-muted">Expenses</p>
+                  <p className="mt-1 font-mono text-lg font-semibold text-danger">
+                    {formatCurrency(expenses)}
+                  </p>
+                </div>
+              </div>
+            </div>,
 
-        <div className="mt-3 flex items-baseline gap-3">
-          <p className="font-mono text-3xl font-bold text-text-primary">
-            {formatCurrency(Math.abs(balance))}
-          </p>
-          <div
-            className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
-              isPositive
-                ? "bg-success/15 text-success"
-                : "bg-danger/15 text-danger"
-            }`}
-          >
-            {isPositive ? (
-              <ArrowUpIcon className="h-3.5 w-3.5" />
-            ) : (
-              <ArrowDownIcon className="h-3.5 w-3.5" />
-            )}
-            {isPositive ? "Positif" : "Negatif"}
-          </div>
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
-          <div>
-            <p className="font-mono text-xs text-text-muted">Income</p>
-            <p className="mt-1 font-mono text-lg font-semibold text-success">
-              {formatCurrency(income)}
-            </p>
-          </div>
-          <div>
-            <p className="font-mono text-xs text-text-muted">Expenses</p>
-            <p className="mt-1 font-mono text-lg font-semibold text-danger">
-              {formatCurrency(expenses)}
-            </p>
-          </div>
-        </div>
+            /* Net Worth View */
+            <div key="networth" className="pt-2">
+              <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
+                Net Worth
+              </p>
+              <div className="mt-3 flex items-baseline gap-3">
+                <p className="font-mono text-3xl font-bold text-text-primary">
+                  {formatCurrency(Math.abs(netWorthData.netWorth))}
+                </p>
+                <div
+                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                    netWorthData.netWorth >= 0
+                      ? "bg-success/15 text-success"
+                      : "bg-danger/15 text-danger"
+                  }`}
+                >
+                  {netWorthData.netWorth >= 0 ? (
+                    <ArrowUpIcon className="h-3.5 w-3.5" />
+                  ) : (
+                    <ArrowDownIcon className="h-3.5 w-3.5" />
+                  )}
+                  {netWorthData.netWorth >= 0 ? "Positif" : "Negatif"}
+                </div>
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
+                <div>
+                  <p className="font-mono text-xs text-text-muted">Total Aset</p>
+                  <p className="mt-1 font-mono text-lg font-semibold text-success">
+                    {formatCurrency(netWorthData.totalAssets)}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-mono text-xs text-text-muted">Total Liabilitas</p>
+                  <p className="mt-1 font-mono text-lg font-semibold text-danger">
+                    {formatCurrency(netWorthData.totalLiabilities)}
+                  </p>
+                </div>
+              </div>
+            </div>,
+          ]}
+        />
       </div>
 
-      {/* ── Desktop: 3 separate metric cards ── */}
-      <div className="hidden gap-6 lg:grid lg:grid-cols-3">
-        {/* Balance */}
+      {/* ── Desktop: 2-column grid — Balance + Net Worth ── */}
+      <div className="hidden gap-6 lg:grid lg:grid-cols-2">
+        {/* Combined Balance + Income/Expense */}
         <div className="glass rounded-2xl p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30">
           <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
             Total Balance
           </p>
-          <p className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {formatCurrency(Math.abs(balance))}
-          </p>
-          <div
-            className={`mt-2 flex items-center gap-1 text-xs font-semibold ${
-              isPositive ? "text-success" : "text-danger"
-            }`}
-          >
-            {isPositive ? (
-              <ArrowUpIcon className="h-3 w-3" />
-            ) : (
-              <ArrowDownIcon className="h-3 w-3" />
-            )}
-            {isPositive ? "Positif" : "Negatif"}
+          <div className="mt-3 flex items-baseline gap-3">
+            <p className="font-mono text-3xl font-bold text-text-primary">
+              {formatCurrency(Math.abs(balance))}
+            </p>
+            <div
+              className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                isPositive
+                  ? "bg-success/15 text-success"
+                  : "bg-danger/15 text-danger"
+              }`}
+            >
+              {isPositive ? (
+                <ArrowUpIcon className="h-3.5 w-3.5" />
+              ) : (
+                <ArrowDownIcon className="h-3.5 w-3.5" />
+              )}
+              {isPositive ? "Positif" : "Negatif"}
+            </div>
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
+            <div>
+              <p className="font-mono text-xs text-text-muted">Income</p>
+              <p className="mt-1 font-mono text-lg font-semibold text-success">
+                {formatCurrency(income)}
+              </p>
+            </div>
+            <div>
+              <p className="font-mono text-xs text-text-muted">Expenses</p>
+              <p className="mt-1 font-mono text-lg font-semibold text-danger">
+                {formatCurrency(expenses)}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Income */}
-        <div className="glass rounded-2xl p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30">
-          <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-            Income
-          </p>
-          <p className="mt-3 font-mono text-3xl font-bold text-success">
-            {formatCurrency(income)}
-          </p>
-        </div>
-
-        {/* Expenses */}
-        <div className="glass rounded-2xl p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30">
-          <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-            Expenses
-          </p>
-          <p className="mt-3 font-mono text-3xl font-bold text-danger">
-            {formatCurrency(expenses)}
-          </p>
-        </div>
+        {/* Net Worth Card */}
+        <NetWorthCard data={netWorthData} />
       </div>
 
       {/* ── Quick Actions ── */}
@@ -335,6 +415,7 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <SmartInsights
           ratios={ratioData}
+          healthScore={healthScore}
           liquidityStatus={liquidityStatus}
           savingsStatus={savingsStatus}
           debtStatus={debtStatus}
