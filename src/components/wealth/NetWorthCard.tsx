@@ -20,7 +20,7 @@ export const NetWorthCard = memo(function NetWorthCard({
   const isPositive = netWorth >= 0;
 
   return (
-    <div className={`rounded-2xl border border-border bg-surface p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 ${className}`} style={style}>
+    <div className={`rounded-2xl border border-border p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 ${!style ? "bg-surface" : ""} ${className}`} style={style}>
       <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
         Net Worth
       </p>

@@ -351,7 +351,7 @@ export default function DashboardPage() {
         <div
           className="rounded-2xl border border-border p-6 shadow-lg shadow-black/20 backdrop-blur-xl"
           style={{
-            background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid), var(--gradient-card-blue))',
+            background: 'linear-gradient(to bottom left, var(--gradient-card-blue), var(--gradient-card-mid), var(--gradient-card-blue))',
           }}
         >
           <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
@@ -397,7 +397,7 @@ export default function DashboardPage() {
           data={netWorthData}
           className=""
           style={{
-            background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid), var(--gradient-card-blue))',
+            background: 'linear-gradient(to bottom left, var(--gradient-card-blue), var(--gradient-card-mid), var(--gradient-card-blue))',
           }}
         />
       </div>
