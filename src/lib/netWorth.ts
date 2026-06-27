@@ -3,12 +3,14 @@ export interface AssetEntry {
   name: string;
   amount: number;
   type: "liquid" | "investment" | "property" | "other";
+  createdAt?: number; // Unix ms — set when entry is created, used for history
 }
 
 export interface LiabilityEntry {
   id: string;
   name: string;
   amount: number;
+  createdAt?: number; // Unix ms
 }
 
 export interface NetWorthResult {

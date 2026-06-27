@@ -71,7 +71,7 @@ export function ResponsiveModal({
           <button
             onClick={onClose}
             className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-alt hover:text-text-primary"
-            aria-label="Close"
+            aria-label="Tutup"
           >
             <X className="h-5 w-5" />
           </button>

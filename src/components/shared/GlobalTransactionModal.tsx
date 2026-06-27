@@ -15,7 +15,7 @@ const EXPENSE_CATEGORIES = [
   "Pendidikan",
 ];
 
-const PAYMENT_METHODS = ["Cash", "Transfer Bank", "Kartu Kredit", "E-Wallet"];
+const PAYMENT_METHODS = ["Tunai", "Transfer Bank", "Kartu Kredit", "E-Wallet"];
 
 export function GlobalTransactionModal() {
   const { isOpen, closeAddTransaction, initialTab } = useTransactionModal();

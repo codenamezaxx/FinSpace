@@ -10,6 +10,7 @@ import {
   Wrench,
   Banknote,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { SmartInsights } from "@/components/dashboard/SmartInsights";
 import { MobileCardSwitcher } from "@/components/dashboard/MobileCardSwitcher";
@@ -29,14 +30,32 @@ import { formatCurrency, calculateNetWorth } from "@/lib/netWorth";
 import type { HealthStatus } from "@/lib/financialRatios";
 import type { NetWorthResult, AssetEntry, LiabilityEntry } from "@/lib/netWorth";
 
+/* ─── Dynamic import — Recharts is heavy, only load when needed ─── */
+const MonthlyChart = dynamic(
+  () =>
+    import("@/components/dashboard/MonthlyChart").then(
+      (mod) => mod.MonthlyChart
+    ),
+  {
+    loading: () => (
+      <div className="glass rounded-2xl p-5">
+        <div className="mb-4 h-4 w-32 animate-pulse rounded bg-border" />
+        <div className="mb-5 h-8 animate-pulse rounded-xl bg-border" />
+        <div className="h-56 animate-pulse rounded-xl bg-border" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
 /* ─── Helpers ─── */
 
 function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Selamat pagi";
-  if (hour < 15) return "Selamat siang";
-  if (hour < 18) return "Selamat sore";
-  return "Selamat malam";
+  if (hour < 12) return "Selamat Pagi!";
+  if (hour < 15) return "Selamat Siang!";
+  if (hour < 18) return "Selamat Sore!";
+  return "Selamat Malam!";
 }
 
 /* ─── Skeletons ─── */
@@ -111,6 +130,15 @@ export default function DashboardPage() {
     startTime: startOfMonth,
   });
 
+  /* ── All transactions for 12-month chart ── */
+  const twelveMonthsAgo = useMemo(
+    () => new Date(now.getFullYear(), now.getMonth() - 11, 1).getTime(),
+    [now]
+  );
+  const { transactions: chartTransactions } = useTransactions({
+    startTime: twelveMonthsAgo,
+  });
+
   /* ── Share data with Wealth page via localStorage ── */
   const [liquidAssets, setLiquidAssets] = useState(0);
   const [netWorthData, setNetWorthData] = useState<NetWorthResult>({
@@ -119,6 +147,8 @@ export default function DashboardPage() {
     netWorth: 0,
     liquidAssets: 0,
   });
+  const [assetsList, setAssetsList] = useState<AssetEntry[]>([]);
+  const [liabilitiesList, setLiabilitiesList] = useState<LiabilityEntry[]>([]);
 
   const loadAssets = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -130,6 +160,9 @@ export default function DashboardPage() {
         const liabilities: LiabilityEntry[] = rawLiabilities
           ? JSON.parse(rawLiabilities)
           : [];
+
+        setAssetsList(assets);
+        setLiabilitiesList(liabilities);
 
         const cash = assets
           .filter((a) => a.type === "liquid")
@@ -227,14 +260,14 @@ export default function DashboardPage() {
 
   /* ─── Render ─── */
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-6 pb-8 lg:px-4">
       {/* ── Header ── */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary lg:text-3xl">
             {getGreeting()} 👋
           </h1>
-          <p className="mt-1 text-sm text-text-muted">
+          <p className="font-mono mt-1 text-sm text-text-muted">
             Berikut adalah ringkasan keuangan Anda
           </p>
         </div>
@@ -255,11 +288,11 @@ export default function DashboardPage() {
               key="balance"
               className="rounded-2xl border border-border p-6 shadow-lg shadow-black/20 backdrop-blur-xl"
               style={{
-                background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid), var(--gradient-card-blue))',
+                background: 'linear-gradient(to bottom left, var(--gradient-card-blue), var(--gradient-card-mid))',
               }}
             >
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Total Balance
+                Total Saldo
               </p>
               <div className="mt-3 flex items-baseline gap-3">
                 <p className="text-3xl font-bold text-text-primary">
@@ -282,13 +315,13 @@ export default function DashboardPage() {
               </div>
               <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
                 <div>
-                  <p className="font-mono text-xs text-text-muted">Income</p>
+                  <p className="font-mono text-xs text-text-muted">Pemasukan</p>
                   <p className="mt-1 font-mono text-lg font-semibold text-success">
                     {formatCurrency(income)}
                   </p>
                 </div>
                 <div>
-                  <p className="font-mono text-xs text-text-muted">Expenses</p>
+                  <p className="font-mono text-xs text-text-muted">Pengeluaran</p>
                   <p className="mt-1 font-mono text-lg font-semibold text-danger">
                     {formatCurrency(expenses)}
                   </p>
@@ -301,11 +334,11 @@ export default function DashboardPage() {
               key="networth"
               className="rounded-2xl border border-border p-6 shadow-lg shadow-black/20 backdrop-blur-xl"
               style={{
-                background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid), var(--gradient-card-blue))',
+                background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid))',
               }}
             >
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Net Worth
+                Kekayaan Bersih
               </p>
               <div className="mt-3 flex items-baseline gap-3">
                 <p className="text-3xl font-bold text-text-primary">
@@ -349,42 +382,42 @@ export default function DashboardPage() {
       <div className="hidden gap-6 lg:grid lg:grid-cols-2">
         {/* Combined Balance + Income/Expense */}
         <div
-          className="rounded-2xl border border-border p-6 shadow-lg shadow-black/20 backdrop-blur-xl"
+          className="rounded-2xl border border-border border-l-8 border-l-primary p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30"
           style={{
-            background: 'linear-gradient(to bottom left, var(--gradient-card-blue), var(--gradient-card-mid), var(--gradient-card-blue))',
+            background: 'linear-gradient(to bottom left, var(--gradient-card-blue), var(--gradient-card-mid))',
           }}
         >
           <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-            Total Balance
-          </p>
-          <div className="mt-3 flex items-baseline gap-3">
-            <p className="font-mono text-3xl font-bold text-text-primary">
-              {formatCurrency(Math.abs(balance))}
-            </p>
-            <div
-              className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                isPositive
-                  ? "bg-success/15 text-success"
-                  : "bg-danger/15 text-danger"
-              }`}
-            >
-              {isPositive ? (
-                <ArrowUpIcon className="h-3.5 w-3.5" />
-              ) : (
-                <ArrowDownIcon className="h-3.5 w-3.5" />
-              )}
-              {isPositive ? "Positif" : "Negatif"}
-            </div>
-          </div>
-          <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
-            <div>
-              <p className="font-mono text-xs text-text-muted">Income</p>
-              <p className="mt-1 font-mono text-lg font-semibold text-success">
-                {formatCurrency(income)}
-              </p>
-            </div>
-            <div>
-              <p className="font-mono text-xs text-text-muted">Expenses</p>
+            Total Saldo
+           </p>
+           <div className="mt-3 flex items-baseline gap-3">
+             <p className="text-3xl font-bold text-text-primary">
+               {formatCurrency(Math.abs(balance))}
+             </p>
+             <div
+               className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                 isPositive
+                   ? "bg-success/15 text-success"
+                   : "bg-danger/15 text-danger"
+               }`}
+             >
+               {isPositive ? (
+                 <ArrowUpIcon className="h-3.5 w-3.5" />
+               ) : (
+                 <ArrowDownIcon className="h-3.5 w-3.5" />
+               )}
+               {isPositive ? "Positif" : "Negatif"}
+             </div>
+           </div>
+           <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
+             <div>
+               <p className="font-mono text-xs text-text-muted">Pemasukan</p>
+               <p className="mt-1 font-mono text-lg font-semibold text-success">
+                 {formatCurrency(income)}
+               </p>
+             </div>
+             <div>
+               <p className="font-mono text-xs text-text-muted">Pengeluaran</p>
               <p className="mt-1 font-mono text-lg font-semibold text-danger">
                 {formatCurrency(expenses)}
               </p>
@@ -395,9 +428,9 @@ export default function DashboardPage() {
         {/* Net Worth Card */}
         <NetWorthCard
           data={netWorthData}
-          className=""
+          className="border-l-8 border-l-accent-secondary"
           style={{
-            background: 'linear-gradient(to bottom left, var(--gradient-card-blue), var(--gradient-card-mid), var(--gradient-card-blue))',
+            background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid))',
           }}
         />
       </div>
@@ -405,19 +438,19 @@ export default function DashboardPage() {
       {/* ── Quick Actions ── */}
       <div className="glass rounded-2xl p-4 lg:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex w-full flex-col gap-3 lg:w-auto">
+          <div className="flex w-full flex-col lg:flex-row gap-3 lg:w-auto">
             <button
               type="button"
               onClick={() => openAddTransaction()}
-              className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-4 font-mono text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-4 text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
             >
               <Plus className="h-5 w-5" />
-              Tambah Transaksi Baru
+              Transaksi Baru
             </button>
             <button
               type="button"
               onClick={() => openAssetLiabilityModal()}
-              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-accent-secondary/40 bg-surface-alt px-6 py-3 font-mono text-sm font-semibold text-accent-secondary transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-secondary hover:shadow-lg hover:shadow-accent-secondary/15"
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-accent-secondary/40 bg-accent-secondary/10 px-6 py-3 text-sm font-semibold text-accent-secondary transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-secondary hover:shadow-lg hover:shadow-accent-secondary/15"
             >
               <Banknote className="h-5 w-5" />
               Tambah Aset / Liabilitas
@@ -427,34 +460,41 @@ export default function DashboardPage() {
           <div className="flex items-center justify-center gap-3 lg:gap-4">
             <Link
               href="/budget"
-              className="flex flex-col items-center gap-1 rounded-xl border border-border bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5"
+              className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
               <Wallet className="h-5 w-5 text-accent" />
-              <span className="font-mono text-[11px] font-semibold text-text-secondary">
-                Budget
+              <span className="text-[11px] font-semibold text-text-secondary">
+                Anggaran
               </span>
             </Link>
             <Link
               href="/wealth"
-              className="flex flex-col items-center gap-1 rounded-xl border border-border bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5"
+              className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
               <Gauge className="h-5 w-5 text-accent-secondary" />
-              <span className="font-mono text-[11px] font-semibold text-text-secondary">
-                Wealth
+              <span className="text-[11px] font-semibold text-text-secondary">
+                Kekayaan
               </span>
             </Link>
             <Link
               href="/tools"
-              className="flex flex-col items-center gap-1 rounded-xl border border-border bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5"
+              className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
               <Wrench className="h-5 w-5 text-text-muted" />
-              <span className="font-mono text-[11px] font-semibold text-text-secondary">
-                Tools
+              <span className="text-[11px] font-semibold text-text-secondary">
+                Alat
               </span>
             </Link>
           </div>
         </div>
       </div>
+
+      {/* ── Monthly Chart ── */}
+      <MonthlyChart
+        transactions={chartTransactions}
+        assets={assetsList}
+        liabilities={liabilitiesList}
+      />
 
       {/* ── Bottom: Smart Insights + Transaction History ── */}
       <div className="grid gap-6 lg:grid-cols-2">

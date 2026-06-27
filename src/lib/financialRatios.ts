@@ -123,17 +123,17 @@ export function getStatusColor(status: HealthStatus): string {
   }
 }
 
-export function getStatusLabel(status: HealthStatus, bahasa = false): string {
-  if (bahasa) {
+export function getStatusLabel(status: HealthStatus, english = false): string {
+  if (english) {
     switch (status) {
-      case "safe": return "Aman";
-      case "warning": return "Waspada";
-      case "danger": return "Bahaya";
+      case "safe": return "Safe";
+      case "warning": return "Warning";
+      case "danger": return "Danger";
     }
   }
   switch (status) {
-    case "safe": return "Safe";
-    case "warning": return "Warning";
-    case "danger": return "Danger";
+    case "safe": return "Aman";
+    case "warning": return "Waspada";
+    case "danger": return "Bahaya";
   }
 }

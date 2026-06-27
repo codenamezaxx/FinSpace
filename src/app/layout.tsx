@@ -19,9 +19,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 const APP_NAME = "FinSpace";
-const APP_DEFAULT_TITLE = "FinSpace - Personal Finance Manager";
+const APP_DEFAULT_TITLE = "FinSpace - Pengelola Keuangan Pribadi";
 const APP_TITLE_TEMPLATE = "%s - FinSpace";
-const APP_DESCRIPTION = "Manage your finances offline with FinSpace PWA";
+const APP_DESCRIPTION = "Kelola keuangan Anda secara offline dengan FinSpace PWA";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -80,7 +80,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="id"
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >

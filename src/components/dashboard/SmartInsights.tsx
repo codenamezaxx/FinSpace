@@ -55,19 +55,19 @@ export function SmartInsights({
     }> = [];
 
     result.push({
-      category: "Liquidity",
+      category: "Likuiditas",
       ...insightsData.liquidity[liquidityStatus],
       priority: insightsData.liquidity[liquidityStatus].priority as PriorityLevel,
       status: liquidityStatus,
     });
     result.push({
-      category: "Savings",
+      category: "Tabungan",
       ...insightsData.savings[savingsStatus],
       priority: insightsData.savings[savingsStatus].priority as PriorityLevel,
       status: savingsStatus,
     });
     result.push({
-      category: "Debt",
+      category: "Utang",
       ...insightsData.debt[debtStatus],
       priority: insightsData.debt[debtStatus].priority as PriorityLevel,
       status: debtStatus,
@@ -89,11 +89,11 @@ export function SmartInsights({
       {/* Header */}
       <div className="flex items-center gap-2.5 mb-4">
         <Lightbulb className="h-5 w-5 text-accent" />
-        <h2 className="text-sm font-semibold text-text-primary">Smart Insights</h2>
+        <h2 className="text-sm font-semibold text-text-primary">Wawasan Cerdas</h2>
         {topInsight.priority === "high" && (
           <span className="ml-auto flex items-center gap-1 rounded-full bg-danger/10 px-2.5 py-0.5 text-[10px] font-medium text-danger">
             <AlertTriangle className="h-3 w-3" />
-            Action needed
+            Perlu Tindakan
           </span>
         )}
       </div>
@@ -123,7 +123,7 @@ export function SmartInsights({
                   color: topColor,
                 }}
               >
-                {getStatusLabel(topInsight.status)}
+                {getStatusLabel(topInsight.status, true)}
               </span>
               <span className="text-xs font-medium" style={{ color: topColor }}>
                 {topInsight.action}
@@ -163,7 +163,7 @@ export function SmartInsights({
                       color: c,
                     }}
                   >
-                    {getStatusLabel(insight.status)}
+                    {getStatusLabel(insight.status, true)}
                   </span>
                   <span className="text-xs font-medium" style={{ color: c }}>
                     {insight.action}

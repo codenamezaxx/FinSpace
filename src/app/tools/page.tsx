@@ -5,9 +5,9 @@ import ReceiptGenerator from "@/components/tools/ReceiptGenerator";
 
 export default function ToolsPage() {
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-text-primary">Tools</h1>
-      <p className="mt-1 text-text-muted">
+    <div className="space-y-6 lg:px-4">
+      <h1 className="text-2xl font-bold text-text-primary">Alat</h1>
+      <p className="font-mono mt-1 text-text-muted">
         Kalkulator, tabungan, dan ekspor data keuangan Anda.
       </p>
 

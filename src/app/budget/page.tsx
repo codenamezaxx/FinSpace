@@ -61,15 +61,15 @@ export default function BudgetPage() {
     }).format(amount);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 lg:px-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">
-            Budget &amp; Cashflow
+            Anggaran &amp; Arus Kas
           </h1>
           <p className="text-sm text-text-muted">
-            Monthly income:{" "}
+            Pendapatan bulanan:{" "}
             <span className="font-mono font-semibold text-success">
               {formatCurrency(monthlyIncome)}
             </span>
@@ -80,7 +80,7 @@ export default function BudgetPage() {
           className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" />
-          Add Transaction
+          Tambah Transaksi
         </button>
       </div>
 
@@ -90,12 +90,12 @@ export default function BudgetPage() {
         <div className="glass rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={needsStatus.percentage}
-            label="Needs (50%)"
-            sublabel={`Spent ${formatCurrency(spending.needs)}`}
+            label="Kebutuhan (50%)"
+            sublabel={`Terpakai ${formatCurrency(spending.needs)}`}
             remaining={
               needsStatus.isOverBudget
-                ? `Over by ${formatCurrency(Math.abs(needsStatus.remaining))}`
-                : `${formatCurrency(needsStatus.remaining)} remaining`
+                ? `Lebih ${formatCurrency(Math.abs(needsStatus.remaining))}`
+                : `${formatCurrency(needsStatus.remaining)} tersisa`
             }
             isOverBudget={needsStatus.isOverBudget}
           />
@@ -105,12 +105,12 @@ export default function BudgetPage() {
         <div className="glass rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={wantsStatus.percentage}
-            label="Wants (30%)"
-            sublabel={`Spent ${formatCurrency(spending.wants)}`}
+            label="Keinginan (30%)"
+            sublabel={`Terpakai ${formatCurrency(spending.wants)}`}
             remaining={
               wantsStatus.isOverBudget
-                ? `Over by ${formatCurrency(Math.abs(wantsStatus.remaining))}`
-                : `${formatCurrency(wantsStatus.remaining)} remaining`
+                ? `Lebih ${formatCurrency(Math.abs(wantsStatus.remaining))}`
+                : `${formatCurrency(wantsStatus.remaining)} tersisa`
             }
             isOverBudget={wantsStatus.isOverBudget}
           />
@@ -120,12 +120,12 @@ export default function BudgetPage() {
         <div className="glass rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={savingsStatus.percentage}
-            label="Savings (20%)"
-            sublabel={`Saved ${formatCurrency(totalSaved)}`}
+            label="Tabungan (20%)"
+            sublabel={`Tersimpan ${formatCurrency(totalSaved)}`}
             remaining={
               totalSaved >= allocation.savings
                 ? `${formatCurrency(totalSaved - allocation.savings)} surplus`
-                : `${formatCurrency(Math.max(0, allocation.savings - totalSaved))} to goal`
+                : `${formatCurrency(Math.max(0, allocation.savings - totalSaved))} menuju target`
             }
             isOverBudget={totalSaved < allocation.savings}
           />
@@ -135,7 +135,7 @@ export default function BudgetPage() {
       {/* Transaction List */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-primary">
-          Recent Transactions
+          Transaksi Terbaru
         </h2>
         <TransactionList />
       </div>

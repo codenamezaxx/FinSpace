@@ -114,13 +114,13 @@ export function ChatbotSheet({ isOpen, onClose }: ChatbotSheetProps) {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-text-primary">Finny</h2>
-              <p className="text-[10px] text-text-muted">AI Assistant</p>
+              <p className="text-[10px] text-text-muted">Asisten AI</p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-alt hover:text-primary"
-            aria-label="Close chat"
+            aria-label="Tutup chat"
           >
             <X className="h-5 w-5" />
           </button>
@@ -154,7 +154,7 @@ export function ChatbotSheet({ isOpen, onClose }: ChatbotSheetProps) {
               onClick={handleSend}
               disabled={!input.trim()}
               className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white transition-all duration-200 hover:bg-primary-hover disabled:opacity-40"
-              aria-label="Send message"
+              aria-label="Kirim pesan"
             >
               <Send className="h-4 w-4" />
             </button>

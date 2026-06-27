@@ -18,7 +18,7 @@ export function ThemeToggle({ compact = false }: ThemeToggleProps) {
       <button
         onClick={toggleTheme}
         className="flex items-center justify-center rounded-lg p-2 text-text-muted transition-all duration-200 hover:bg-surface hover:text-text-primary"
-        aria-label="Toggle theme"
+        aria-label="Ganti tema"
       >
         <Sun className="h-5 w-5 light-only" />
         <Moon className="h-5 w-5 dark-only" />
@@ -30,12 +30,12 @@ export function ThemeToggle({ compact = false }: ThemeToggleProps) {
     <button
       onClick={toggleTheme}
       className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-xs font-medium text-text-muted transition-all duration-200 hover:bg-surface hover:text-text-secondary"
-      aria-label="Toggle theme"
+      aria-label="Ganti tema"
     >
       <Sun className="h-5 w-5 light-only" />
       <Moon className="h-5 w-5 dark-only" />
-      <span className="light-only">Dark Mode</span>
-      <span className="dark-only">Light Mode</span>
+      <span className="light-only">Mode Gelap</span>
+      <span className="dark-only">Mode Terang</span>
     </button>
   );
 }

@@ -103,7 +103,7 @@ export function TransactionList() {
     return (
       <div className="flex flex-col items-center gap-2 py-12 text-text-muted">
         <Search className="h-8 w-8" />
-        <p className="text-sm">No transactions found</p>
+        <p className="text-sm">Tidak ada transaksi</p>
       </div>
     );
   }
@@ -116,7 +116,7 @@ export function TransactionList() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
-            placeholder="Search transactions..."
+            placeholder="Cari transaksi..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-lg border border-border bg-surface py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -133,7 +133,7 @@ export function TransactionList() {
                   : "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
               }`}
             >
-              {t === "all" ? "All" : t === "income" ? "Income" : "Expense"}
+              {t === "all" ? "Semua" : t === "income" ? "Pemasukan" : "Pengeluaran"}
             </button>
           ))}
         </div>
@@ -151,27 +151,27 @@ export function TransactionList() {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border bg-surface-alt">
-              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Type</th>
+              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Tipe</th>
               <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Merchant</th>
-              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Category</th>
+              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Kategori</th>
               <th
                 className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted cursor-pointer hover:text-text-secondary"
                 onClick={() => toggleSort("amount")}
               >
                 <span className="inline-flex items-center gap-1">
-                  Amount
+                  Jumlah
                   {sortField === "amount" && (
                     <ArrowDownUp className="h-3 w-3" />
                   )}
                 </span>
               </th>
-              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Payment</th>
+              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Pembayaran</th>
               <th
                 className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted cursor-pointer hover:text-text-secondary"
                 onClick={() => toggleSort("timestamp")}
               >
                 <span className="inline-flex items-center gap-1">
-                  Date
+                  Tanggal
                   {sortField === "timestamp" && (
                     <ArrowDownUp className="h-3 w-3" />
                   )}
@@ -195,7 +195,7 @@ export function TransactionList() {
                         : "bg-success/10 text-success"
                     }`}
                   >
-                    {t.type === "expense" ? "Expense" : "Income"}
+                    {t.type === "expense" ? "Pengeluaran" : "Pemasukan"}
                   </span>
                 </td>
                 <td className="px-4 py-3 font-medium text-text-primary">
@@ -223,7 +223,7 @@ export function TransactionList() {
                   <button
                     onClick={() => deleteTransaction(t.id)}
                     className="text-text-muted hover:text-danger transition-colors"
-                    aria-label="Delete transaction"
+                    aria-label="Hapus transaksi"
                   >
                     <span className="text-lg leading-none">&times;</span>
                   </button>

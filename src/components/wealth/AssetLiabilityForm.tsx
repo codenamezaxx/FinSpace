@@ -26,9 +26,9 @@ export function AssetLiabilityForm({
 
   function validate() {
     const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = "Name is required";
+    if (!name.trim()) errs.name = "Nama harus diisi";
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0)
-      errs.amount = "Enter a valid amount";
+      errs.amount = "Masukkan jumlah yang valid";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -37,6 +37,7 @@ export function AssetLiabilityForm({
     if (!validate()) return;
     const id = crypto.randomUUID();
     const parsed = Math.round(Number(amount));
+    const now = Date.now();
 
     if (type === "asset") {
       onSave({
@@ -44,9 +45,15 @@ export function AssetLiabilityForm({
         name: name.trim(),
         amount: parsed,
         type: assetType,
+        createdAt: now,
       } as AssetEntry);
     } else {
-      onSave({ id, name: name.trim(), amount: parsed } as LiabilityEntry);
+      onSave({
+        id,
+        name: name.trim(),
+        amount: parsed,
+        createdAt: now,
+      } as LiabilityEntry);
     }
 
     setName("");
@@ -62,7 +69,7 @@ export function AssetLiabilityForm({
     <ResponsiveModal
       isOpen={isOpen}
       onClose={onClose}
-      title={type === "asset" ? "Add Asset" : "Add Liability"}
+      title={type === "asset" ? "Tambah Aset" : "Tambah Liabilitas"}
     >
       <div className="space-y-4">
         {/* Type toggle */}
@@ -77,7 +84,7 @@ export function AssetLiabilityForm({
             }`}
           >
             <Banknote className="h-4 w-4" />
-            Asset
+            Aset
           </button>
           <button
             type="button"
@@ -89,20 +96,20 @@ export function AssetLiabilityForm({
             }`}
           >
             <CreditCard className="h-4 w-4" />
-            Liability
+            Liabilitas
           </button>
         </div>
 
         {/* Name */}
         <div>
           <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-            Name
+            Nama
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Savings Account"
+            placeholder="cth: Rekening Tabungan"
             className={inputClasses}
           />
           {errors.name && (
@@ -113,7 +120,7 @@ export function AssetLiabilityForm({
         {/* Amount */}
         <div>
           <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-            Amount (IDR)
+            Jumlah (IDR)
           </label>
           <input
             type="number"
@@ -133,7 +140,7 @@ export function AssetLiabilityForm({
         {type === "asset" && (
           <div>
             <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-              Asset Type
+              Tipe Aset
             </label>
             <select
               value={assetType}
@@ -142,12 +149,12 @@ export function AssetLiabilityForm({
               }
               className={inputClasses}
             >
-              <option value="liquid">Liquid (Cash, Bank)</option>
+              <option value="liquid">Likuid (Tunai, Bank)</option>
               <option value="investment">
-                Investment (Stocks, Mutual Funds)
+                Investasi (Saham, Reksadana)
               </option>
-              <option value="property">Property (House, Land)</option>
-              <option value="other">Other</option>
+              <option value="property">Properti (Rumah, Tanah)</option>
+              <option value="other">Lainnya</option>
             </select>
           </div>
         )}
@@ -159,7 +166,7 @@ export function AssetLiabilityForm({
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-mono text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
         >
           <Plus className="h-4 w-4" />
-          Add {type === "asset" ? "Asset" : "Liability"}
+          Tambah {type === "asset" ? "Aset" : "Liabilitas"}
         </button>
       </div>
     </ResponsiveModal>

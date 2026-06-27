@@ -19,8 +19,8 @@ export function HealthScoreRing({ score }: HealthScoreRingProps) {
 
   return (
     <div className="mb-4 flex flex-col items-center">
-      <span className="mb-6 text-md font-mono text-text-muted">
-        Overall Health Score
+      <span className="mb-6 text-md font-mono font font-semibold text-text-primary">
+        Skor Kesehatan Keseluruhan
       </span>
       <svg
         width={size}

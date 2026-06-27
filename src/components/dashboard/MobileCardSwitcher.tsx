@@ -12,7 +12,7 @@ interface MobileCardSwitcherProps {
 export function MobileCardSwitcher({
   views,
   initialIndex = 0,
-  labels = ["Balance", "Net Worth"],
+  labels = ["Saldo", "Kekayaan Bersih"],
 }: MobileCardSwitcherProps) {
   const [active, setActive] = useState(initialIndex);
 
@@ -41,7 +41,7 @@ export function MobileCardSwitcher({
       </div>
 
       {/* ── Animated card slot ── */}
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden w-full h-54">
         <div
           className="flex transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${active * 100}%)` }}

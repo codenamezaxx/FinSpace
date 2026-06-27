@@ -11,9 +11,9 @@ interface SpeedometerProps {
 }
 
 const STATUS_CONFIG = {
-  safe: { color: "var(--color-success)", label: "Safe" },
-  warning: { color: "var(--color-warning)", label: "Warning" },
-  danger: { color: "var(--color-danger)", label: "Danger" },
+  safe: { color: "var(--color-success)", label: "Aman" },
+  warning: { color: "var(--color-warning)", label: "Waspada" },
+  danger: { color: "var(--color-danger)", label: "Bahaya" },
 } as const;
 
 export const Speedometer = memo(function Speedometer({
@@ -79,7 +79,7 @@ export const Speedometer = memo(function Speedometer({
           className="font-mono text-xs"
           fill="var(--color-text-muted)"
         >
-          out of 100
+          dari 100
         </text>
       </svg>
 

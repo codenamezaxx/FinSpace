@@ -11,7 +11,7 @@
   --color-primary: #3B82F6;
   --color-primary-hover: #2563EB;
   --color-accent: #EAB393;
-  --color-accent-secondary: #723EC3;
+  --color-accent-secondary: #8940F9;
   --color-warning: var(--color-warning);
   --color-border: var(--color-border);
   --color-track: var(--color-track);
@@ -47,9 +47,9 @@
   --glow-accent: rgba(114, 62, 195, 0.08);
   --card-hover-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
   --sidebar-shadow: 2px 0 24px rgba(0, 0, 0, 0.06);
-  --gradient-card-purple: rgba(114, 62, 195, 0.08);
+  --gradient-card-purple: rgba(230, 217, 253, 0.904);
   --gradient-card-mid: rgba(255, 255, 255, 0.65);
-  --gradient-card-blue: rgba(59, 130, 246, 0.03);
+  --gradient-card-blue: rgb(226, 237, 255);
   color-scheme: light;
 }
 
@@ -72,9 +72,9 @@
   --glow-accent: rgba(114, 62, 195, 0.05);
   --card-hover-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.3);
   --sidebar-shadow: 2px 0 24px rgba(0, 0, 0, 0.25);
-  --gradient-card-purple: rgba(114, 62, 195, 0.18);
+  --gradient-card-purple: rgba(113, 62, 195, 0.333);
   --gradient-card-mid: rgba(30, 41, 59, 0.55);
-  --gradient-card-blue: rgba(59, 130, 246, 0.06);
+  --gradient-card-blue: rgba(59, 131, 246, 0.237);
   color-scheme: dark;
 }
 

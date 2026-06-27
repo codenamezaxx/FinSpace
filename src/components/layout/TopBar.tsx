@@ -4,11 +4,19 @@ import { useState } from "react";
 import { Search, ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 
-export function TopBar() {
+interface TopBarProps {
+  isSidebarCollapsed?: boolean;
+}
+
+export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-30 border-b border-border bg-surface/60 backdrop-blur-xl lg:left-64">
+    <header
+      className={`fixed left-0 right-0 top-0 z-30 border-b border-border bg-surface-alt transition-all duration-300 ${
+        isSidebarCollapsed ? "lg:left-[72px]" : "lg:left-64"
+      }`}
+    >
       <div className="flex h-16 items-center gap-3 px-4">
         {/* ── LEFT SIDE ── */}
 

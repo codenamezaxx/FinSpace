@@ -81,8 +81,8 @@ export function ExportCSV() {
 
   return (
     <div className="glass rounded-2xl p-5">
-      <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-        Export Data
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+        Ekspor Data
       </h2>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
@@ -157,7 +157,7 @@ export function ExportCSV() {
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-mono text-sm font-bold text-white transition-all duration-200 hover:bg-primary-hover"
         >
           <Download className="h-4 w-4" />
-          Download CSV
+          Unduh CSV
         </button>
       )}
     </div>

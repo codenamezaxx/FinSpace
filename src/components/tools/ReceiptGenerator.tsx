@@ -26,7 +26,7 @@ export default function ReceiptGenerator() {
 
   return (
     <div className="glass rounded-2xl p-5">
-      <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted mb-4">
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted mb-4">
         Cetak Struk
       </h2>
 
@@ -51,7 +51,7 @@ export default function ReceiptGenerator() {
             {/* Header */}
             <div className="text-center mb-4">
               <p className="font-bold text-base">FINSPACE</p>
-              <p className="text-text-muted text-xs">Receipt</p>
+              <p className="text-text-muted text-xs">Struk</p>
             </div>
 
             <div className="border-t border-dashed border-border my-3" />
@@ -121,7 +121,7 @@ export default function ReceiptGenerator() {
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface-alt px-5 py-3 font-mono text-sm font-semibold text-text-secondary transition-all duration-200 hover:bg-surface"
           >
             <Printer className="h-4 w-4" />
-            Download PDF
+            Unduh PDF
           </button>
         </div>
       )}

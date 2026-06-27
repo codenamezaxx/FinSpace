@@ -4,26 +4,26 @@ import { LayoutDashboard, Wallet, TrendingUp, Wrench } from "lucide-react";
 const features = [
   {
     icon: LayoutDashboard,
-    name: "Dashboard",
-    description: "Real-time financial overview with smart insights and key metrics at a glance.",
+    name: "Dasbor",
+    description: "Ikhtisar keuangan real-time dengan wawasan cerdas dan metrik utama sekilas.",
     href: "/dashboard",
   },
   {
     icon: Wallet,
-    name: "Budget",
-    description: "Set spending limits, track categories, and stay on top of your monthly budget.",
+    name: "Anggaran",
+    description: "Tetapkan batas pengeluaran, lacak kategori, dan kendalikan anggaran bulanan Anda.",
     href: "/budget",
   },
   {
     icon: TrendingUp,
-    name: "Wealth",
-    description: "Monitor net worth, assets, and liabilities to grow your financial health.",
+    name: "Kekayaan",
+    description: "Pantau kekayaan bersih, aset, dan kewajiban untuk mengembangkan kesehatan finansial Anda.",
     href: "/wealth",
   },
   {
     icon: Wrench,
-    name: "Tools",
-    description: "Calculators, planners, and utilities to make smarter financial decisions.",
+    name: "Alat",
+    description: "Kalkulator, perencana, dan utilitas untuk membuat keputusan keuangan yang lebih cerdas.",
     href: "/tools",
   },
 ] as const;
@@ -55,7 +55,7 @@ export default function HomePage() {
 
           {/* Tagline */}
           <p className="mx-auto mt-4 max-w-md text-lg text-text-muted">
-            Personal Finance Manager
+            Pengelola Keuangan Pribadi
           </p>
 
           {/* CTA */}
@@ -63,7 +63,7 @@ export default function HomePage() {
             href="/dashboard"
             className="mt-10 inline-flex h-12 items-center rounded-xl bg-primary px-8 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
           >
-            Get Started
+            Mulai
           </Link>
         </div>
       </section>

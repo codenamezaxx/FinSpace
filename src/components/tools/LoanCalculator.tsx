@@ -42,7 +42,7 @@ export function LoanCalculator() {
       {/* Header */}
       <div className="mb-4 flex items-center gap-2">
         <Calculator className="h-4 w-4 text-accent-secondary" />
-        <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
+        <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
           Kalkulator Pinjaman
         </p>
       </div>

@@ -11,6 +11,7 @@ import { GlobalTransactionModal } from "@/components/shared/GlobalTransactionMod
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
     <TransactionModalProvider>
@@ -22,9 +23,16 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="absolute -bottom-40 left-0 h-[400px] w-[400px] rounded-full blur-[120px]" style={{ background: "var(--glow-accent)" }} />
       </div>
 
-      <NavigationBar />
-      <TopBar />
-      <main className="relative z-10 flex-1 pt-16 pb-20 lg:pb-0 lg:ml-64">
+      <NavigationBar
+        isCollapsed={isSidebarCollapsed}
+        onToggle={() => setIsSidebarCollapsed((prev) => !prev)}
+      />
+      <TopBar isSidebarCollapsed={isSidebarCollapsed} />
+      <main
+        className={`relative z-10 flex-1 pt-16 pb-20 transition-all duration-300 lg:pb-0 ${
+          isSidebarCollapsed ? "lg:ml-[72px]" : "lg:ml-64"
+        }`}
+      >
         <div className="mx-auto w-full max-w-7xl px-4 py-6">
           {children}
         </div>

@@ -20,9 +20,9 @@ export const NetWorthCard = memo(function NetWorthCard({
   const isPositive = netWorth >= 0;
 
   return (
-    <div className={`rounded-2xl border border-border p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 ${!style ? "bg-surface" : ""} ${className}`} style={style}>
+    <div className={`rounded-2xl border border-border p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 ${!style ? "bg-surface/50" : ""} ${className}`} style={style}>
       <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-        Net Worth
+        Kekayaan Bersih
       </p>
 
       <div className="mt-3 flex items-baseline gap-3">
@@ -41,19 +41,19 @@ export const NetWorthCard = memo(function NetWorthCard({
           ) : (
             <ArrowDownIcon className="h-3.5 w-3.5" />
           )}
-          {isPositive ? "Positive" : "Negative"}
+          {isPositive ? "Positif" : "Negatif"}
         </div>
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
         <div>
-          <p className="font-mono text-xs text-text-muted">Total Assets</p>
+          <p className="font-mono text-xs text-text-muted">Total Aset</p>
           <p className="mt-1 font-mono text-lg font-semibold text-success">
             {formatCurrency(totalAssets)}
           </p>
         </div>
         <div>
-          <p className="font-mono text-xs text-text-muted">Total Liabilities</p>
+          <p className="font-mono text-xs text-text-muted">Total Liabilitas</p>
           <p className="mt-1 font-mono text-lg font-semibold text-danger">
             {formatCurrency(totalLiabilities)}
           </p>
