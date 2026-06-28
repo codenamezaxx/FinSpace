@@ -13,19 +13,36 @@ export interface LiabilityEntry {
   createdAt?: number; // Unix ms
 }
 
+export interface DebtEntry {
+  id: string;
+  name: string;
+  totalAmount: number;
+  dueDate: number;
+  paidAmount: number;
+  createdAt: number;
+}
+
 export interface NetWorthResult {
   totalAssets: number;
   totalLiabilities: number;
-  netWorth: number;
+  totalBalance: number;
+  totalDebts: number;
   liquidAssets: number;
+  netWorth: number;
 }
 
 export function calculateNetWorth(
   assets: AssetEntry[],
-  liabilities: LiabilityEntry[]
+  liabilities: LiabilityEntry[],
+  balance: number,
+  debts: DebtEntry[]
 ): NetWorthResult {
   const totalAssets = assets.reduce((sum, a) => sum + a.amount, 0);
   const totalLiabilities = liabilities.reduce((sum, l) => sum + l.amount, 0);
+  const totalDebts = debts.reduce(
+    (sum, d) => sum + Math.max(0, d.totalAmount - d.paidAmount),
+    0
+  );
   const liquidAssets = assets
     .filter((a) => a.type === "liquid")
     .reduce((sum, a) => sum + a.amount, 0);
@@ -33,8 +50,10 @@ export function calculateNetWorth(
   return {
     totalAssets,
     totalLiabilities,
-    netWorth: totalAssets - totalLiabilities,
+    totalBalance: balance,
+    totalDebts,
     liquidAssets,
+    netWorth: balance + totalAssets - totalLiabilities - totalDebts,
   };
 }
 
