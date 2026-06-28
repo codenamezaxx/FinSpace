@@ -132,6 +132,16 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [ ] Split any file exceeding 200 lines into smaller modules.
 - [ ] Verify no circular imports exist in the dependency graph.
 
+## Phase 3c: Net Worth Revision — Debt Tracking + Balance Integration
+- [x] Task 1: Data layer — DebtEntry, new NetWorthResult, calculateNetWorth (balance + debts), debtUtils (installment), tests
+- [x] Task 2: DebtForm component (name, amount, due-date, validation)
+- [x] Task 3: PayDebtModal component (remaining balance, validation, Cicilan expense)
+- [x] Task 4: DebtList component (progress bars, installment info, overdue badge)
+- [x] Task 5: NetWorthCard breakdown (4 rows: Saldo Tercatat, Aset, Liabilitas, Utang)
+- [x] Task 6: AssetLiabilityForm purchase toggle + purchase-from-balance flow
+- [x] Task 7: Wealth page debt integration (debts, balance, purchase, NetWorthCard)
+- [x] Task 8: Dashboard + MonthlyChart update with new NW formula
+
 ## Phase 10: Deployment & Final Acceptance Testing
 - [ ] Build a robust suite of validation test scenarios for simulated offline state.
 - [ ] Validate desktop responsiveness at viewport widths up to 1920px.

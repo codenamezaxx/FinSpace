@@ -18,6 +18,7 @@ import {
   getDebtToIncomeStatus,
 } from "@/lib/financialRatios";
 import { loadFromStorage, saveToStorage } from "@/lib/storage";
+import { totalMonthlyDebtObligation } from "@/lib/debtUtils";
 import {
   Plus,
   Trash2,
@@ -99,16 +100,11 @@ export default function WealthPage() {
       .filter((tx) => tx.type === "expense")
       .reduce((sum, tx) => sum + tx.amount, 0);
 
-    const debtPayments = transactions
-      .filter(
-        (tx) =>
-          tx.type === "expense" &&
-          ["Cicilan", "Utang"].includes(tx.category)
-      )
-      .reduce((sum, tx) => sum + tx.amount, 0);
+    // Cicilan dihitung dari kewajiban utang, bukan pembayaran aktual (PRD §3 Modul C)
+    const debtPayments = totalMonthlyDebtObligation(debts);
 
     return { income, expenses, debtPayments };
-  }, [transactions]);
+  }, [transactions, debts]);
 
   const ratios = useMemo(
     () =>

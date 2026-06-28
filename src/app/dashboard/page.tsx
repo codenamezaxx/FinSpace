@@ -28,6 +28,7 @@ import {
 } from "@/lib/financialRatios";
 import { formatCurrency, calculateNetWorth } from "@/lib/netWorth";
 import { loadFromStorage } from "@/lib/storage";
+import { totalMonthlyDebtObligation } from "@/lib/debtUtils";
 import type { HealthStatus } from "@/lib/financialRatios";
 import type { NetWorthResult, AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
 
@@ -217,12 +218,8 @@ export default function DashboardPage() {
       .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const debtPayments = transactions
-      .filter(
-        (t) =>
-          t.type === "expense" && ["Cicilan", "Utang"].includes(t.category)
-      )
-      .reduce((sum, t) => sum + t.amount, 0);
+    // Cicilan dihitung dari kewajiban utang, bukan pembayaran aktual (PRD §3 Modul C)
+    const debtPayments = totalMonthlyDebtObligation(debtsList);
 
     const ratios = calculateAllRatios(
       liquidAssets,
@@ -418,6 +415,9 @@ export default function DashboardPage() {
           netWorth={netWorthData.netWorth}
           className="border-l-8 border-l-accent-secondary"
           collapsible
+          style={{
+                background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid))',
+              }}
         />
       </div>
 

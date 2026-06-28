@@ -15,6 +15,7 @@ export function DebtForm({ isOpen, onClose, onSave }: DebtFormProps) {
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [interestRate, setInterestRate] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function validate() {
@@ -37,6 +38,7 @@ export function DebtForm({ isOpen, onClose, onSave }: DebtFormProps) {
       totalAmount: Math.round(Number(amount)),
       dueDate: new Date(dueDate).getTime(),
       paidAmount: 0,
+      interestRate: interestRate ? Number(interestRate) : undefined,
       createdAt: Date.now(),
     });
     setName("");
@@ -97,6 +99,25 @@ export function DebtForm({ isOpen, onClose, onSave }: DebtFormProps) {
           {errors.dueDate && (
             <p className="mt-1 font-mono text-xs text-danger">{errors.dueDate}</p>
           )}
+        </div>
+
+        {/* Suku Bunga (opsional) */}
+        <div>
+          <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
+            Suku Bunga per Tahun (%){" "}
+            <span className="font-normal lowercase text-text-muted">
+              (opsional)
+            </span>
+          </label>
+          <input
+            type="number"
+            value={interestRate}
+            onChange={(e) => setInterestRate(e.target.value)}
+            placeholder="cth: 5"
+            min="0"
+            step="0.1"
+            className={inputClasses}
+          />
         </div>
 
         <button

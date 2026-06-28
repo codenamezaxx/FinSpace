@@ -19,6 +19,7 @@ export interface DebtEntry {
   totalAmount: number;
   dueDate: number;
   paidAmount: number;
+  interestRate?: number; // annual interest rate in %, e.g. 5 for 5%
   createdAt: number;
 }
 

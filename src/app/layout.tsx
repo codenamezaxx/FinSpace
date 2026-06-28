@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 const APP_NAME = "FinSpace";
-const APP_DEFAULT_TITLE = "FinSpace - Pengelola Keuangan Pribadi";
+const APP_DEFAULT_TITLE = "FinSpace - Personal Finance Manager";
 const APP_TITLE_TEMPLATE = "%s - FinSpace";
 const APP_DESCRIPTION = "Kelola keuangan Anda secara offline dengan FinSpace PWA";
 

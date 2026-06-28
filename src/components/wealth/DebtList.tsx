@@ -28,7 +28,7 @@ export function DebtList({ debts, onPay, onDelete }: DebtListProps) {
         const progress = debt.totalAmount > 0
           ? Math.round((debt.paidAmount / debt.totalAmount) * 100)
           : 0;
-        const installment = calcInstallment(remaining, debt.dueDate);
+        const installment = calcInstallment(remaining, debt.dueDate, debt.interestRate);
 
         return (
           <DebtItem
@@ -70,6 +70,11 @@ function DebtItem({
     infoText = `Cicil ${formatCurrency(installment.amount)}/minggu (${installment.count} minggu lagi)`;
   }
 
+  const interestInfo =
+    installment.interestTotal != null && installment.interestTotal > 0
+      ? `Bunga ${formatCurrency(installment.interestTotal)}`
+      : null;
+
   return (
     <div className="glass rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20">
       <div className="flex items-start justify-between">
@@ -79,6 +84,11 @@ function DebtItem({
             {installment.overdue && <AlertTriangle className="mr-1 inline h-3 w-3" />}
             {infoText}
           </p>
+          {interestInfo && (
+            <p className="mt-0.5 font-mono text-[11px] text-accent">
+              {interestInfo}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <span className="font-mono text-sm font-semibold text-text-primary">
