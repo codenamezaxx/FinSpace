@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 
 interface MobileCardSwitcherProps {
@@ -15,23 +15,6 @@ export function MobileCardSwitcher({
   labels = ["Saldo", "Kekayaan Bersih"],
 }: MobileCardSwitcherProps) {
   const [active, setActive] = useState(initialIndex);
-  const [containerHeight, setContainerHeight] = useState<number | null>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  // Track height changes via ResizeObserver for smooth animation
-  useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
-
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerHeight(entry.contentRect.height);
-      }
-    });
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
 
   function switchTo(index: number) {
     if (index === active) return;
@@ -58,12 +41,8 @@ export function MobileCardSwitcher({
       </div>
 
       {/* ── Animated card slot ── */}
-      <div
-        className="relative overflow-hidden w-full transition-[height] duration-300 ease-in-out"
-        style={{ height: containerHeight ? `${containerHeight}px` : undefined }}
-      >
+      <div className="relative overflow-hidden w-full">
         <div
-          ref={contentRef}
           className="flex transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${active * 100}%)` }}
         >
