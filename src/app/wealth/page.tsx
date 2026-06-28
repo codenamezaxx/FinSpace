@@ -4,6 +4,9 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { NetWorthCard } from "@/components/wealth/NetWorthCard";
 import { RatioCard } from "@/components/wealth/RatioCard";
 import { Speedometer } from "@/components/wealth/Speedometer";
+import { DebtForm } from "@/components/wealth/DebtForm";
+import { PayDebtModal } from "@/components/wealth/PayDebtModal";
+import { DebtList } from "@/components/wealth/DebtList";
 import { useTransactions } from "@/hooks/useTransactions";
 import { calculateNetWorth, formatCurrency } from "@/lib/netWorth";
 import { useAssetLiabilityModal } from "@/lib/asset-liability-modal-context";
@@ -14,6 +17,7 @@ import {
   getSavingsRateStatus,
   getDebtToIncomeStatus,
 } from "@/lib/financialRatios";
+import { loadFromStorage, saveToStorage } from "@/lib/storage";
 import {
   Plus,
   Trash2,
@@ -22,21 +26,12 @@ import {
   TrendingDown,
   Gauge,
 } from "lucide-react";
-import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
+import type { AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
 import type { HealthStatus } from "@/lib/financialRatios";
 
 const ASSETS_KEY = "finspace_assets";
 const LIABILITIES_KEY = "finspace_liabilities";
-
-function loadFromStorage<T>(key: string, fallback: T[]): T[] {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
+const DEBTS_KEY = "finspace_debts";
 
 export default function WealthPage() {
   const { openAssetLiabilityModal } = useAssetLiabilityModal();
@@ -59,29 +54,40 @@ export default function WealthPage() {
     startTime: startOfMonth,
     endTime: endOfMonth,
   });
+  const { transactions: allTransactions, addTransaction } = useTransactions();
 
   const [assets, setAssets] = useState<AssetEntry[]>([]);
   const [liabilities, setLiabilities] = useState<LiabilityEntry[]>([]);
+  const [debts, setDebts] = useState<DebtEntry[]>([]);
+  const [showDebtForm, setShowDebtForm] = useState(false);
+  const [payingDebt, setPayingDebt] = useState<DebtEntry | null>(null);
+
+  const totalBalance = useMemo(() => {
+    return allTransactions.reduce(
+      (sum, t) => sum + (t.type === "income" ? t.amount : -t.amount),
+      0
+    );
+  }, [allTransactions]);
 
   const loadData = useCallback(() => {
-    setAssets(
-      loadFromStorage<AssetEntry>(ASSETS_KEY, [])
-    );
-    setLiabilities(
-      loadFromStorage<LiabilityEntry>(LIABILITIES_KEY, [])
-    );
+    setAssets(loadFromStorage<AssetEntry>(ASSETS_KEY, []));
+    setLiabilities(loadFromStorage<LiabilityEntry>(LIABILITIES_KEY, []));
+    setDebts(loadFromStorage<DebtEntry>(DEBTS_KEY, []));
   }, []);
 
   useEffect(() => {
     loadData();
     window.addEventListener("finspace-assets-updated", loadData);
-    return () =>
+    window.addEventListener("finspace-debts-updated", loadData);
+    return () => {
       window.removeEventListener("finspace-assets-updated", loadData);
+      window.removeEventListener("finspace-debts-updated", loadData);
+    };
   }, [loadData]);
 
   const netWorthData = useMemo(
-    () => calculateNetWorth(assets, liabilities, 0, []),
-    [assets, liabilities]
+    () => calculateNetWorth(assets, liabilities, totalBalance, debts),
+    [assets, liabilities, totalBalance, debts]
   );
 
   const monthlyData = useMemo(() => {
@@ -128,6 +134,60 @@ export default function WealthPage() {
     return "safe";
   }, [ratios]);
 
+  const handleAddDebt = useCallback(
+    (debt: DebtEntry) => {
+      const updated = [...debts, debt];
+      setDebts(updated);
+      saveToStorage(DEBTS_KEY, updated);
+      window.dispatchEvent(new CustomEvent("finspace-debts-updated"));
+    },
+    [debts]
+  );
+
+  const handlePayDebt = useCallback(
+    (debtId: string, amount: number, debtName: string) => {
+      const updated = debts.map((d) =>
+        d.id === debtId
+          ? { ...d, paidAmount: (d.paidAmount || 0) + amount }
+          : d
+      );
+      setDebts(updated);
+      saveToStorage(DEBTS_KEY, updated);
+      window.dispatchEvent(new CustomEvent("finspace-debts-updated"));
+      addTransaction({
+        amount,
+        type: "expense",
+        category: "Cicilan",
+        merchant: debtName,
+        payment_method: "Tunai",
+      });
+    },
+    [debts, addTransaction]
+  );
+
+  const handleDeleteDebt = useCallback(
+    (debtId: string) => {
+      const updated = debts.filter((d) => d.id !== debtId);
+      setDebts(updated);
+      saveToStorage(DEBTS_KEY, updated);
+      window.dispatchEvent(new CustomEvent("finspace-debts-updated"));
+    },
+    [debts]
+  );
+
+  const handlePurchase = useCallback(
+    (data: { name: string; amount: number }) => {
+      addTransaction({
+        amount: data.amount,
+        type: "expense",
+        category: "Pembelian Liabilitas",
+        merchant: `Pembelian: ${data.name}`,
+        payment_method: "Tunai",
+      });
+    },
+    [addTransaction]
+  );
+
   function removeAsset(id: string) {
     const updated = assets.filter((a) => a.id !== id);
     setAssets(updated);
@@ -152,7 +212,12 @@ export default function WealthPage() {
         </div>
         <button
           type="button"
-          onClick={() => openAssetLiabilityModal()}
+          onClick={() =>
+            openAssetLiabilityModal({
+              onPurchase: handlePurchase,
+              currentBalance: totalBalance,
+            })
+          }
           className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
         >
           <Plus className="h-4 w-4" />
@@ -162,12 +227,12 @@ export default function WealthPage() {
 
       {/* Net Worth Card */}
       <NetWorthCard
-          totalBalance={netWorthData.totalBalance}
-          totalAssets={netWorthData.totalAssets}
-          totalLiabilities={netWorthData.totalLiabilities}
-          totalDebts={netWorthData.totalDebts}
-          netWorth={netWorthData.netWorth}
-        />
+        totalBalance={netWorthData.totalBalance}
+        totalAssets={netWorthData.totalAssets}
+        totalLiabilities={netWorthData.totalLiabilities}
+        totalDebts={netWorthData.totalDebts}
+        netWorth={netWorthData.netWorth}
+      />
 
       {/* Financial Health Ratios */}
       <div>
@@ -219,13 +284,27 @@ export default function WealthPage() {
           <h3 className="mb-3 font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
             Aset
           </h3>
-          {assets.length === 0 ? (
-            <p className="font-mono text-sm italic text-text-secondary/70">
-              Belum ada aset. Ketuk &quot;Tambah Item&quot; untuk memulai.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {assets.map((asset) => (
+          <div className="space-y-2">
+            {/* Auto: Saldo Tercatat */}
+            <div className="glass flex items-center justify-between rounded-xl border-l-4 border-l-primary p-3">
+              <div>
+                <p className="text-sm font-medium text-text-primary">
+                  Saldo Tercatat
+                </p>
+                <p className="font-mono text-xs text-text-muted">
+                  Otomatis dari transaksi
+                </p>
+              </div>
+              <span className="font-mono text-sm font-semibold text-success">
+                {formatCurrency(totalBalance)}
+              </span>
+            </div>
+            {assets.length === 0 ? (
+              <p className="font-mono text-sm italic text-text-secondary/70">
+                Belum ada aset. Ketuk &quot;Tambah Item&quot; untuk memulai.
+              </p>
+            ) : (
+              assets.map((asset) => (
                 <div
                   key={asset.id}
                   className="glass flex items-center justify-between rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
@@ -251,9 +330,9 @@ export default function WealthPage() {
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </div>
 
         {/* Liabilities */}
@@ -293,6 +372,41 @@ export default function WealthPage() {
           )}
         </div>
       </div>
+
+      {/* ── Debts ── */}
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
+            Utang
+          </h3>
+          <button
+            type="button"
+            onClick={() => setShowDebtForm(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-all hover:bg-primary/20"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Tambah Utang
+          </button>
+        </div>
+        <DebtList
+          debts={debts}
+          onPay={(debt) => setPayingDebt(debt)}
+          onDelete={handleDeleteDebt}
+        />
+      </div>
+
+      {/* Modals */}
+      <DebtForm
+        isOpen={showDebtForm}
+        onClose={() => setShowDebtForm(false)}
+        onSave={handleAddDebt}
+      />
+      <PayDebtModal
+        isOpen={!!payingDebt}
+        debt={payingDebt}
+        onClose={() => setPayingDebt(null)}
+        onPay={handlePayDebt}
+      />
     </div>
   );
 }
