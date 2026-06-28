@@ -41,7 +41,7 @@ export function MobileCardSwitcher({
       </div>
 
       {/* ── Animated card slot ── */}
-      <div className="relative overflow-hidden w-full h-54">
+      <div className="relative overflow-hidden w-full">
         <div
           className="flex transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${active * 100}%)` }}
