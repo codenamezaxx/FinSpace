@@ -2,7 +2,7 @@
  * Compute monthly income and net worth data for charting.
  */
 import type { Transaction } from "./db";
-import type { AssetEntry, LiabilityEntry } from "./netWorth";
+import type { AssetEntry, LiabilityEntry, DebtEntry } from "./netWorth";
 
 export interface MonthlyDataPoint {
   month: string;
@@ -53,13 +53,16 @@ export function computeMonthlyIncome(
 
 /**
  * Compute net worth per month for the past 12 months.
- * Uses `createdAt` on AssetEntry/LiabilityEntry to determine
+ * Uses `createdAt` on AssetEntry/LiabilityEntry/DebtEntry to determine
  * which items existed in each month. Items without `createdAt`
- * (pre-feature data) are included in all months.
+ * (pre-feature data for assets/liabilities) are included in all months.
+ * Uses current balance as the default for all months (no per-month history).
  */
 export function computeMonthlyNetWorth(
   assets: AssetEntry[],
-  liabilities: LiabilityEntry[]
+  liabilities: LiabilityEntry[],
+  balance: number,
+  debts: DebtEntry[],
 ): MonthlyDataPoint[] {
   const now = new Date();
   const result: MonthlyDataPoint[] = [];
@@ -85,9 +88,16 @@ export function computeMonthlyNetWorth(
       .filter((l) => (l.createdAt ?? 0) <= endOfMonth)
       .reduce((sum, l) => sum + l.amount, 0);
 
+    const debtsUpTo = debts
+      .filter((d) => d.createdAt <= endOfMonth)
+      .reduce((sum, d) => {
+        const paid = d.createdAt <= endOfMonth ? d.paidAmount : 0;
+        return sum + Math.max(0, d.totalAmount - paid);
+      }, 0);
+
     result.push({
       month: monthLabel,
-      value: assetsUpTo - liabilitiesUpTo,
+      value: balance + assetsUpTo - liabilitiesUpTo - debtsUpTo,
     });
   }
 

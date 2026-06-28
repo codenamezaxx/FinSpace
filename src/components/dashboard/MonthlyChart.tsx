@@ -18,12 +18,14 @@ import {
   type MonthlyDataPoint,
 } from "@/lib/monthlyChart";
 import type { Transaction } from "@/lib/db";
-import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
+import type { AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
 
 interface MonthlyChartProps {
   transactions: Transaction[];
   assets: AssetEntry[];
   liabilities: LiabilityEntry[];
+  debts?: DebtEntry[];
+  balance?: number;
 }
 
 /* ── Y-axis formatter: 1.5jt / 750rb / 500 ── */
@@ -81,6 +83,8 @@ export function MonthlyChart({
   transactions,
   assets,
   liabilities,
+  debts = [],
+  balance = 0,
 }: MonthlyChartProps) {
   const [view, setView] = useState<ChartView>("income");
   const cfg = VIEW_CONFIG[view];
@@ -90,8 +94,8 @@ export function MonthlyChart({
     [transactions]
   );
   const netWorthData = useMemo(
-    () => computeMonthlyNetWorth(assets, liabilities),
-    [assets, liabilities]
+    () => computeMonthlyNetWorth(assets, liabilities, balance, debts),
+    [assets, liabilities, balance, debts]
   );
 
   const chartData: MonthlyDataPoint[] =

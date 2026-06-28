@@ -27,8 +27,9 @@ import {
   getDebtToIncomeStatus,
 } from "@/lib/financialRatios";
 import { formatCurrency, calculateNetWorth } from "@/lib/netWorth";
+import { loadFromStorage } from "@/lib/storage";
 import type { HealthStatus } from "@/lib/financialRatios";
-import type { NetWorthResult, AssetEntry, LiabilityEntry } from "@/lib/netWorth";
+import type { NetWorthResult, AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
 
 /* ─── Dynamic import — Recharts is heavy, only load when needed ─── */
 const MonthlyChart = dynamic(
@@ -139,39 +140,43 @@ export default function DashboardPage() {
     startTime: twelveMonthsAgo,
   });
 
+  /* ── All-time transactions for total balance ── */
+  const { transactions: allTransactions } = useTransactions();
+
   /* ── Share data with Wealth page via localStorage ── */
-  const [liquidAssets, setLiquidAssets] = useState(0);
-  const [netWorthData, setNetWorthData] = useState<NetWorthResult>({
-    totalAssets: 0,
-    totalLiabilities: 0,
-    totalBalance: 0,
-    totalDebts: 0,
-    netWorth: 0,
-    liquidAssets: 0,
-  });
   const [assetsList, setAssetsList] = useState<AssetEntry[]>([]);
   const [liabilitiesList, setLiabilitiesList] = useState<LiabilityEntry[]>([]);
+  const [debtsList, setDebtsList] = useState<DebtEntry[]>([]);
 
+  /* ── Derived values ── */
+  const totalBalanceAll = useMemo(
+    () =>
+      allTransactions.reduce(
+        (sum, t) => sum + (t.type === "income" ? t.amount : -t.amount),
+        0
+      ),
+    [allTransactions]
+  );
+
+  const liquidAssets = useMemo(
+    () =>
+      assetsList
+        .filter((a) => a.type === "liquid")
+        .reduce((sum, a) => sum + a.amount, 0),
+    [assetsList]
+  );
+
+  const netWorthData: NetWorthResult = useMemo(
+    () => calculateNetWorth(assetsList, liabilitiesList, totalBalanceAll, debtsList),
+    [assetsList, liabilitiesList, totalBalanceAll, debtsList]
+  );
+
+  /* ── Load from localStorage ── */
   const loadAssets = useCallback(() => {
     if (typeof window !== "undefined") {
       try {
-        const rawAssets = localStorage.getItem("finspace_assets");
-        const rawLiabilities = localStorage.getItem("finspace_liabilities");
-
-        const assets: AssetEntry[] = rawAssets ? JSON.parse(rawAssets) : [];
-        const liabilities: LiabilityEntry[] = rawLiabilities
-          ? JSON.parse(rawLiabilities)
-          : [];
-
-        setAssetsList(assets);
-        setLiabilitiesList(liabilities);
-
-        const cash = assets
-          .filter((a) => a.type === "liquid")
-          .reduce((sum, a) => sum + a.amount, 0);
-        setLiquidAssets(cash);
-
-        setNetWorthData(calculateNetWorth(assets, liabilities, 0, []));
+        setAssetsList(loadFromStorage<AssetEntry>("finspace_assets", []));
+        setLiabilitiesList(loadFromStorage<LiabilityEntry>("finspace_liabilities", []));
       } catch {
         // ignore parse errors
       }
@@ -184,6 +189,15 @@ export default function DashboardPage() {
     return () =>
       window.removeEventListener("finspace-assets-updated", loadAssets);
   }, [loadAssets]);
+
+  /* ── Load debts from localStorage ── */
+  useEffect(() => {
+    setDebtsList(loadFromStorage<DebtEntry>("finspace_debts", []));
+    const handler = () =>
+      setDebtsList(loadFromStorage<DebtEntry>("finspace_debts", []));
+    window.addEventListener("finspace-debts-updated", handler);
+    return () => window.removeEventListener("finspace-debts-updated", handler);
+  }, []);
 
   const {
     income,
@@ -497,6 +511,8 @@ export default function DashboardPage() {
         transactions={chartTransactions}
         assets={assetsList}
         liabilities={liabilitiesList}
+        debts={debtsList}
+        balance={totalBalanceAll}
       />
 
       {/* ── Bottom: Smart Insights + Transaction History ── */}
