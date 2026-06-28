@@ -144,6 +144,8 @@ export default function DashboardPage() {
   const [netWorthData, setNetWorthData] = useState<NetWorthResult>({
     totalAssets: 0,
     totalLiabilities: 0,
+    totalBalance: 0,
+    totalDebts: 0,
     netWorth: 0,
     liquidAssets: 0,
   });
@@ -169,7 +171,7 @@ export default function DashboardPage() {
           .reduce((sum, a) => sum + a.amount, 0);
         setLiquidAssets(cash);
 
-        setNetWorthData(calculateNetWorth(assets, liabilities));
+        setNetWorthData(calculateNetWorth(assets, liabilities, 0, []));
       } catch {
         // ignore parse errors
       }
@@ -427,11 +429,12 @@ export default function DashboardPage() {
 
         {/* Net Worth Card */}
         <NetWorthCard
-          data={netWorthData}
+          totalBalance={netWorthData.totalBalance}
+          totalAssets={netWorthData.totalAssets}
+          totalLiabilities={netWorthData.totalLiabilities}
+          totalDebts={netWorthData.totalDebts}
+          netWorth={netWorthData.netWorth}
           className="border-l-8 border-l-accent-secondary"
-          style={{
-            background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid))',
-          }}
         />
       </div>
 

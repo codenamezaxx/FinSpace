@@ -80,7 +80,7 @@ export default function WealthPage() {
   }, [loadData]);
 
   const netWorthData = useMemo(
-    () => calculateNetWorth(assets, liabilities),
+    () => calculateNetWorth(assets, liabilities, 0, []),
     [assets, liabilities]
   );
 
@@ -153,7 +153,7 @@ export default function WealthPage() {
         <button
           type="button"
           onClick={() => openAssetLiabilityModal()}
-          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-mono text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
+          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
         >
           <Plus className="h-4 w-4" />
           Tambah Item
@@ -161,7 +161,13 @@ export default function WealthPage() {
       </div>
 
       {/* Net Worth Card */}
-      <NetWorthCard data={netWorthData} />
+      <NetWorthCard
+          totalBalance={netWorthData.totalBalance}
+          totalAssets={netWorthData.totalAssets}
+          totalLiabilities={netWorthData.totalLiabilities}
+          totalDebts={netWorthData.totalDebts}
+          netWorth={netWorthData.netWorth}
+        />
 
       {/* Financial Health Ratios */}
       <div>
