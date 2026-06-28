@@ -14,8 +14,14 @@ const ASSETS_KEY = "finspace_assets";
 const LIABILITIES_KEY = "finspace_liabilities";
 const UPDATE_EVENT = "finspace-assets-updated";
 
+interface ModalOptions {
+  defaultType?: "asset" | "liability";
+  onPurchase?: (data: { name: string; amount: number }) => void;
+  currentBalance?: number;
+}
+
 interface AssetLiabilityModalContextValue {
-  openAssetLiabilityModal: () => void;
+  openAssetLiabilityModal: (options?: ModalOptions) => void;
 }
 
 const AssetLiabilityModalContext =
@@ -42,9 +48,16 @@ export function AssetLiabilityModalProvider({
   children: ReactNode;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [modalOptions, setModalOptions] = useState<ModalOptions | null>(null);
 
-  const openAssetLiabilityModal = useCallback(() => setIsOpen(true), []);
-  const close = useCallback(() => setIsOpen(false), []);
+  const openAssetLiabilityModal = useCallback((options?: ModalOptions) => {
+    setModalOptions(options ?? null);
+    setIsOpen(true);
+  }, []);
+  const close = useCallback(() => {
+    setModalOptions(null);
+    setIsOpen(false);
+  }, []);
 
   const handleSave = useCallback(
     (item: AssetEntry | LiabilityEntry) => {
@@ -73,6 +86,9 @@ export function AssetLiabilityModalProvider({
         isOpen={isOpen}
         onClose={close}
         onSave={handleSave}
+        defaultType={modalOptions?.defaultType}
+        onPurchase={modalOptions?.onPurchase}
+        currentBalance={modalOptions?.currentBalance}
       />
     </AssetLiabilityModalContext.Provider>
   );
