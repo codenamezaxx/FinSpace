@@ -1,4 +1,7 @@
-import { Banknote, ArrowUpIcon, ArrowDownIcon } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { Banknote, ArrowUpIcon, ArrowDownIcon, ChevronDown } from "lucide-react";
 import { formatCurrency } from "@/lib/netWorth";
 
 interface NetWorthCardProps {
@@ -9,6 +12,7 @@ interface NetWorthCardProps {
   netWorth: number;
   title?: string;
   className?: string;
+  collapsible?: boolean;
 }
 
 export function NetWorthCard({
@@ -19,8 +23,10 @@ export function NetWorthCard({
   netWorth,
   title = "Kekayaan Bersih",
   className = "",
+  collapsible = false,
 }: NetWorthCardProps) {
   const isPositive = netWorth >= 0;
+  const [showDetail, setShowDetail] = useState(false);
 
   return (
     <div
@@ -50,8 +56,36 @@ export function NetWorthCard({
         </div>
       </div>
 
+      {/* Toggle detail button (collapsible mode only) */}
+      {collapsible && (
+        <button
+          type="button"
+          onClick={() => setShowDetail(!showDetail)}
+          className="mt-4 flex w-full items-center justify-between rounded-lg border border-border bg-surface-alt px-4 py-2.5 text-left transition-colors hover:bg-surface"
+        >
+          <p className="font-mono text-xs font-medium text-text-secondary">
+            Detail Kekayaan Bersih
+          </p>
+          <ChevronDown
+            className={`h-4 w-4 text-text-muted transition-transform duration-200 ${
+              showDetail ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+      )}
+
       {/* Breakdown */}
-      <div className="mt-5 space-y-2 border-t border-border pt-4">
+      <div
+        className={`mt-2 space-y-2 overflow-hidden transition-all duration-300 ${
+          collapsible && !showDetail
+            ? "max-h-0 pt-0 opacity-0"
+            : collapsible
+              ? "max-h-96 pt-4 opacity-100"
+              : "mt-5 border-t border-border pt-4"
+        }`}
+      >
+        {!collapsible && <div className="border-t border-border pt-0" />}
+
         <BreakdownRow
           label="Saldo Tercatat"
           value={totalBalance}

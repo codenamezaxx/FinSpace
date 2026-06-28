@@ -449,6 +449,7 @@ export default function DashboardPage() {
           totalDebts={netWorthData.totalDebts}
           netWorth={netWorthData.netWorth}
           className="border-l-8 border-l-accent-secondary"
+          collapsible
         />
       </div>
 
