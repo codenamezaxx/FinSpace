@@ -180,7 +180,7 @@ export default function WealthPage() {
       addTransaction({
         amount: data.amount,
         type: "expense",
-        category: "Pembelian Liabilitas",
+        category: "Pembelian",
         merchant: `Pembelian: ${data.name}`,
         payment_method: "Tunai",
       });
@@ -218,7 +218,7 @@ export default function WealthPage() {
               currentBalance: totalBalance,
             })
           }
-          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
+          className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" />
           Tambah Item
@@ -382,7 +382,7 @@ export default function WealthPage() {
           <button
             type="button"
             onClick={() => setShowDebtForm(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-all hover:bg-primary/20"
+            className="flex items-center gap-2 rounded-lg bg-primary/10 px-5 py-3 text-sm font-semibold text-primary shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
           >
             <Plus className="h-3.5 w-3.5" />
             Tambah Utang

@@ -30,14 +30,12 @@ export function AssetLiabilityForm({
   const [amount, setAmount] = useState("");
   const [assetType, setAssetType] = useState<AssetEntry["type"]>("liquid");
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [purchaseMode, setPurchaseMode] = useState(false);
   const [deductFromBalance, setDeductFromBalance] = useState(false);
 
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       if (defaultType) setType(defaultType);
-      setPurchaseMode(false);
       setDeductFromBalance(false);
       setName("");
       setAmount("");
@@ -60,18 +58,7 @@ export function AssetLiabilityForm({
     const parsed = Math.round(Number(amount));
     const now = Date.now();
 
-    if (purchaseMode) {
-      onSave({
-        id,
-        name: name.trim(),
-        amount: parsed,
-        createdAt: now,
-      } as LiabilityEntry);
-
-      if (deductFromBalance && onPurchase) {
-        onPurchase({ name: name.trim(), amount: parsed });
-      }
-    } else if (type === "asset") {
+    if (type === "asset") {
       onSave({
         id,
         name: name.trim(),
@@ -88,6 +75,10 @@ export function AssetLiabilityForm({
       } as LiabilityEntry);
     }
 
+    if (deductFromBalance && onPurchase) {
+      onPurchase({ name: name.trim(), amount: parsed });
+    }
+
     setName("");
     setAmount("");
     setErrors({});
@@ -101,197 +92,118 @@ export function AssetLiabilityForm({
     <ResponsiveModal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        purchaseMode
-          ? "Pembelian Liabilitas"
-          : type === "asset"
-            ? "Tambah Aset"
-            : "Tambah Liabilitas"
-      }
+      title={type === "asset" ? "Tambah Aset" : "Tambah Liabilitas"}
     >
       <div className="space-y-4">
-        {/* Purchase mode toggle */}
-        <div className="flex items-center justify-between rounded-lg bg-surface-alt px-4 py-3">
-          <div>
-            <p className="text-sm font-medium text-text-primary">
-              Pembelian Liabilitas
-            </p>
-            <p className="text-xs text-text-muted">
-              Beli aset baru menggunakan saldo rekening
-            </p>
-          </div>
+        {/* Type toggle */}
+        <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => setPurchaseMode(!purchaseMode)}
-            className={`relative h-6 w-11 rounded-full transition-colors ${
-              purchaseMode ? "bg-primary" : "bg-border"
+            onClick={() => setType("asset")}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border p-3 font-mono text-sm font-medium transition-all duration-200 ${
+              type === "asset"
+                ? "border-primary bg-primary text-white shadow-lg shadow-primary/25"
+                : "border-border bg-surface-alt text-text-secondary hover:border-text-muted"
             }`}
           >
-            <div
-              className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                purchaseMode ? "translate-x-5" : "translate-x-0"
-              }`}
-            />
+            <Banknote className="h-4 w-4" />
+            Aset
+          </button>
+          <button
+            type="button"
+            onClick={() => setType("liability")}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border p-3 font-mono text-sm font-medium transition-all duration-200 ${
+              type === "liability"
+                ? "border-danger bg-danger text-white shadow-lg shadow-danger/25"
+                : "border-border bg-surface-alt text-text-secondary hover:border-text-muted"
+            }`}
+          >
+            <CreditCard className="h-4 w-4" />
+            Liabilitas
           </button>
         </div>
 
-        {purchaseMode ? (
-          <>
-            {/* Nama Liabilitas */}
-            <div>
-              <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Nama Liabilitas
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="cth: Kredit Mobil"
-                className={inputClasses}
-              />
-              {errors.name && (
-                <p className="mt-1 font-mono text-xs text-danger">
-                  {errors.name}
-                </p>
-              )}
-            </div>
+        {/* Name */}
+        <div>
+          <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
+            Nama
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="cth: Rekening Tabungan"
+            className={inputClasses}
+          />
+          {errors.name && (
+            <p className="mt-1 font-mono text-xs text-danger">{errors.name}</p>
+          )}
+        </div>
 
-            {/* Harga Pembelian */}
-            <div>
-              <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Harga Pembelian (Rp)
-              </label>
-              <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0"
-                className={inputClasses}
-              />
-              {errors.amount && (
-                <p className="mt-1 font-mono text-xs text-danger">
-                  {errors.amount}
-                </p>
-              )}
-            </div>
+        {/* Amount */}
+        <div>
+          <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
+            Jumlah (IDR)
+          </label>
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="0"
+            className={inputClasses}
+          />
+          {errors.amount && (
+            <p className="mt-1 font-mono text-xs text-danger">
+              {errors.amount}
+            </p>
+          )}
+        </div>
 
-            {/* Beli dari Saldo + currentBalance */}
-            <div className="space-y-3 rounded-xl border border-border bg-surface-alt p-3">
-              {currentBalance !== undefined && (
-                <div className="flex items-center justify-between">
-                  <p className="font-mono text-xs text-text-muted">
-                    Saldo saat ini
-                  </p>
-                  <p className="font-mono text-sm font-semibold text-text-primary">
-                    {formatCurrency(currentBalance)}
-                  </p>
-                </div>
-              )}
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={deductFromBalance}
-                  onChange={(e) => setDeductFromBalance(e.target.checked)}
-                  className="h-4 w-4 rounded border-border accent-primary"
-                />
-                <span className="text-sm text-text-primary">
-                  Beli menggunakan saldo tercatat
-                </span>
-              </label>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Type toggle */}
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setType("asset")}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg border p-3 font-mono text-sm font-medium transition-all duration-200 ${
-                  type === "asset"
-                    ? "border-primary bg-primary text-white shadow-lg shadow-primary/25"
-                    : "border-border bg-surface-alt text-text-secondary hover:border-text-muted"
-                }`}
-              >
-                <Banknote className="h-4 w-4" />
-                Aset
-              </button>
-              <button
-                type="button"
-                onClick={() => setType("liability")}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg border p-3 font-mono text-sm font-medium transition-all duration-200 ${
-                  type === "liability"
-                    ? "border-danger bg-danger text-white shadow-lg shadow-danger/25"
-                    : "border-border bg-surface-alt text-text-secondary hover:border-text-muted"
-                }`}
-              >
-                <CreditCard className="h-4 w-4" />
-                Liabilitas
-              </button>
-            </div>
-
-            {/* Name */}
-            <div>
-              <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Nama
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="cth: Rekening Tabungan"
-                className={inputClasses}
-              />
-              {errors.name && (
-                <p className="mt-1 font-mono text-xs text-danger">
-                  {errors.name}
-                </p>
-              )}
-            </div>
-
-            {/* Amount */}
-            <div>
-              <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Jumlah (IDR)
-              </label>
-              <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0"
-                className={inputClasses}
-              />
-              {errors.amount && (
-                <p className="mt-1 font-mono text-xs text-danger">
-                  {errors.amount}
-                </p>
-              )}
-            </div>
-
-            {/* Asset type - only show for assets */}
-            {type === "asset" && (
-              <div>
-                <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                  Tipe Aset
-                </label>
-                <select
-                  value={assetType}
-                  onChange={(e) =>
-                    setAssetType(e.target.value as AssetEntry["type"])
-                  }
-                  className={inputClasses}
-                >
-                  <option value="liquid">Likuid (Tunai, Bank)</option>
-                  <option value="investment">
-                    Investasi (Saham, Reksadana)
-                  </option>
-                  <option value="property">Properti (Rumah, Tanah)</option>
-                  <option value="other">Lainnya</option>
-                </select>
-              </div>
-            )}
-          </>
+        {/* Asset type - only show for assets */}
+        {type === "asset" && (
+          <div>
+            <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
+              Tipe Aset
+            </label>
+            <select
+              value={assetType}
+              onChange={(e) =>
+                setAssetType(e.target.value as AssetEntry["type"])
+              }
+              className={inputClasses}
+            >
+              <option value="liquid">Likuid (Tunai, Bank)</option>
+              <option value="investment">Investasi (Saham, Reksadana)</option>
+              <option value="property">Properti (Rumah, Tanah)</option>
+              <option value="other">Lainnya</option>
+            </select>
+          </div>
         )}
+
+        {/* Beli dari Saldo */}
+        <div className="space-y-3 rounded-xl border border-border bg-surface-alt p-3">
+          {currentBalance !== undefined && (
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-xs text-text-muted">
+                Saldo saat ini
+              </p>
+              <p className="font-mono text-sm font-semibold text-text-primary">
+                {formatCurrency(currentBalance)}
+              </p>
+            </div>
+          )}
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={deductFromBalance}
+              onChange={(e) => setDeductFromBalance(e.target.checked)}
+              className="h-4 w-4 rounded border-border accent-primary"
+            />
+            <span className="text-sm text-text-primary">
+              Beli menggunakan saldo tercatat
+            </span>
+          </label>
+        </div>
 
         {/* Save button */}
         <button
@@ -300,9 +212,7 @@ export function AssetLiabilityForm({
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-mono text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
         >
           <Plus className="h-4 w-4" />
-          {purchaseMode
-            ? "Tambah Liabilitas"
-            : `Tambah ${type === "asset" ? "Aset" : "Liabilitas"}`}
+          Tambah {type === "asset" ? "Aset" : "Liabilitas"}
         </button>
       </div>
     </ResponsiveModal>
