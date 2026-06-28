@@ -346,50 +346,18 @@ export default function DashboardPage() {
             </div>,
 
             /* Net Worth View */
-            <div
+            <NetWorthCard
               key="networth"
-              className="rounded-2xl border border-border p-6 shadow-lg shadow-black/20 backdrop-blur-xl"
+              totalBalance={netWorthData.totalBalance}
+              totalAssets={netWorthData.totalAssets}
+              totalLiabilities={netWorthData.totalLiabilities}
+              totalDebts={netWorthData.totalDebts}
+              netWorth={netWorthData.netWorth}
+              collapsible
               style={{
                 background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid))',
               }}
-            >
-              <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Kekayaan Bersih
-              </p>
-              <div className="mt-3 flex items-baseline gap-3">
-                <p className="text-3xl font-bold text-text-primary">
-                  {formatCurrency(Math.abs(netWorthData.netWorth))}
-                </p>
-                <div
-                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                    netWorthData.netWorth >= 0
-                      ? "bg-success/15 text-success"
-                      : "bg-danger/15 text-danger"
-                  }`}
-                >
-                  {netWorthData.netWorth >= 0 ? (
-                    <ArrowUpIcon className="h-3.5 w-3.5" />
-                  ) : (
-                    <ArrowDownIcon className="h-3.5 w-3.5" />
-                  )}
-                  {netWorthData.netWorth >= 0 ? "Positif" : "Negatif"}
-                </div>
-              </div>
-              <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
-                <div>
-                  <p className="font-mono text-xs text-text-muted">Total Aset</p>
-                  <p className="mt-1 font-mono text-lg font-semibold text-success">
-                    {formatCurrency(netWorthData.totalAssets)}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-mono text-xs text-text-muted">Total Liabilitas</p>
-                  <p className="mt-1 font-mono text-lg font-semibold text-danger">
-                    {formatCurrency(netWorthData.totalLiabilities)}
-                  </p>
-                </div>
-              </div>
-            </div>,
+            />,
           ]}
         />
       </div>
