@@ -10,7 +10,7 @@ export interface Transaction {
   merchant: string;
   payment_method: string;
   timestamp: number;
-  sync_status: "pending" | "synced" | "failed";
+  sync_status: "synced" | "pending" | "local_only";
   pocketId?: string | null;
 }
 
