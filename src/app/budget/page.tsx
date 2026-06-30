@@ -16,6 +16,7 @@ import { PocketGrid } from "@/components/budget/PocketGrid";
 import { PocketFormModal } from "@/components/budget/PocketFormModal";
 import type { Pocket } from "@/lib/pocket";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
+import { TransferModal } from "@/components/budget/TransferModal";
 
 export default function BudgetPage() {
   const { openAddTransaction } = useTransactionModal();
@@ -28,12 +29,14 @@ export default function BudgetPage() {
     pockets, balances, totalBalance: pocketBalance,
     addPocket, renamePocket, deletePocket,
     pocketFilter, setPocketFilter,
+    transferBetweenPockets,
   } = usePockets();
 
   const [showPocketForm, setShowPocketForm] = useState(false);
   const [editingPocket, setEditingPocket] = useState<Pocket | null>(null);
   const [pocketToDelete, setPocketToDelete] = useState<Pocket | null>(null);
-  const [transferPocket, setTransferPocket] = useState<Pocket | undefined>(undefined);
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [transferFrom, setTransferFrom] = useState<Pocket | null>(null);
 
   const monthlyIncome = useMemo(() => {
     return transactions
@@ -157,7 +160,9 @@ export default function BudgetPage() {
         onAdd={() => setShowPocketForm(true)}
         onRename={(p) => setEditingPocket(p)}
         onDelete={(p) => setPocketToDelete(p)}
-        onTransfer={(p) => setTransferPocket(p)}
+        onTransfer={(p) => {
+          if (p) setTransferFrom(p); else setShowTransfer(true);
+        }}
       />
 
       {/* Transaction List */}
@@ -214,6 +219,15 @@ export default function BudgetPage() {
           </button>
         </div>
       </ResponsiveModal>
+
+      <TransferModal
+        isOpen={showTransfer || !!transferFrom}
+        onClose={() => { setShowTransfer(false); setTransferFrom(null); }}
+        pockets={pockets}
+        balances={balances}
+        preSelectedFrom={transferFrom?.id}
+        onTransfer={transferBetweenPockets}
+      />
     </div>
   );
 }

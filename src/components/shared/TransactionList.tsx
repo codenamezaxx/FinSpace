@@ -55,6 +55,7 @@ export function TransactionList({ pocketFilter = null, pockets = [] }: Transacti
   const [sortField, setSortField] = useState<SortField>("timestamp");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
+  const [hideTransfers, setHideTransfers] = useState(false);
 
   const filtered = useMemo(() => {
     let result = [...transactions];
@@ -65,6 +66,10 @@ export function TransactionList({ pocketFilter = null, pockets = [] }: Transacti
 
     if (pocketFilter) {
       result = result.filter((t) => t.pocketId === pocketFilter);
+    }
+
+    if (hideTransfers) {
+      result = result.filter((t) => !t.transferId);
     }
 
     if (debouncedSearch.trim()) {
@@ -85,7 +90,7 @@ export function TransactionList({ pocketFilter = null, pockets = [] }: Transacti
     });
 
     return result;
-  }, [transactions, debouncedSearch, sortField, sortDir, typeFilter, pocketFilter]);
+  }, [transactions, debouncedSearch, sortField, sortDir, typeFilter, pocketFilter, hideTransfers]);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -146,6 +151,16 @@ export function TransactionList({ pocketFilter = null, pockets = [] }: Transacti
               {t === "all" ? "Semua" : t === "income" ? "Pemasukan" : "Pengeluaran"}
             </button>
           ))}
+          <button
+            onClick={() => setHideTransfers(!hideTransfers)}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+              hideTransfers
+                ? "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
+                : "bg-primary/10 text-primary"
+            }`}
+          >
+            {hideTransfers ? "Tampilkan Transfer" : "Sembunyikan Transfer"}
+          </button>
         </div>
       </div>
 
