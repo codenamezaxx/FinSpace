@@ -4,12 +4,18 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import type { Pocket } from "@/lib/pocket";
 import { PRESET_POCKETS } from "@/lib/pocket";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 
 export function usePockets() {
-  const pockets = useLiveQuery(async () => {
-    let result = await db.pockets.orderBy("sortOrder").toArray();
-    if (result.length === 0) {
+  const pockets = useLiveQuery(
+    () => db.pockets.orderBy("sortOrder").toArray() as Promise<Pocket[]>,
+    []
+  );
+
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (pockets !== undefined && pockets.length === 0 && !seeded.current) {
+      seeded.current = true;
       const now = Date.now();
       const presets = PRESET_POCKETS.map((p, i) => ({
         id: crypto.randomUUID(),
@@ -18,11 +24,9 @@ export function usePockets() {
         sortOrder: i,
         createdAt: now,
       }));
-      await db.pockets.bulkAdd(presets);
-      result = presets;
+      db.pockets.bulkAdd(presets);
     }
-    return result as Pocket[];
-  }, []);
+  }, [pockets]);
 
   const allTransactions = useLiveQuery(
     () => db.transactions.toArray(),
