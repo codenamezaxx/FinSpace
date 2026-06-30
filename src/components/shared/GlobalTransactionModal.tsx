@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ResponsiveModal } from "./ResponsiveModal";
 import { useTransactionModal } from "@/lib/transaction-modal-context";
 import { useTransactions } from "@/hooks/useTransactions";
+import { usePockets } from "@/hooks/usePockets";
 
 const EXPENSE_CATEGORIES = [
   "Makanan & Minuman",
@@ -15,17 +16,16 @@ const EXPENSE_CATEGORIES = [
   "Pendidikan",
 ];
 
-const PAYMENT_METHODS = ["Tunai", "Transfer Bank", "Kartu Kredit", "E-Wallet"];
-
 export function GlobalTransactionModal() {
   const { isOpen, closeAddTransaction, initialTab } = useTransactionModal();
   const { addTransaction } = useTransactions();
+  const { pockets } = usePockets();
 
   const [tab, setTab] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
   const [merchant, setMerchant] = useState("");
   const [category, setCategory] = useState(EXPENSE_CATEGORIES[0]);
-  const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0]);
+  const [selectedPocketId, setSelectedPocketId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,7 +36,7 @@ export function GlobalTransactionModal() {
       setAmount("");
       setMerchant("");
       setCategory(EXPENSE_CATEGORIES[0]);
-      setPaymentMethod(PAYMENT_METHODS[0]);
+      if (pockets.length > 0) setSelectedPocketId(pockets[0].id);
       setError("");
     }
   }, [isOpen, initialTab]);
@@ -66,7 +66,8 @@ export function GlobalTransactionModal() {
         type: tab,
         category: tab === "income" ? "Pemasukkan" : category,
         merchant: merchant.trim(),
-        payment_method: paymentMethod,
+        payment_method: pockets.find((p) => p.id === selectedPocketId)?.name ?? "Tunai",
+        pocketId: selectedPocketId,
       });
       closeAddTransaction();
     } catch {
@@ -156,20 +157,20 @@ export function GlobalTransactionModal() {
           </div>
         )}
 
-        {/* ── Payment Method ── */}
+        {/* ── Pilih Kantong ── */}
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-            Metode Pembayaran
-          </label>
+          <label className="mb-1.5 block text-sm font-medium text-text-secondary">Kantong</label>
           <select
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
+            value={selectedPocketId}
+            onChange={(e) => setSelectedPocketId(e.target.value)}
             className="w-full appearance-none rounded-lg border border-border bg-surface-alt px-4 py-3 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors"
           >
-            {PAYMENT_METHODS.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
+            {(["tunai", "ewallet", "rekening"] as const).map((cat) => (
+              <optgroup key={cat} label={cat === "tunai" ? "Tunai" : cat === "ewallet" ? "E-Wallet" : "Rekening"}>
+                {pockets.filter((p) => p.category === cat).map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>

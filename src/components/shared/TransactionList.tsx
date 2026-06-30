@@ -6,6 +6,7 @@ import { TransactionCard } from "./TransactionCard";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { Transaction } from "@/lib/db";
+import type { Pocket } from "@/lib/pocket";
 
 function formatDate(ts: number): string {
   return new Date(ts).toLocaleDateString("id-ID", {
@@ -42,7 +43,12 @@ function SyncDot({ status }: { status: string }) {
   );
 }
 
-export function TransactionList() {
+interface TransactionListProps {
+  pocketFilter?: string | null;
+  pockets?: Pocket[];
+}
+
+export function TransactionList({ pocketFilter = null, pockets = [] }: TransactionListProps) {
   const { transactions, loading, deleteTransaction } = useTransactions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
@@ -55,6 +61,10 @@ export function TransactionList() {
 
     if (typeFilter !== "all") {
       result = result.filter((t) => t.type === typeFilter);
+    }
+
+    if (pocketFilter) {
+      result = result.filter((t) => t.pocketId === pocketFilter);
     }
 
     if (debouncedSearch.trim()) {
@@ -75,7 +85,7 @@ export function TransactionList() {
     });
 
     return result;
-  }, [transactions, debouncedSearch, sortField, sortDir, typeFilter]);
+  }, [transactions, debouncedSearch, sortField, sortDir, typeFilter, pocketFilter]);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -165,7 +175,7 @@ export function TransactionList() {
                   )}
                 </span>
               </th>
-              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Pembayaran</th>
+              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Kantong</th>
               <th
                 className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted cursor-pointer hover:text-text-secondary"
                 onClick={() => toggleSort("timestamp")}
@@ -211,7 +221,7 @@ export function TransactionList() {
                   {formatAmount(t.amount)}
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
-                  {t.payment_method}
+                  {pockets.find((p) => p.id === t.pocketId)?.name ?? t.payment_method}
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
                   {formatDate(t.timestamp)}

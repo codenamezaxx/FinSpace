@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import { ArrowDownRight, ArrowUpRight, ShoppingBag, type LucideIcon } from "lucide-react";
+import { usePockets } from "@/hooks/usePockets";
 import type { Transaction } from "@/lib/db";
 
 const categoryIcons: Record<string, LucideIcon> = {
@@ -30,6 +31,8 @@ interface TransactionCardProps {
 
 export const TransactionCard = memo(function TransactionCard({ transaction }: TransactionCardProps) {
   const isExpense = transaction.type === "expense";
+  const { pockets } = usePockets();
+  const pocket = pockets.find((p) => p.id === transaction.pocketId);
   const Icon = categoryIcons[transaction.category] || ShoppingBag;
 
   return (
@@ -70,7 +73,7 @@ export const TransactionCard = memo(function TransactionCard({ transaction }: Tr
           {formatAmount(transaction.amount)}
         </p>
         <p className="text-xs text-text-muted">
-          {transaction.payment_method}
+          {pocket?.name ?? transaction.payment_method}
         </p>
       </div>
     </div>
