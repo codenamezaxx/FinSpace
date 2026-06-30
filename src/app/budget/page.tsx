@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { TransactionList } from "@/components/shared/TransactionList";
 import { BudgetRing } from "@/components/budget/BudgetRing";
@@ -11,6 +11,10 @@ import {
   checkBudgetStatus,
   CATEGORY_MAPPING,
 } from "@/lib/budgetRules";
+import { usePockets } from "@/hooks/usePockets";
+import { PocketGrid } from "@/components/budget/PocketGrid";
+import { PocketFormModal } from "@/components/budget/PocketFormModal";
+import type { Pocket } from "@/lib/pocket";
 
 export default function BudgetPage() {
   const { openAddTransaction } = useTransactionModal();
@@ -18,6 +22,15 @@ export default function BudgetPage() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
   const { transactions } = useTransactions({ startTime: startOfMonth });
+
+  const {
+    pockets, balances, totalBalance: pocketBalance,
+    addPocket, renamePocket, deletePocket,
+    pocketFilter, setPocketFilter,
+  } = usePockets();
+
+  const [showPocketForm, setShowPocketForm] = useState(false);
+  const [editingPocket, setEditingPocket] = useState<Pocket | null>(null);
 
   const monthlyIncome = useMemo(() => {
     return transactions
@@ -132,15 +145,43 @@ export default function BudgetPage() {
         </div>
       </div>
 
+      {/* Pocket Cards */}
+      <PocketGrid
+        pockets={pockets}
+        balances={balances}
+        selectedId={pocketFilter}
+        onSelect={setPocketFilter}
+        onAdd={() => setShowPocketForm(true)}
+        onRename={(p) => setEditingPocket(p)}
+        onDelete={(p) => {
+          if (confirm(`Hapus kantong "${p.name}"? Transaksinya tetap ada.`)) {
+            deletePocket(p.id);
+          }
+        }}
+      />
+
       {/* Transaction List */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-primary">
           Transaksi Terbaru
         </h2>
-        <TransactionList />
+        <TransactionList pocketFilter={pocketFilter} pockets={pockets} />
       </div>
 
 
+      <PocketFormModal
+        isOpen={showPocketForm}
+        onClose={() => setShowPocketForm(false)}
+        onSave={(name, category) => addPocket(name, category)}
+        title="Tambah Kantong"
+      />
+      <PocketFormModal
+        isOpen={!!editingPocket}
+        onClose={() => setEditingPocket(null)}
+        onSave={(name) => { if (editingPocket) renamePocket(editingPocket.id, name); }}
+        initialName={editingPocket?.name}
+        title="Ganti Nama Kantong"
+      />
     </div>
   );
 }
