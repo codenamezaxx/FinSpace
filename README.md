@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="/banner.jpg" alt="FinSpace" width="100%" style="border-radius: 16px;" />
+  <img src="public/banner.jpg" alt="FinSpace" width="100%" style="border-radius: 16px;" />
 </p>
 
 <p align="center">
