@@ -3,7 +3,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import type { Pocket } from "@/lib/pocket";
-import { PRESET_POCKETS } from "@/lib/pocket";
+import { PRESET_POCKETS, OLD_PRESET_NAMES } from "@/lib/pocket";
 import { useState, useCallback, useMemo, useEffect } from "react";
 
 // Module-level flag — survives React StrictMode double-mounts and HMR.
@@ -18,15 +18,31 @@ export function usePockets() {
   );
 
   // Auto-seed presets on first load when table is empty.
+  // Also cleans up old presets that were removed from PRESET_POCKETS.
   // Uses module-level flags (not useRef) to survive StrictMode double-mounts.
   useEffect(() => {
     if (_seeded || _seedInProgress) return;
     if (pockets === undefined) return; // still loading
-    if (pockets.length > 0) {
-      _seeded = true;
-      return; // already seeded
-    }
+
     _seedInProgress = true;
+
+    if (pockets.length > 0) {
+      // Cleanup old presets that are no longer in PRESET_POCKETS
+      const toRemove = pockets.filter((p) => OLD_PRESET_NAMES.has(p.name));
+      if (toRemove.length > 0) {
+        const ids = toRemove.map((p) => p.id);
+        db.transactions.where("pocketId").anyOf(ids).modify({ pocketId: null })
+          .then(() => db.pockets.bulkDelete(ids))
+          .then(() => { _seeded = true; _seedInProgress = false; })
+          .catch(() => { _seedInProgress = false; });
+      } else {
+        _seeded = true;
+        _seedInProgress = false;
+      }
+      return;
+    }
+
+    // Fresh DB — seed presets
     const now = Date.now();
     const presets = PRESET_POCKETS.map((p, i) => ({
       id: crypto.randomUUID(),
