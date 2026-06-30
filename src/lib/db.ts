@@ -1,14 +1,17 @@
 import Dexie, { type EntityTable } from "dexie";
+import type { Pocket } from "./pocket";
+export type { Pocket };
 
 export interface Transaction {
   id: string;
-  amount: number;
   type: "income" | "expense";
+  amount: number;
   category: string;
   merchant: string;
   payment_method: string;
   timestamp: number;
-  sync_status: "synced" | "pending" | "local_only";
+  sync_status: "pending" | "synced" | "failed";
+  pocketId?: string | null;
 }
 
 export interface AiQueueItem {
@@ -21,11 +24,17 @@ export interface AiQueueItem {
 export class FinSpaceDB extends Dexie {
   transactions!: EntityTable<Transaction, "id">;
   ai_queue!: EntityTable<AiQueueItem, "queue_id">;
+  pockets!: EntityTable<Pocket, "id">;
 
   constructor() {
     super("FinSpaceDB");
     this.version(1).stores({
       transactions: "id, type, category, timestamp, sync_status",
+      ai_queue: "queue_id, input_type, created_at",
+    });
+    this.version(2).stores({
+      transactions: "id, type, category, timestamp, sync_status, pocketId",
+      pockets: "id, category, sortOrder",
       ai_queue: "queue_id, input_type, created_at",
     });
   }
