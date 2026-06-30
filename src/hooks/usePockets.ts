@@ -3,6 +3,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import type { Pocket } from "@/lib/pocket";
+import type { Transaction } from "@/lib/db";
 import { PRESET_POCKETS, OLD_PRESET_NAMES } from "@/lib/pocket";
 import { useState, useCallback, useMemo, useEffect } from "react";
 
@@ -109,6 +110,50 @@ export function usePockets() {
     setPocketFilter((prev) => (prev === id ? null : prev));
   }, []);
 
+  const transferBetweenPockets = useCallback(
+    async (fromPocketId: string, toPocketId: string, amount: number) => {
+      if (fromPocketId === toPocketId) return;
+      if (amount <= 0) return;
+
+      const pocketList = pockets ?? [];
+      const fromPocket = pocketList.find((p) => p.id === fromPocketId);
+      const toPocket = pocketList.find((p) => p.id === toPocketId);
+      if (!fromPocket || !toPocket) return;
+
+      const transferId = crypto.randomUUID();
+      const now = Date.now();
+
+      const expenseTx: Transaction = {
+        id: crypto.randomUUID(),
+        type: "expense",
+        amount,
+        category: "Pindah Saldo",
+        merchant: `Transfer ke ${toPocket.name}`,
+        payment_method: fromPocket.name,
+        timestamp: now,
+        sync_status: "local_only",
+        transferId,
+        pocketId: fromPocketId,
+      };
+
+      const incomeTx: Transaction = {
+        id: crypto.randomUUID(),
+        type: "income",
+        amount,
+        category: "Pindah Saldo",
+        merchant: `Transfer dari ${fromPocket.name}`,
+        payment_method: toPocket.name,
+        timestamp: now + 1,
+        sync_status: "local_only",
+        transferId,
+        pocketId: toPocketId,
+      };
+
+      await db.transactions.bulkAdd([expenseTx, incomeTx]);
+    },
+    [pockets]
+  );
+
   return {
     pockets: pockets ?? [],
     balances,
@@ -116,6 +161,7 @@ export function usePockets() {
     addPocket,
     renamePocket,
     deletePocket,
+    transferBetweenPockets,
     pocketFilter,
     setPocketFilter,
     loading: pockets === undefined,

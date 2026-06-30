@@ -11,6 +11,7 @@ export interface Transaction {
   payment_method: string;
   timestamp: number;
   sync_status: "synced" | "pending" | "local_only";
+  transferId?: string;
   pocketId?: string | null;
 }
 
