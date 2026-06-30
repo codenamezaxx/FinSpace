@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRightLeft } from "lucide-react";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import type { Pocket } from "@/lib/pocket";
@@ -29,11 +29,16 @@ export function TransferModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (isOpen) {
+      setFromId(preSelectedFrom ?? "");
+      setToId("");
+      setAmount("");
+      setError("");
+    }
+  }, [isOpen, preSelectedFrom]);
+
   const handleClose = () => {
-    setFromId(preSelectedFrom ?? "");
-    setToId("");
-    setAmount("");
-    setError("");
     onClose();
   };
 

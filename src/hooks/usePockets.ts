@@ -112,13 +112,13 @@ export function usePockets() {
 
   const transferBetweenPockets = useCallback(
     async (fromPocketId: string, toPocketId: string, amount: number) => {
-      if (fromPocketId === toPocketId) return;
-      if (amount <= 0) return;
+      if (fromPocketId === toPocketId) throw new Error("Kantong sumber dan tujuan harus berbeda.");
+      if (amount <= 0) throw new Error("Jumlah transfer harus lebih dari 0.");
 
       const pocketList = pockets ?? [];
       const fromPocket = pocketList.find((p) => p.id === fromPocketId);
       const toPocket = pocketList.find((p) => p.id === toPocketId);
-      if (!fromPocket || !toPocket) return;
+      if (!fromPocket || !toPocket) throw new Error("Kantong sumber atau tujuan tidak ditemukan.");
 
       const transferId = crypto.randomUUID();
       const now = Date.now();
