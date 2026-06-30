@@ -35,7 +35,7 @@ export default function HomePage() {
       <section className="relative flex flex-col items-center justify-center px-6 pt-24 pb-16 text-center">
         {/* Subtle radial glow behind logo */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-[420px] w-[420px] rounded-full bg-accent-secondary/10 blur-[120px]" />
+          <div className="h-[420px] w-[420px] rounded-full bg-primary/15 blur-[120px]" />
         </div>
 
         <div className="relative z-10">
@@ -55,7 +55,7 @@ export default function HomePage() {
 
           {/* Tagline */}
           <p className="mx-auto mt-4 max-w-md text-lg text-text-muted">
-            Pengelola Keuangan Pribadi
+            Personal Finance Manager
           </p>
 
           {/* CTA */}

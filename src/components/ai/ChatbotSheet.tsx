@@ -99,7 +99,7 @@ export function ChatbotSheet({ isOpen, onClose }: ChatbotSheetProps) {
 
       {/* Sheet */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col glass shadow-2xl shadow-black/40 transition-transform duration-300 ease-out lg:left-auto lg:right-4 lg:bottom-4 lg:w-96 lg:rounded-2xl ${
+        className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-surface shadow-2xl shadow-black/40 transition-transform duration-300 ease-out lg:left-auto lg:right-4 lg:bottom-4 lg:w-96 lg:rounded-2xl ${
           isOpen
             ? "translate-y-0"
             : "translate-y-full"

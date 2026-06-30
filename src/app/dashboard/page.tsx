@@ -426,7 +426,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => openAssetLiabilityModal()}
-              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-accent-secondary/40 bg-accent-secondary/10 px-6 py-3 text-sm font-semibold text-accent-secondary transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-secondary hover:shadow-lg hover:shadow-accent-secondary/15"
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3 text-sm font-semibold text-primary transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-accent-secondary/15"
             >
               <Banknote className="h-5 w-5" />
               Tambah Aset / Liabilitas

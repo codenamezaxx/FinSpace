@@ -142,6 +142,13 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Task 7: Wealth page debt integration (debts, balance, purchase, NetWorthCard)
 - [x] Task 8: Dashboard + MonthlyChart update with new NW formula
 
+## Phase 3d: Pocket (Kantong) System
+- [x] Task 1: Data layer — Pocket type, Dexie schema v2 (pockets table + pocketId index), usePockets hook, tests
+- [x] Task 2: PocketCard, PocketGrid, PocketFormModal components
+- [x] Task 3: Transaction integration — pocket selector in form, pocket name display, list filter
+- [x] Task 4: Budget page — wire PocketGrid with add/rename modals and filter
+- [x] Task 5: Wealth + Dashboard — totalBalance from sum of pocket balances
+
 ## Phase 10: Deployment & Final Acceptance Testing
 - [ ] Build a robust suite of validation test scenarios for simulated offline state.
 - [ ] Validate desktop responsiveness at viewport widths up to 1920px.

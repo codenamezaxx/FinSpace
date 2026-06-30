@@ -84,7 +84,7 @@ export function NavigationBar({ isCollapsed = false, onToggle }: NavigationBarPr
               FinSpace
             </span>
             <span className="whitespace-nowrap text-xs text-text-muted">
-              Pengelola Keuangan Pribadi
+              Personal Finance Manager
             </span>
           </div>
         </div>

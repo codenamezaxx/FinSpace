@@ -54,7 +54,7 @@ export function ResponsiveModal({
 
       {/* Modal Panel */}
       <div
-        className={`relative z-10 flex max-h-[85vh] w-full flex-col bg-surface shadow-2xl transition-all duration-300 sm:mx-4 sm:max-w-lg sm:rounded-2xl ${
+        className={`relative z-10 flex max-h-[85vh] w-full flex-col bg-surface rounded-2xl shadow-2xl transition-all duration-300 sm:mx-4 sm:max-w-lg ${
           isOpen
             ? "translate-y-0 opacity-100"
             : "translate-y-8 opacity-0"

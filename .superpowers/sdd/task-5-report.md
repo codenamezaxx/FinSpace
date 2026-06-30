@@ -1,31 +1,42 @@
-# Task 5 Report — NetWorthCard Breakdown Display
+# Task 5 Report: Wealth + Dashboard — totalBalance from usePockets
+
+**Status:** DONE
 
 ## Changes Made
 
-### 1. `src/components/wealth/NetWorthCard.tsx` — Complete rewrite
-- **Removed** `"use client"` directive — now a Server Component
-- **Changed props** from `{ data: NetWorthResult }` to flat props: `{ totalBalance, totalAssets, totalLiabilities, totalDebts, netWorth, title?, className? }`
-- **Added** `Banknote` icon import from `lucide-react` for the "Saldo Tercatat" row
-- **Removed** `memo`, `ArrowUpIcon`, `ArrowDownIcon`, `type CSSProperties` imports (no longer needed)
-- **New layout**: 4 breakdown rows (Saldo Tercatat, Total Aset, Total Liabilitas, Total Utang) with ± prefix + total net worth row
-  - Saldo Tercatat: green (`text-success`), shows `Banknote` icon
-  - Total Aset: green (`text-success`)
-  - Total Liabilitas: red (`text-danger`) with `-` prefix
-  - Total Utang: red (`text-danger`) with `-` prefix
-  - Net Worth total: green/red depending on sign, with "Positif"/"Negatif" badge
-- **BreakdownRow** helper component: accepts optional `children` for icon, `negative` flag for ± prefix
-- Same styling patterns: `bg-surface/50`, `border-border`, `font-mono`, hover lift effect
+### `src/app/wealth/page.tsx`
+- Added `import { usePockets } from "@/hooks/usePockets";` (line 31)
+- Simplified `useTransactions()` to `const { addTransaction } = useTransactions();` (removed `allTransactions` destructure)
+- Added `const { totalBalance: pocketTotalBalance } = usePockets();` (line 59)
+- Removed the `totalBalance` useMemo block (was lines 66-71)
+- Replaced 3 occurrences of `totalBalance` → `pocketTotalBalance`:
+  - `calculateNetWorth(assets, liabilities, pocketTotalBalance, debts)` (line 86)
+  - `currentBalance: pocketTotalBalance` (line 212)
+  - `formatCurrency(pocketTotalBalance)` (line 293)
 
-### 2. `src/app/wealth/page.tsx` — Updated consumer
-- `calculateNetWorth(assets, liabilities)` → `calculateNetWorth(assets, liabilities, 0, [])` (pass all 4 args)
-- `<NetWorthCard data={netWorthData} />` → flat props spread from `netWorthData`
+### `src/app/dashboard/page.tsx`
+- Added `import { usePockets } from "@/hooks/usePockets";` (line 34)
+- Removed unused `const { transactions: allTransactions } = useTransactions();` (was line 145)
+- Removed the `totalBalanceAll` useMemo block (was lines 153-160)
+- Added `const { totalBalance: pocketTotalBalance } = usePockets();` (line 149)
+- Replaced 2 occurrences of `totalBalanceAll` → `pocketTotalBalance`:
+  - `calculateNetWorth(assetsList, liabilitiesList, pocketTotalBalance, debtsList)` (line 161)
+  - `balance={pocketTotalBalance}` (line 474)
 
-### 3. `src/app/dashboard/page.tsx` — Updated consumer
-- `NetWorthResult` state init: added missing `totalBalance: 0`, `totalDebts: 0`
-- `calculateNetWorth(assets, liabilities)` → `calculateNetWorth(assets, liabilities, 0, [])` (pass all 4 args)
-- `<NetWorthCard data={netWorthData} ... />` → flat props spread from `netWorthData`
-- Removed `style` prop (no longer accepted — component has built-in glass styling)
+## Verification
+
+| Check | Result |
+|---|---|
+| `npx vitest run` | ✅ All 25 tests passed (3 test files) |
+| `npm run build` | ✅ Compiled successfully, 0 errors, TypeScript passed |
+
+## Commit
+
+```
+2bb7e9f feat: wealth + dashboard — totalBalance from pocket balances
+ 2 files changed, 12 insertions(+), 27 deletions(-)
+```
 
 ## Concerns
-- **Dashboard gradient removed**: The `style` prop with gradient background was dropped since the new component doesn't accept `style`. The default `bg-surface/50` glass styling applies instead.
-- **Wealth & Dashboard pages**: Both pass `0` and `[]` as placeholders for `balance` and `debts`. When those features are implemented, real values should be wired in (future task).
+
+None. All changes match the task brief exactly. Both pages now use `pocketTotalBalance` from `usePockets()` instead of deriving `totalBalance` from all transactions via `useMemo`.
