@@ -12,10 +12,11 @@ interface PocketGridProps {
   onAdd: () => void;
   onRename: (pocket: Pocket) => void;
   onDelete: (pocket: Pocket) => void;
+  onTransfer: (pocket?: Pocket) => void;
 }
 
 export function PocketGrid({
-  pockets, balances, selectedId, onSelect, onAdd, onRename, onDelete,
+  pockets, balances, selectedId, onSelect, onAdd, onRename, onDelete, onTransfer,
 }: PocketGridProps) {
   if (pockets.length === 0) return null;
 
@@ -31,6 +32,7 @@ export function PocketGrid({
             onClick={() => onSelect(selectedId === pocket.id ? null : pocket.id)}
             onRename={() => onRename(pocket)}
             onDelete={() => onDelete(pocket)}
+            onTransfer={() => onTransfer(pocket)}
           />
         ))}
         <button
@@ -46,13 +48,20 @@ export function PocketGrid({
         <button
           type="button"
           onClick={() => onSelect(null)}
-          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+          className={`rounded-lg h-auto w-full lg:w-auto px-6 py-3 text-sm font-medium transition-all duration-200 ${
             selectedId === null
               ? "bg-primary text-white"
               : "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
           }`}
         >
           Semua Kantong
+        </button>
+        <button
+          type="button"
+          onClick={() => onTransfer()}
+          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-muted hover:bg-surface-alt hover:text-text-secondary transition-colors"
+        >
+          Pindah Saldo
         </button>
         {selectedId && (
           <span className="self-center text-[11px] text-text-muted">

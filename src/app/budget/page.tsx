@@ -33,6 +33,7 @@ export default function BudgetPage() {
   const [showPocketForm, setShowPocketForm] = useState(false);
   const [editingPocket, setEditingPocket] = useState<Pocket | null>(null);
   const [pocketToDelete, setPocketToDelete] = useState<Pocket | null>(null);
+  const [transferPocket, setTransferPocket] = useState<Pocket | undefined>(undefined);
 
   const monthlyIncome = useMemo(() => {
     return transactions
@@ -156,6 +157,7 @@ export default function BudgetPage() {
         onAdd={() => setShowPocketForm(true)}
         onRename={(p) => setEditingPocket(p)}
         onDelete={(p) => setPocketToDelete(p)}
+        onTransfer={(p) => setTransferPocket(p)}
       />
 
       {/* Transaction List */}

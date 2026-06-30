@@ -1,6 +1,6 @@
 "use client";
 
-import { Wallet, CreditCard, Landmark, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Wallet, CreditCard, Landmark, MoreHorizontal, Pencil, Trash2, ArrowRightLeft } from "lucide-react";
 import type { Pocket } from "@/lib/pocket";
 import { formatCurrency } from "@/lib/netWorth";
 import { useState, useRef, useEffect } from "react";
@@ -12,6 +12,7 @@ interface PocketCardProps {
   onClick: () => void;
   onRename: () => void;
   onDelete: () => void;
+  onTransfer: () => void;
 }
 
 const CATEGORY_CONFIG: Record<Pocket["category"], { icon: typeof Wallet; tint: string; bg: string }> = {
@@ -20,7 +21,7 @@ const CATEGORY_CONFIG: Record<Pocket["category"], { icon: typeof Wallet; tint: s
   rekening: { icon: Landmark, tint: "text-accent-secondary", bg: "bg-accent-secondary/10" },
 };
 
-export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onDelete }: PocketCardProps) {
+export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onDelete, onTransfer }: PocketCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const config = CATEGORY_CONFIG[pocket.category];
@@ -64,6 +65,14 @@ export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onD
             >
               <Pencil className="h-3 w-3" />
               Ganti Nama
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onTransfer(); }}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-text-secondary hover:bg-surface-alt hover:text-text-primary transition-colors"
+            >
+              <ArrowRightLeft className="h-3 w-3" />
+              Pindah Saldo
             </button>
             <button
               type="button"
