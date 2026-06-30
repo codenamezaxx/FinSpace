@@ -27,6 +27,7 @@ import {
   TrendingDown,
   Gauge,
 } from "lucide-react";
+import { usePockets } from "@/hooks/usePockets";
 import type { AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
 import type { HealthStatus } from "@/lib/financialRatios";
 
@@ -55,20 +56,14 @@ export default function WealthPage() {
     startTime: startOfMonth,
     endTime: endOfMonth,
   });
-  const { transactions: allTransactions, addTransaction } = useTransactions();
+  const { addTransaction } = useTransactions();
+  const { totalBalance: pocketTotalBalance } = usePockets();
 
   const [assets, setAssets] = useState<AssetEntry[]>([]);
   const [liabilities, setLiabilities] = useState<LiabilityEntry[]>([]);
   const [debts, setDebts] = useState<DebtEntry[]>([]);
   const [showDebtForm, setShowDebtForm] = useState(false);
   const [payingDebt, setPayingDebt] = useState<DebtEntry | null>(null);
-
-  const totalBalance = useMemo(() => {
-    return allTransactions.reduce(
-      (sum, t) => sum + (t.type === "income" ? t.amount : -t.amount),
-      0
-    );
-  }, [allTransactions]);
 
   const loadData = useCallback(() => {
     setAssets(loadFromStorage<AssetEntry>(ASSETS_KEY, []));
@@ -87,8 +82,8 @@ export default function WealthPage() {
   }, [loadData]);
 
   const netWorthData = useMemo(
-    () => calculateNetWorth(assets, liabilities, totalBalance, debts),
-    [assets, liabilities, totalBalance, debts]
+    () => calculateNetWorth(assets, liabilities, pocketTotalBalance, debts),
+    [assets, liabilities, pocketTotalBalance, debts]
   );
 
   const monthlyData = useMemo(() => {
@@ -211,7 +206,7 @@ export default function WealthPage() {
           onClick={() =>
             openAssetLiabilityModal({
               onPurchase: handlePurchase,
-              currentBalance: totalBalance,
+              currentBalance: pocketTotalBalance,
             })
           }
           className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
@@ -292,7 +287,7 @@ export default function WealthPage() {
                 </p>
               </div>
               <span className="font-mono text-sm font-semibold text-success">
-                {formatCurrency(totalBalance)}
+                {formatCurrency(pocketTotalBalance)}
               </span>
             </div>
             {assets.length === 0 ? (

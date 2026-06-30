@@ -31,6 +31,7 @@ import { loadFromStorage } from "@/lib/storage";
 import { totalMonthlyDebtObligation } from "@/lib/debtUtils";
 import type { HealthStatus } from "@/lib/financialRatios";
 import type { NetWorthResult, AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
+import { usePockets } from "@/hooks/usePockets";
 
 /* ─── Dynamic import — Recharts is heavy, only load when needed ─── */
 const MonthlyChart = dynamic(
@@ -141,24 +142,13 @@ export default function DashboardPage() {
     startTime: twelveMonthsAgo,
   });
 
-  /* ── All-time transactions for total balance ── */
-  const { transactions: allTransactions } = useTransactions();
-
   /* ── Share data with Wealth page via localStorage ── */
   const [assetsList, setAssetsList] = useState<AssetEntry[]>([]);
   const [liabilitiesList, setLiabilitiesList] = useState<LiabilityEntry[]>([]);
   const [debtsList, setDebtsList] = useState<DebtEntry[]>([]);
+  const { totalBalance: pocketTotalBalance } = usePockets();
 
   /* ── Derived values ── */
-  const totalBalanceAll = useMemo(
-    () =>
-      allTransactions.reduce(
-        (sum, t) => sum + (t.type === "income" ? t.amount : -t.amount),
-        0
-      ),
-    [allTransactions]
-  );
-
   const liquidAssets = useMemo(
     () =>
       assetsList
@@ -168,8 +158,8 @@ export default function DashboardPage() {
   );
 
   const netWorthData: NetWorthResult = useMemo(
-    () => calculateNetWorth(assetsList, liabilitiesList, totalBalanceAll, debtsList),
-    [assetsList, liabilitiesList, totalBalanceAll, debtsList]
+    () => calculateNetWorth(assetsList, liabilitiesList, pocketTotalBalance, debtsList),
+    [assetsList, liabilitiesList, pocketTotalBalance, debtsList]
   );
 
   /* ── Load from localStorage ── */
@@ -481,7 +471,7 @@ export default function DashboardPage() {
         assets={assetsList}
         liabilities={liabilitiesList}
         debts={debtsList}
-        balance={totalBalanceAll}
+        balance={pocketTotalBalance}
       />
 
       {/* ── Bottom: Smart Insights + Transaction History ── */}
