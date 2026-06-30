@@ -42,7 +42,7 @@ next-env.d.ts
 
 #agents
 .superpowers
-docs/
+docs
 
 # Serwist
 public/sw*
