@@ -37,9 +37,11 @@ export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onD
   }, [menuOpen]);
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
       className={`relative flex shrink-0 flex-col items-start gap-1.5 rounded-2xl p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 w-36 ${
         isSelected ? "ring-2 ring-primary bg-surface" : "bg-surface/80"
       }`}
@@ -80,6 +82,6 @@ export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onD
       </div>
       <p className="text-xs font-semibold text-text-primary truncate w-full pr-4">{pocket.name}</p>
       <p className="font-mono text-sm font-bold text-text-primary">{formatCurrency(balance)}</p>
-    </button>
+    </div>
   );
 }

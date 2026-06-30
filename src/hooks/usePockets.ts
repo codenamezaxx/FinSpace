@@ -4,7 +4,12 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import type { Pocket } from "@/lib/pocket";
 import { PRESET_POCKETS } from "@/lib/pocket";
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+
+// Module-level flag — survives React StrictMode double-mounts and HMR.
+// Only one seeding pass per page session, regardless of how many usePockets() mounts.
+let _seedInProgress = false;
+let _seeded = false;
 
 export function usePockets() {
   const pockets = useLiveQuery(
@@ -12,20 +17,28 @@ export function usePockets() {
     []
   );
 
-  const seeded = useRef(false);
+  // Auto-seed presets on first load when table is empty.
+  // Uses module-level flags (not useRef) to survive StrictMode double-mounts.
   useEffect(() => {
-    if (pockets !== undefined && pockets.length === 0 && !seeded.current) {
-      seeded.current = true;
-      const now = Date.now();
-      const presets = PRESET_POCKETS.map((p, i) => ({
-        id: crypto.randomUUID(),
-        name: p.name,
-        category: p.category,
-        sortOrder: i,
-        createdAt: now,
-      }));
-      db.pockets.bulkAdd(presets);
+    if (_seeded || _seedInProgress) return;
+    if (pockets === undefined) return; // still loading
+    if (pockets.length > 0) {
+      _seeded = true;
+      return; // already seeded
     }
+    _seedInProgress = true;
+    const now = Date.now();
+    const presets = PRESET_POCKETS.map((p, i) => ({
+      id: crypto.randomUUID(),
+      name: p.name,
+      category: p.category,
+      sortOrder: i,
+      createdAt: now,
+    }));
+    db.pockets
+      .bulkAdd(presets)
+      .then(() => { _seeded = true; _seedInProgress = false; })
+      .catch(() => { _seedInProgress = false; });
   }, [pockets]);
 
   const allTransactions = useLiveQuery(

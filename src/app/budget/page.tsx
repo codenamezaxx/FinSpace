@@ -15,6 +15,7 @@ import { usePockets } from "@/hooks/usePockets";
 import { PocketGrid } from "@/components/budget/PocketGrid";
 import { PocketFormModal } from "@/components/budget/PocketFormModal";
 import type { Pocket } from "@/lib/pocket";
+import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 
 export default function BudgetPage() {
   const { openAddTransaction } = useTransactionModal();
@@ -31,6 +32,7 @@ export default function BudgetPage() {
 
   const [showPocketForm, setShowPocketForm] = useState(false);
   const [editingPocket, setEditingPocket] = useState<Pocket | null>(null);
+  const [pocketToDelete, setPocketToDelete] = useState<Pocket | null>(null);
 
   const monthlyIncome = useMemo(() => {
     return transactions
@@ -153,11 +155,7 @@ export default function BudgetPage() {
         onSelect={setPocketFilter}
         onAdd={() => setShowPocketForm(true)}
         onRename={(p) => setEditingPocket(p)}
-        onDelete={(p) => {
-          if (confirm(`Hapus kantong "${p.name}"? Transaksinya tetap ada.`)) {
-            deletePocket(p.id);
-          }
-        }}
+        onDelete={(p) => setPocketToDelete(p)}
       />
 
       {/* Transaction List */}
@@ -182,6 +180,38 @@ export default function BudgetPage() {
         initialName={editingPocket?.name}
         title="Ganti Nama Kantong"
       />
+
+      {/* Delete Pocket Confirmation */}
+      <ResponsiveModal
+        isOpen={!!pocketToDelete}
+        onClose={() => setPocketToDelete(null)}
+        title="Hapus Kantong"
+      >
+        <p className="text-sm text-text-secondary mb-4">
+          Hapus kantong &ldquo;{pocketToDelete?.name}&rdquo;? Transaksi yang ada di kantong ini tidak akan dihapus.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setPocketToDelete(null)}
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-alt transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (pocketToDelete) {
+                deletePocket(pocketToDelete.id);
+                setPocketToDelete(null);
+              }
+            }}
+            className="rounded-lg bg-danger px-4 py-2 text-sm font-semibold text-white hover:bg-danger/90 transition-colors"
+          >
+            Hapus
+          </button>
+        </div>
+      </ResponsiveModal>
     </div>
   );
 }
