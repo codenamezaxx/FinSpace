@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
+import dexieCloud from "dexie-cloud-addon";
 import type { Pocket } from "./pocket";
 export type { Pocket };
 
@@ -10,9 +11,9 @@ export interface Transaction {
   merchant: string;
   payment_method: string;
   timestamp: number;
-  sync_status: "synced" | "pending" | "local_only";
   transferId?: string;
   pocketId?: string | null;
+  // Dexie Cloud auto-fields (managed internally): owner, realmId
 }
 
 export interface AiQueueItem {
@@ -28,15 +29,29 @@ export class FinSpaceDB extends Dexie {
   pockets!: EntityTable<Pocket, "id">;
 
   constructor() {
-    super("FinSpaceDB");
+    super("FinSpaceDB", { addons: [dexieCloud] });
+
     this.version(1).stores({
       transactions: "id, type, category, timestamp, sync_status",
       ai_queue: "queue_id, input_type, created_at",
     });
+
     this.version(2).stores({
       transactions: "id, type, category, timestamp, sync_status, pocketId",
       pockets: "id, category, sortOrder",
       ai_queue: "queue_id, input_type, created_at",
+    });
+
+    // v3: @id prefix untuk Dexie Cloud, hapus sync_status dari index
+    this.version(3).stores({
+      transactions: "@id, type, category, timestamp, pocketId",
+      pockets: "@id, category, sortOrder",
+      ai_queue: "@queue_id, input_type, created_at",
+    });
+
+    this.cloud.configure({
+      databaseUrl: process.env.NEXT_PUBLIC_DEXIE_CLOUD_URL!,
+      requireAuth: false, // anonymous first, login kapan saja
     });
   }
 }
