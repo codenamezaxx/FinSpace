@@ -131,7 +131,6 @@ export function usePockets() {
         merchant: `Transfer ke ${toPocket.name}`,
         payment_method: fromPocket.name,
         timestamp: now,
-        sync_status: "local_only",
         transferId,
         pocketId: fromPocketId,
       };
@@ -144,7 +143,6 @@ export function usePockets() {
         merchant: `Transfer dari ${fromPocket.name}`,
         payment_method: toPocket.name,
         timestamp: now + 1,
-        sync_status: "local_only",
         transferId,
         pocketId: toPocketId,
       };

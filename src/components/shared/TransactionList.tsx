@@ -28,21 +28,6 @@ function formatAmount(amount: number): string {
 type SortField = "timestamp" | "amount";
 type SortDir = "asc" | "desc";
 
-function SyncDot({ status }: { status: string }) {
-  return (
-    <span
-      className={`inline-block h-2 w-2 rounded-full ${
-        status === "synced"
-          ? "bg-success"
-          : status === "pending"
-          ? "bg-warning"
-          : "bg-text-muted"
-      }`}
-      title={status}
-    />
-  );
-}
-
 interface TransactionListProps {
   pocketFilter?: string | null;
   pockets?: Pocket[];
@@ -202,7 +187,6 @@ export function TransactionList({ pocketFilter = null, pockets = [] }: Transacti
                   )}
                 </span>
               </th>
-              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Status</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
@@ -240,9 +224,6 @@ export function TransactionList({ pocketFilter = null, pockets = [] }: Transacti
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
                   {formatDate(t.timestamp)}
-                </td>
-                <td className="px-4 py-3">
-                  <SyncDot status={t.sync_status} />
                 </td>
                 <td className="px-4 py-3">
                   <button

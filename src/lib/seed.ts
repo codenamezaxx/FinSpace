@@ -39,11 +39,8 @@ function randomItem<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function generateSampleTransactions(): Omit<
-  Transaction,
-  "sync_status"
->[] {
-  const samples: Omit<Transaction, "sync_status">[] = [];
+function generateSampleTransactions(): Transaction[] {
+  const samples: Transaction[] = [];
 
   // Last 30 days of transactions
   for (let i = 0; i < 30; i++) {
@@ -76,11 +73,7 @@ export async function seedDatabase() {
   }
 
   const samples = generateSampleTransactions();
-  const tx = samples.map((t) => ({
-    ...t,
-    sync_status: "synced" as const,
-  }));
 
-  await db.transactions.bulkAdd(tx);
-  console.log(`Seeded ${tx.length} sample transactions.`);
+  await db.transactions.bulkAdd(samples);
+  console.log(`Seeded ${samples.length} sample transactions.`);
 }

@@ -44,7 +44,6 @@ describe("transfer transaction pair", () => {
       merchant: "Transfer ke Dana",
       payment_method: "Tunai",
       timestamp: 1000,
-      sync_status: "local_only",
       transferId,
       pocketId: fromPocketId,
     };
@@ -57,7 +56,6 @@ describe("transfer transaction pair", () => {
       merchant: "Transfer dari Tunai",
       payment_method: "Dana",
       timestamp: 1001,
-      sync_status: "local_only",
       transferId,
       pocketId: toPocketId,
     };
@@ -89,10 +87,6 @@ describe("transfer transaction pair", () => {
     // Verify payment_method references pocket names
     expect(expense.payment_method).toBe("Tunai");
     expect(income.payment_method).toBe("Dana");
-
-    // Verify sync_status
-    expect(expense.sync_status).toBe("local_only");
-    expect(income.sync_status).toBe("local_only");
 
     // Verify timestamps: expense comes before income
     expect(expense.timestamp).toBeLessThan(income.timestamp);

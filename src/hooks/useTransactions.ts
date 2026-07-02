@@ -19,7 +19,7 @@ export function useTransactions(options?: { startTime?: number; endTime?: number
   }, [options?.startTime, options?.endTime]);
 
   const addTransaction = async (
-    data: Omit<Transaction, "id" | "timestamp" | "sync_status">
+    data: Omit<Transaction, "id" | "timestamp">
   ) => {
     const id = crypto.randomUUID();
     const timestamp = Date.now();
@@ -27,7 +27,6 @@ export function useTransactions(options?: { startTime?: number; endTime?: number
       ...data,
       id,
       timestamp,
-      sync_status: "local_only",
     });
     return id;
   };

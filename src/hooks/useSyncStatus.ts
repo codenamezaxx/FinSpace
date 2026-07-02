@@ -1,21 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { syncManager, type SyncStatus } from "@/lib/syncManager";
+import { useObservable } from "dexie-react-hooks";
+import { db } from "@/lib/db";
+import { useMemo } from "react";
 
-export function useSyncStatus() {
-  const [status, setStatus] = useState<SyncStatus>(syncManager.status);
-  const [message, setMessage] = useState<string | undefined>();
+export type SyncStatusDisplay = "synced" | "syncing" | "offline";
 
-  useEffect(() => {
-    const unsubscribe = syncManager.subscribe((s, msg) => {
-      setStatus(s);
-      setMessage(msg);
-    });
-    return unsubscribe;
-  }, []);
+export interface SyncStatusInfo {
+  status: SyncStatusDisplay;
+  phase: string;
+  progress: number | null;
+  lastSyncTime: Date | null;
+}
 
-  const syncNow = () => syncManager.syncPending();
+export function useSyncStatus(): SyncStatusInfo {
+  const syncState = useObservable(db.cloud.syncState);
 
-  return { status, message, syncNow, isOnline: navigator.onLine };
+  return useMemo(() => {
+    if (!syncState) {
+      return { status: "offline", phase: "initial", progress: null, lastSyncTime: null };
+    }
+
+    let display: SyncStatusDisplay;
+    if (syncState.status === "offline" || syncState.status === "disconnected") {
+      display = "offline";
+    } else if (syncState.phase === "pushing" || syncState.phase === "pulling") {
+      display = "syncing";
+    } else {
+      display = "synced";
+    }
+
+    return {
+      status: display,
+      phase: syncState.phase,
+      progress: syncState.progress ?? null,
+      lastSyncTime: null, // Dexie Cloud tidak provide lastSyncTime built-in
+    };
+  }, [syncState]);
 }
