@@ -7,6 +7,7 @@ import {
   Wallet,
   TrendingUp,
   Wrench,
+  Settings,
   Plus,
   PanelLeftClose,
   PanelLeftOpen,
@@ -18,6 +19,11 @@ const navItems = [
   { href: "/budget", label: "Anggaran", icon: Wallet },
   { href: "/wealth", label: "Kekayaan", icon: TrendingUp },
   { href: "/tools", label: "Alat", icon: Wrench },
+];
+
+const bottomNavItems = [
+  ...navItems,
+  { href: "/settings", label: "Profil", icon: Settings },
 ];
 
 interface NavigationBarProps {
@@ -33,7 +39,7 @@ export function NavigationBar({ isCollapsed = false, onToggle }: NavigationBarPr
     <>
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border bg-surface/60 backdrop-blur-xl px-2 py-2 lg:hidden">
-        {navItems.map((item) => {
+        {bottomNavItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
@@ -149,29 +155,58 @@ export function NavigationBar({ isCollapsed = false, onToggle }: NavigationBarPr
           })}
         </nav>
 
-        {/* Toggle button — bottom of sidebar, SentraOps-style */}
-        <div className="border-t border-border p-3">
-          <button
-            type="button"
-            onClick={onToggle}
-            className={`flex items-center rounded-lg transition-colors hover:bg-surface ${
-              isCollapsed
-                ? "mx-auto h-9 w-9 justify-center"
-                : "w-full gap-3 px-3 py-2"
-            }`}
-            aria-label={isCollapsed ? "Perluas sidebar" : "Ciutkan sidebar"}
-          >
-            {isCollapsed ? (
-              <PanelLeftOpen className="h-4 w-4 shrink-0 text-text-muted" />
-            ) : (
-              <>
-                <PanelLeftClose className="h-4 w-4 shrink-0 text-text-muted" />
-                <span className="text-xs font-medium text-text-muted">
-                  Ciutkan
-                </span>
-              </>
-            )}
-          </button>
+        {/* Settings + Toggle — bottom of sidebar */}
+        <div className="border-t border-border">
+          {/* Settings */}
+          <div className="p-2">
+            <Link
+              href="/settings"
+              className={`flex items-center rounded-lg transition-colors hover:bg-surface ${
+                isCollapsed
+                  ? "mx-auto h-9 w-9 justify-center"
+                  : "w-full gap-3 px-3 py-2"
+              } ${
+                pathname.startsWith("/settings")
+                  ? "bg-primary/10 text-primary"
+                  : "text-text-muted"
+              }`}
+              title={isCollapsed ? "Pengaturan" : undefined}
+            >
+              <Settings className="h-4 w-4 shrink-0" />
+              <span
+                className={`overflow-hidden transition-all duration-300 ${
+                  isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                }`}
+              >
+                Pengaturan
+              </span>
+            </Link>
+          </div>
+
+          {/* Toggle button */}
+          <div className="p-3 pt-1">
+            <button
+              type="button"
+              onClick={onToggle}
+              className={`flex items-center rounded-lg transition-colors hover:bg-surface ${
+                isCollapsed
+                  ? "mx-auto h-9 w-9 justify-center"
+                  : "w-full gap-3 px-3 py-2"
+              }`}
+              aria-label={isCollapsed ? "Perluas sidebar" : "Ciutkan sidebar"}
+            >
+              {isCollapsed ? (
+                <PanelLeftOpen className="h-4 w-4 shrink-0 text-text-muted" />
+              ) : (
+                <>
+                  <PanelLeftClose className="h-4 w-4 shrink-0 text-text-muted" />
+                  <span className="text-xs font-medium text-text-muted">
+                    Ciutkan
+                  </span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </aside>
     </>

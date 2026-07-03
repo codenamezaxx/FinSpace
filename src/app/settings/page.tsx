@@ -54,20 +54,25 @@ export default function SettingsPage() {
   // ── Progress bar ──
   const progressPercent = sync.progress != null ? Math.round(sync.progress * 100) : null;
   const isSyncing = sync.status === "syncing" || syncing;
+  const syncDisabled = !isLoggedIn && !isLoading;
 
   const statusColor =
-    sync.status === "syncing"
-      ? "bg-primary"
-      : sync.status === "offline"
-        ? "bg-warning"
-        : "bg-success";
+    syncDisabled
+      ? "bg-text-muted"
+      : sync.status === "syncing"
+        ? "bg-primary"
+        : sync.status === "offline"
+          ? "bg-warning"
+          : "bg-success";
 
   const statusLabel =
-    sync.status === "syncing"
-      ? "Menyinkronkan..."
-      : sync.status === "offline"
-        ? "Offline"
-        : "Tersinkronisasi";
+    syncDisabled
+      ? "Sinkronisasi nonaktif"
+      : sync.status === "syncing"
+        ? "Menyinkronkan..."
+        : sync.status === "offline"
+          ? "Offline"
+          : "Tersinkronisasi";
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
@@ -134,11 +139,11 @@ export default function SettingsPage() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={forceSync}
-            disabled={isSyncing}
+            disabled={isSyncing || syncDisabled}
             className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-            {isSyncing ? "Menyinkronkan..." : "Sinkronkan Sekarang"}
+            {isSyncing ? "Menyinkronkan..." : syncDisabled ? "Masuk untuk sinkron" : "Sinkronkan Sekarang"}
           </button>
 
           {isLoggedIn ? (
