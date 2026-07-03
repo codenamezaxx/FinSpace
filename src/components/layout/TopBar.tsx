@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Search, ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { ProfileButton } from "./ProfileButton";
 
 interface TopBarProps {
   isSidebarCollapsed?: boolean;
@@ -83,6 +84,11 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
             <Search className="h-5 w-5" />
           </button>
         )}
+
+        {/* Profile */}
+        <div className="hidden sm:block">
+          <ProfileButton />
+        </div>
 
         {/* Theme toggle — always on far right */}
         <ThemeToggle compact />
