@@ -75,7 +75,7 @@ export default function SettingsPage() {
           : "Tersinkronisasi";
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <div className="mx-auto px-4 py-8">
       {/* ── Back button ── */}
       <Link
         href="/tools"
@@ -211,17 +211,9 @@ export default function SettingsPage() {
         </h2>
         <div className="space-y-2 text-xs text-text-muted">
           <p>
-            <span className="font-medium text-text-secondary">Server Cloud:</span>{" "}
-            <span className="font-mono text-text-muted">{process.env.NEXT_PUBLIC_DEXIE_CLOUD_URL ?? "Tidak dikonfigurasi"}</span>
-          </p>
-          <p>
             Data Anda disimpan secara lokal di perangkat ini dan disinkronkan secara
             otomatis ke cloud saat Anda masuk. Sinkronisasi berjalan di latar belakang
             tanpa mengganggu aktivitas Anda.
-          </p>
-          <p>
-            Untuk mengaktifkan autentikasi Google, konfigurasikan OAuth Client ID di Dexie
-            Cloud Manager (manager.dexie.cloud). Hubungi pengembang untuk informasi lebih lanjut.
           </p>
         </div>
       </div>

@@ -63,7 +63,7 @@ export function ProfileButton() {
             {initials}
           </div>
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-text-muted">
+          <div className="flex h-full w-full items-center justify-center bg-primary text-surface-alt">
             <User className="h-4 w-4" />
           </div>
         )}
@@ -152,7 +152,7 @@ export function ProfileButton() {
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-surface hover:text-text-primary"
             >
               <Settings className="h-4 w-4" />
-              Pengaturan Sinkronisasi
+              Pengaturan
             </Link>
             {isLoggedIn && (
               <button

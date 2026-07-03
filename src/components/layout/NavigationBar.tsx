@@ -150,34 +150,6 @@ export function NavigationBar({ isCollapsed = false, onToggle }: NavigationBarPr
           })}
         </nav>
 
-        {/* Settings + Toggle — bottom of sidebar */}
-        <div className="border-t border-border">
-          {/* Settings */}
-          <div className="p-2">
-            <Link
-              href="/settings"
-              className={`flex items-center rounded-lg transition-colors hover:bg-surface ${
-                isCollapsed
-                  ? "mx-auto h-9 w-9 justify-center"
-                  : "w-full gap-3 px-3 py-2"
-              } ${
-                pathname.startsWith("/settings")
-                  ? "bg-primary/10 text-primary"
-                  : "text-text-muted"
-              }`}
-              title={isCollapsed ? "Pengaturan" : undefined}
-            >
-              <Settings className="h-4 w-4 shrink-0" />
-              <span
-                className={`overflow-hidden transition-all duration-300 ${
-                  isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                }`}
-              >
-                Pengaturan
-              </span>
-            </Link>
-          </div>
-
           {/* Toggle button */}
           <div className="p-3 pt-1">
             <button
@@ -201,6 +173,34 @@ export function NavigationBar({ isCollapsed = false, onToggle }: NavigationBarPr
                 </>
               )}
             </button>
+          </div>
+
+        {/* Settings + Toggle — bottom of sidebar */}
+        <div className="border-t border-border">
+          {/* Settings */}
+          <div className="px-3 py-4">
+            <Link
+              href="/settings"
+              className={`flex items-center rounded-lg transition-colors hover:bg-surface ${
+                isCollapsed
+                  ? "mx-auto h-9 w-9 justify-center"
+                  : "w-full gap-3 px-3 py-2"
+              } ${
+                pathname.startsWith("/settings")
+                  ? "bg-primary/10 text-primary"
+                  : "text-text-muted"
+              }`}
+              title={isCollapsed ? "Pengaturan" : undefined}
+            >
+              <Settings className="h-4 w-4 shrink-0" />
+              <span
+                className={`overflow-hidden text-xs transition-all duration-300 ${
+                  isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                }`}
+              >
+                Pengaturan
+              </span>
+            </Link>
           </div>
         </div>
       </aside>
