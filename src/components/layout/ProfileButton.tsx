@@ -12,7 +12,10 @@ export function ProfileButton() {
   const { toggleTheme } = useTheme();
   const sync = useSyncStatus();
   const [open, setOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setHydrated(true); }, []);
 
   // Click outside to close
   useEffect(() => {
@@ -39,8 +42,9 @@ export function ProfileButton() {
         ? "Offline"
         : "Tersinkronisasi";
 
-  // ── Loading state ──
-  if (isLoading) {
+  // ── Loading/hydrating state ──
+  // SSR dan client render awal harus sama untuk mencegah hydration mismatch
+  if (!hydrated || isLoading) {
     return (
       <div className="h-8 w-8 animate-pulse rounded-full bg-surface" />
     );
@@ -53,32 +57,58 @@ export function ProfileButton() {
       {/* Avatar button — guest icon or user initials */}
       <button
         onClick={() => setOpen(!open)}
-        className={`relative h-8 w-8 overflow-hidden rounded-full border-2 border-white/10 transition-all duration-200 hover:shadow-[0_0_24px_#8B5CF666] ${
+        className={`relative h-8 w-8 overflow-hidden rounded-full border-2 border-white/10 bg-surface-alt cursor-pointer transition-all duration-200 hover:shadow-[0_0_24px_#8B5CF666] ${
           !isLoggedIn ? "bg-surface" : ""
         }`}
         aria-label="Profil"
       >
-        {isLoggedIn ? (
-          <div className="flex h-full w-full items-center justify-center bg-primary text-xs font-bold text-white">
-            {initials}
-          </div>
+        {user ? (
+          user.picture ? (
+            <img
+              src={user.picture}
+              alt={user.name ?? "Foto profil"}
+              className="h-full w-full rounded-full object-cover"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                // fallback ke initials jika gambar gagal load
+                const target = e.currentTarget as HTMLImageElement;
+                target.style.display = "none";
+                target.parentElement!.classList.add(
+                  "flex",
+                  "h-full",
+                  "w-full",
+                  "items-center",
+                  "justify-center",
+                  "bg-primary",
+                  "text-xs",
+                  "font-bold",
+                  "text-white"
+                );
+                target.parentElement!.textContent = initials;
+              }}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-primary text-xs font-bold text-white">
+              {initials}
+            </div>
+          )
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-primary text-surface-alt">
             <User className="h-4 w-4" />
           </div>
         )}
-        {/* Sync dot indicator */}
-        {isLoggedIn && (
-          <span
-            className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background ${dotColor}`}
-            style={
-              sync.status === "syncing"
-                ? { animation: "syncSpin 2s linear infinite" }
-                : undefined
-            }
-          />
-        )}
       </button>
+      {/* Sync dot indicator — outside button so overflow-hidden doesn't clip it */}
+      {isLoggedIn && (
+        <span
+          className={`absolute -bottom-0.5 -right-0.5 z-10 h-2.5 w-2.5 rounded-full border-2 border-background ${dotColor}`}
+          style={
+            sync.status === "syncing"
+              ? { animation: "syncSpin 2s linear infinite" }
+              : undefined
+          }
+        />
+      )}
 
       {/* Popup */}
       {open && (
@@ -89,17 +119,28 @@ export function ProfileButton() {
           />
           <div className="absolute right-0 top-10 z-50 w-64 animate-fade-scale rounded-2xl border border-white/10 bg-surface/95 p-4 shadow-2xl backdrop-blur-2xl transition-all duration-200 ease-out">
             {/* ── TOP: Login or Profile Info ── */}
-            {isLoggedIn ? (
+            {user ? (
               <div className="mb-3 flex items-center gap-3 border-b border-white/10 pb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
-                  {initials}
+                <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-primary">
+                  {user.picture ? (
+                    <img
+                      src={user.picture}
+                      alt={user.name ?? "Foto profil"}
+                      className="h-full w-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white">
+                      {initials}
+                    </div>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-text-primary">
-                    {user?.name ?? "Pengguna"}
+                    {user.name ?? "Pengguna"}
                   </p>
                   <p className="truncate text-xs text-text-muted">
-                    {user?.email ?? ""}
+                    {user.email ?? ""}
                   </p>
                 </div>
               </div>

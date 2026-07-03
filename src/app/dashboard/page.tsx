@@ -129,9 +129,13 @@ export default function DashboardPage() {
     now.getMonth(),
     1
   ).getTime();
+  // Transaksi bulan ini untuk pemasukan/pengeluaran
   const { transactions, loading } = useTransactions({
     startTime: startOfMonth,
   });
+
+  // Semua transaksi (all-time) untuk total saldo kumulatif
+  const { transactions: allTransactions } = useTransactions();
 
   /* ── All transactions for 12-month chart ── */
   const twelveMonthsAgo = useMemo(
@@ -200,11 +204,21 @@ export default function DashboardPage() {
     savingsStatus,
     debtStatus,
   } = useMemo(() => {
+    // Pemasukan/pengeluaran bulan ini
     const incomeTotal = transactions
       .filter((t) => t.type === "income")
       .reduce((sum, t) => sum + t.amount, 0);
 
     const expensesTotal = transactions
+      .filter((t) => t.type === "expense")
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    // Total saldo kumulatif dari semua transaksi (all-time)
+    const allTimeIncome = allTransactions
+      .filter((t) => t.type === "income")
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const allTimeExpenses = allTransactions
       .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
 
@@ -221,14 +235,14 @@ export default function DashboardPage() {
     return {
       income: incomeTotal,
       expenses: expensesTotal,
-      balance: incomeTotal - expensesTotal,
+      balance: allTimeIncome - allTimeExpenses,
       ratioData: ratios,
       healthScore: calculateHealthScore(ratios),
       liquidityStatus: getLiquidityStatus(ratios.liquidityRatio),
       savingsStatus: getSavingsRateStatus(ratios.savingsRate),
       debtStatus: getDebtToIncomeStatus(ratios.debtToIncome),
     };
-  }, [transactions, liquidAssets]);
+  }, [transactions, allTransactions, liquidAssets]);
 
   const overallStatus: HealthStatus = useMemo(() => {
     const statuses = [liquidityStatus, savingsStatus, debtStatus];
@@ -414,7 +428,7 @@ export default function DashboardPage() {
       {/* ── Quick Actions ── */}
       <div className="glass rounded-2xl p-4 lg:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex w-full flex-col lg:flex-row gap-3 lg:w-auto">
+          <div className="flex w-full flex-col lg:flex-row gap-3">
             <button
               type="button"
               onClick={() => openAddTransaction()}

@@ -7,6 +7,7 @@ import { useCallback } from "react";
 export interface CloudUser {
   name: string;
   email: string;
+  picture?: string;
   isLoggedIn: boolean;
 }
 
@@ -17,6 +18,7 @@ export function useCloudAuth() {
     ? {
         name: userLogin.name ?? "",
         email: userLogin.email ?? "",
+        picture: userLogin.claims?.picture,
         isLoggedIn: true,
       }
     : null;
