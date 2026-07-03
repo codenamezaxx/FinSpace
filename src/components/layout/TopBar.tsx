@@ -88,8 +88,10 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
         {/* Profile — visible on all screen sizes */}
         <ProfileButton />
 
-        {/* Theme toggle — always on far right */}
-        <ThemeToggle compact />
+        {/* Theme toggle — desktop only (mobile via ProfileButton popup) */}
+        <div className="hidden lg:block">
+          <ThemeToggle compact />
+        </div>
       </div>
     </header>
   );
