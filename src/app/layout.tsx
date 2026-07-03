@@ -85,11 +85,6 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("finspace-theme");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")}catch(e){}})()`,
-          }}
-        />
         <style>{`
           /* ─── Theme visibility helpers (both icons in DOM, CSS shows correct one) ─── */
           .light-only { display: inline-flex; }
@@ -129,6 +124,11 @@ export default function RootLayout({
         `}</style>
       </head>
       <body className="min-h-full bg-background text-text-secondary">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("finspace-theme");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")}catch(e){}})()`,
+          }}
+        />
         <ThemeProvider>
           <ClientSerwistProvider>
             <AssetLiabilityModalProvider>
