@@ -21,11 +21,6 @@ const navItems = [
   { href: "/tools", label: "Alat", icon: Wrench },
 ];
 
-const bottomNavItems = [
-  ...navItems,
-  { href: "/settings", label: "Profil", icon: Settings },
-];
-
 interface NavigationBarProps {
   isCollapsed?: boolean;
   onToggle?: () => void;
@@ -39,7 +34,7 @@ export function NavigationBar({ isCollapsed = false, onToggle }: NavigationBarPr
     <>
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border bg-surface/60 backdrop-blur-xl px-2 py-2 lg:hidden">
-        {bottomNavItems.map((item) => {
+        {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           const Icon = item.icon;
           return (

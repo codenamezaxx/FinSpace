@@ -85,10 +85,8 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
           </button>
         )}
 
-        {/* Profile */}
-        <div className="hidden sm:block">
-          <ProfileButton />
-        </div>
+        {/* Profile — visible on all screen sizes */}
+        <ProfileButton />
 
         {/* Theme toggle — always on far right */}
         <ThemeToggle compact />
