@@ -25,10 +25,10 @@ export function ProfileButton() {
   // ── Sync dot color ──
   const dotColor =
     sync.status === "syncing"
-      ? "bg-[#22D3EE]"
+      ? "bg-cyan-400"
       : sync.status === "offline"
-        ? "bg-[#FBBF24]"
-        : "bg-[#34D399]";
+        ? "bg-amber-400"
+        : "bg-success";
 
   const syncLabel =
     sync.status === "syncing"
@@ -42,7 +42,7 @@ export function ProfileButton() {
     return (
       <button
         onClick={login}
-        className="flex items-center gap-2 rounded-xl bg-[#151520]/65 px-3 py-1.5 text-sm font-semibold text-text-primary backdrop-blur-xl transition-all duration-200 ease-out hover:shadow-[0_0_24px_#8B5CF666] border border-white/10"
+        className="flex items-center gap-2 rounded-xl bg-surface/65 px-3 py-1.5 text-sm font-semibold text-text-primary backdrop-blur-xl transition-all duration-200 ease-out hover:shadow-[0_0_24px_#8B5CF666] border border-white/10"
       >
         <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -93,7 +93,7 @@ export function ProfileButton() {
             className="fixed inset-0 z-40"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 top-10 z-50 w-64 animate-fade-scale rounded-2xl border border-white/10 bg-[#151520]/95 p-4 shadow-2xl backdrop-blur-2xl transition-all duration-200 ease-out">
+          <div className="absolute right-0 top-10 z-50 w-64 animate-fade-scale rounded-2xl border border-white/10 bg-surface/95 p-4 shadow-2xl backdrop-blur-2xl transition-all duration-200 ease-out">
             {/* Profile info */}
             <div className="mb-3 flex items-center gap-3 border-b border-white/10 pb-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
