@@ -197,7 +197,7 @@ export default function WealthPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Kekayaan</h1>
-          <p className="mt-1 font-mono text-sm text-text-muted">
+          <p className="mt-2 text-sm text-text-muted">
             Pantau kekayaan bersih dan kesehatan keuangan
           </p>
         </div>

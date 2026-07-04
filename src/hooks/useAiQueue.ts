@@ -12,9 +12,8 @@ export function useAiQueue() {
     inputType: AiQueueItem["input_type"],
     payload: string
   ) => {
-    const queue_id = crypto.randomUUID();
     const created_at = Date.now();
-    await db.ai_queue.add({ queue_id, input_type: inputType, payload, created_at });
+    const queue_id = await db.ai_queue.add({ input_type: inputType, payload, created_at });
     return queue_id;
   };
 

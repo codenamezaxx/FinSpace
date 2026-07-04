@@ -32,8 +32,8 @@
 :root {
   --color-background: #F1F5F9;
   --color-surface: #FFFFFF;
-  --color-surface-alt: #F8FAFC;
-  --color-border: #E2E8F0;
+  --color-surface-alt: #e0e8ef;
+  --color-border: #c7d6ea;
   --color-track: #CBD5E1;
   --color-text-primary: #0F172A;
   --color-text-secondary: #475569;
@@ -58,7 +58,7 @@
   --color-background: #020617;
   --color-surface: #1E293B;
   --color-surface-alt: #0F172A;
-  --color-border: #334155;
+  --color-border: #151a21;
   --color-track: #334155;
   --color-text-primary: #FFFFFF;
   --color-text-secondary: #94A3B8;

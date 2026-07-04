@@ -74,18 +74,18 @@ export function NavigationBar({ isCollapsed = false, onToggle }: NavigationBarPr
           <img
             src="/icons/icon-192x192.svg"
             alt="FinSpace Logo"
-            className="h-10 w-10 shrink-0"
+            className="h-9 w-9 shrink-0"
           />
           <div
             className={`flex flex-col overflow-hidden transition-all duration-300 ${
               isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
             }`}
           >
-            <span className="whitespace-nowrap text-xl font-bold text-text-primary">
+            <span className="whitespace-nowrap text-xl font-bold px-2 text-text-primary">
               FinSpace
             </span>
-            <span className="whitespace-nowrap text-xs text-text-muted">
-              Personal Finance Manager
+            <span className="whitespace-nowrap text-xs font-medium px-2 text-text-muted">
+              Financial Dashboard
             </span>
           </div>
         </div>
@@ -95,7 +95,7 @@ export function NavigationBar({ isCollapsed = false, onToggle }: NavigationBarPr
           <button
             type="button"
             onClick={() => openAddTransaction()}
-            className={`flex items-center justify-center rounded-xl bg-primary text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30 ${
+            className={`flex items-center justify-center rounded-xl bg-primary text-sm font-bold text-white shadow-lg shadow-primary/25 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30 ${
               isCollapsed
                 ? "mx-auto h-10 w-10"
                 : "w-full gap-2 px-5 py-3"

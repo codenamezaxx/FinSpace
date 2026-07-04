@@ -10,7 +10,6 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 // Module-level flag — survives React StrictMode double-mounts and HMR.
 // Only one seeding pass per page session, regardless of how many usePockets() mounts.
 let _seedInProgress = false;
-let _seeded = false;
 
 export function usePockets() {
   const pockets = useLiveQuery(
@@ -18,44 +17,65 @@ export function usePockets() {
     []
   );
 
-  // Auto-seed presets on first load when table is empty.
-  // Also cleans up old presets that were removed from PRESET_POCKETS.
-  // Uses module-level flags (not useRef) to survive StrictMode double-mounts.
-  useEffect(() => {
-    if (_seeded || _seedInProgress) return;
-    if (pockets === undefined) return; // still loading
+  // ── Force seed presets via direct Dexie query ──
+  // useLiveQuery bisa return undefined (gagal silent karena @id schema + Dexie Cloud).
+  // Fallback ini bypass useLiveQuery dan langsung cek + seed via db.pockets API.
+  const [seedForce, setSeedForce] = useState(0);
 
+  useEffect(() => {
+    if (_seedInProgress) return;
     _seedInProgress = true;
 
-    if (pockets.length > 0) {
-      // Cleanup old presets that are no longer in PRESET_POCKETS
-      const toRemove = pockets.filter((p) => OLD_PRESET_NAMES.has(p.name));
-      if (toRemove.length > 0) {
-        const ids = toRemove.map((p) => p.id);
-        db.transactions.where("pocketId").anyOf(ids).modify({ pocketId: null })
-          .then(() => db.pockets.bulkDelete(ids))
-          .then(() => { _seeded = true; _seedInProgress = false; })
-          .catch(() => { _seedInProgress = false; });
-      } else {
-        _seeded = true;
+    // Tunggu 1 tick agar db siap, lalu cek count langsung
+    const timeout = setTimeout(async () => {
+      try {
+        const count = await db.pockets.count();
+        if (count === 0) {
+          const now = Date.now();
+          const presets = PRESET_POCKETS.map((p, i) => ({
+            name: p.name,
+            category: p.category,
+            sortOrder: i,
+            createdAt: now,
+          }));
+          await db.pockets.bulkAdd(presets);
+        }
+      } catch (err) {
+        console.error("[usePockets] seed gagal:", err);
+      } finally {
         _seedInProgress = false;
       }
-      return;
-    }
+    }, 100);
 
-    // Fresh DB — seed presets
-    const now = Date.now();
-    const presets = PRESET_POCKETS.map((p, i) => ({
-      id: crypto.randomUUID(),
-      name: p.name,
-      category: p.category,
-      sortOrder: i,
-      createdAt: now,
-    }));
-    db.pockets
-      .bulkAdd(presets)
-      .then(() => { _seeded = true; _seedInProgress = false; })
-      .catch(() => { _seedInProgress = false; });
+    return () => {
+      clearTimeout(timeout);
+      _seedInProgress = false;
+    };
+  }, [seedForce]);
+
+  // Retry setiap 5 detik jika masih kosong (handle slow IndexedDB / cloud block)
+  useEffect(() => {
+    if (pockets === undefined) return; // masih loading, tunggu
+    if (pockets.length > 0) return; // sudah ada data
+
+    // Kosong — trigger force seed dan retry loop
+    const interval = setInterval(() => {
+      setSeedForce((v) => v + 1);
+    }, 5000);
+    setSeedForce((v) => v + 1); // seed segera
+
+    return () => clearInterval(interval);
+  }, [pockets]);
+
+  // ── Cleanup old presets (via useLiveQuery, bukan seeding) ──
+  useEffect(() => {
+    if (!pockets || pockets.length === 0) return;
+    const toRemove = pockets.filter((p) => OLD_PRESET_NAMES.has(p.name));
+    if (toRemove.length === 0) return;
+    const ids = toRemove.map((p) => p.id);
+    db.transactions.where("pocketId").anyOf(ids).modify({ pocketId: null })
+      .then(() => db.pockets.bulkDelete(ids))
+      .catch(() => {});
   }, [pockets]);
 
   const allTransactions = useLiveQuery(
@@ -92,8 +112,7 @@ export function usePockets() {
 
   const addPocket = useCallback(async (name: string, category: Pocket["category"]) => {
     const maxOrder = (pockets ?? []).length;
-    const id = crypto.randomUUID();
-    await db.pockets.add({ id, name, category, sortOrder: maxOrder, createdAt: Date.now() });
+    const id = await db.pockets.add({ name, category, sortOrder: maxOrder, createdAt: Date.now() });
     return id;
   }, [pockets]);
 
@@ -123,8 +142,7 @@ export function usePockets() {
       const transferId = crypto.randomUUID();
       const now = Date.now();
 
-      const expenseTx: Transaction = {
-        id: crypto.randomUUID(),
+      const expenseTx: Omit<Transaction, "id"> = {
         type: "expense",
         amount,
         category: "Pindah Saldo",
@@ -135,8 +153,7 @@ export function usePockets() {
         pocketId: fromPocketId,
       };
 
-      const incomeTx: Transaction = {
-        id: crypto.randomUUID(),
+      const incomeTx: Omit<Transaction, "id"> = {
         type: "income",
         amount,
         category: "Pindah Saldo",

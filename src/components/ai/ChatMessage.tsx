@@ -29,7 +29,7 @@ export function ChatMessage({ role, text, timestamp }: ChatMessageProps) {
         <div
           className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
             isBot
-              ? "rounded-tl-sm text-text-secondary"
+              ? "rounded-tl-sm bg-surface-alt text-text-secondary"
               : "rounded-tr-sm bg-primary text-white"
           }`}
         >

@@ -18,7 +18,21 @@ interface PocketGridProps {
 export function PocketGrid({
   pockets, balances, selectedId, onSelect, onAdd, onRename, onDelete, onTransfer,
 }: PocketGridProps) {
-  if (pockets.length === 0) return null;
+  if (pockets.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-8">
+        <button
+          type="button"
+          onClick={onAdd}
+          className="flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-border p-6 text-text-muted transition-all duration-200 hover:border-primary hover:text-primary hover:bg-primary/5"
+        >
+          <Plus className="h-6 w-6" />
+          <span className="text-sm font-semibold">Buat Kantong Pertama</span>
+        </button>
+        <p className="text-xs text-text-muted">Tidak ada kantong. Buat satu untuk mulai mengatur keuangan.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">

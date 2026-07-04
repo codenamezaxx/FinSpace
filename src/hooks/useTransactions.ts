@@ -21,11 +21,9 @@ export function useTransactions(options?: { startTime?: number; endTime?: number
   const addTransaction = async (
     data: Omit<Transaction, "id" | "timestamp">
   ) => {
-    const id = crypto.randomUUID();
     const timestamp = Date.now();
-    await db.transactions.add({
+    const id = await db.transactions.add({
       ...data,
-      id,
       timestamp,
     });
     return id;

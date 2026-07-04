@@ -9,7 +9,7 @@ export default function ToolsPage() {
   return (
     <div className="space-y-6 lg:px-4">
       <h1 className="text-2xl font-bold text-text-primary">Alat</h1>
-      <p className="font-mono mt-1 text-text-muted">
+      <p className="text-sm text-text-muted">
         Kalkulator, tabungan, dan ekspor data keuangan Anda.
       </p>
 

@@ -284,7 +284,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-text-primary lg:text-3xl">
             {getGreeting()} 👋
           </h1>
-          <p className="font-mono mt-1 text-sm text-text-muted">
+          <p className="mt-2 text-sm text-text-muted">
             Berikut adalah ringkasan keuangan Anda
           </p>
         </div>
@@ -303,7 +303,7 @@ export default function DashboardPage() {
             /* Balance View */
             <div
               key="balance"
-              className="rounded-2xl border border-border p-6 shadow-lg shadow-black/20 backdrop-blur-xl"
+              className="rounded-2xl border border-border p-6"
               style={{
                 background: 'linear-gradient(to bottom left, var(--gradient-card-blue), var(--gradient-card-mid))',
               }}
@@ -357,6 +357,7 @@ export default function DashboardPage() {
               collapsible
               style={{
                 background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid))',
+                height: "100%",
               }}
             />,
           ]}
@@ -432,7 +433,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => openAddTransaction()}
-              className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-4 text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-4 text-sm font-bold text-white cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
             >
               <Plus className="h-5 w-5" />
               Transaksi Baru
@@ -440,7 +441,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => openAssetLiabilityModal()}
-              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3 text-sm font-semibold text-primary transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-accent-secondary/15"
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3 text-sm font-semibold text-primary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-accent-secondary/15"
             >
               <Banknote className="h-5 w-5" />
               Tambah Aset / Liabilitas
