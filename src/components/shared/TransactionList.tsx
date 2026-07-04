@@ -65,7 +65,7 @@ export function TransactionList({ pocketFilter = null, pockets = [], searchQuery
     }
 
     if (debouncedSearch.trim()) {
-      const q = search.toLowerCase();
+      const q = debouncedSearch.toLowerCase();
       result = result.filter(
         (t) =>
           t.merchant.toLowerCase().includes(q) ||
