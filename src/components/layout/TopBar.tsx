@@ -18,7 +18,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { results, loading } = useSearch(searchQuery);
 
-  const showDropdown = isFocused && (searchQuery.trim().length >= 2 || results !== null || searchQuery.trim().length < 2);
+  const showDropdown = isFocused;
 
   const handleClose = useCallback(() => {
     setIsFocused(false);
@@ -30,6 +30,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+    setIsFocused(true);
   }, []);
 
   const handleMobileOpen = useCallback(() => {
