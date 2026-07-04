@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDownUp, Search } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { TransactionCard } from "./TransactionCard";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -31,11 +31,18 @@ type SortDir = "asc" | "desc";
 interface TransactionListProps {
   pocketFilter?: string | null;
   pockets?: Pocket[];
+  searchQuery?: string; // from global search
 }
 
-export function TransactionList({ pocketFilter = null, pockets = [] }: TransactionListProps) {
+export function TransactionList({ pocketFilter = null, pockets = [], searchQuery }: TransactionListProps) {
   const { transactions, loading, deleteTransaction } = useTransactions();
   const [search, setSearch] = useState("");
+  // Sync external searchQuery prop
+  useEffect(() => {
+    if (searchQuery !== undefined && searchQuery !== search) {
+      setSearch(searchQuery);
+    }
+  }, [searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
   const debouncedSearch = useDebounce(search, 300);
   const [sortField, setSortField] = useState<SortField>("timestamp");
   const [sortDir, setSortDir] = useState<SortDir>("desc");

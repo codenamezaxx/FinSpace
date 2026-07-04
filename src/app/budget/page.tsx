@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { TransactionList } from "@/components/shared/TransactionList";
 import { BudgetRing } from "@/components/budget/BudgetRing";
@@ -18,7 +19,7 @@ import type { Pocket } from "@/lib/pocket";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import { TransferModal } from "@/components/budget/TransferModal";
 
-export default function BudgetPage() {
+function BudgetPageInner() {
   const { openAddTransaction } = useTransactionModal();
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
@@ -37,6 +38,8 @@ export default function BudgetPage() {
   const [pocketToDelete, setPocketToDelete] = useState<Pocket | null>(null);
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferFrom, setTransferFrom] = useState<Pocket | null>(null);
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("q") || undefined;
 
   const monthlyIncome = useMemo(() => {
     return transactions
@@ -170,7 +173,7 @@ export default function BudgetPage() {
         <h2 className="mb-4 text-lg font-semibold text-primary">
           Transaksi Terbaru
         </h2>
-        <TransactionList pocketFilter={pocketFilter} pockets={pockets} />
+        <TransactionList pocketFilter={pocketFilter} pockets={pockets} searchQuery={searchQuery} />
       </div>
 
 
@@ -231,3 +234,12 @@ export default function BudgetPage() {
     </div>
   );
 }
+
+export default function BudgetPage() {
+  return (
+    <Suspense fallback={null}>
+      <BudgetPageInner />
+    </Suspense>
+  );
+}
+
