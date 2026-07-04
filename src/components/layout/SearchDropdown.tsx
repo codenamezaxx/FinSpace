@@ -105,15 +105,24 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
     : 0;
 
   const navigate = useCallback(
-    (url: string, recentQuery?: string) => {
-      if (recentQuery) addRecent(recentQuery);
-      else if (query.trim().length >= 2) addRecent(query.trim());
+    (url: string, saveToRecent?: string) => {
+      if (saveToRecent) addRecent(saveToRecent);
       onClose();
       onNavigate?.();
       router.push(url);
     },
-    [query, router, onClose, onNavigate]
+    [router, onClose, onNavigate]
   );
+
+  function getItemName(item: FlatItem): string {
+    switch (item.kind) {
+      case "transaction": return item.data.merchant;
+      case "asset": return item.data.name;
+      case "liability": return item.data.name;
+      case "debt": return item.data.name;
+      case "tool": return item.data.name;
+    }
+  }
 
   const getUrl = useCallback((item: FlatItem): string => {
     switch (item.kind) {
@@ -151,7 +160,8 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
       }
       if (e.key === "Enter" && highlightedIndex >= 0 && highlightedIndex < flatItems.length) {
         e.preventDefault();
-        navigate(getUrl(flatItems[highlightedIndex]));
+        const item = flatItems[highlightedIndex];
+        navigate(getUrl(item), getItemName(item));
       }
     },
     [flatItems, highlightedIndex, navigate, getUrl, onClose]
@@ -175,8 +185,17 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [dropdownVisible, handleKeyboardNav]);
 
+  // Prevent native mousedown from inside dropdown reaching the document handler
+  // React's synthetic stopPropagation doesn't stop native event propagation.
+  useEffect(() => {
+    const el = dropdownRef.current;
+    if (!el) return;
+    const handler = (e: MouseEvent) => e.stopPropagation();
+    el.addEventListener("mousedown", handler);
+    return () => el.removeEventListener("mousedown", handler);
+  }, []);
+
   // Click outside handler — closes dropdown when clicking outside
-  // Stop propagation so clicks inside the dropdown never reach this handler
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -195,7 +214,6 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
       <div
         ref={dropdownRef}
         tabIndex={-1}
-        onMouseDown={(e) => e.stopPropagation()}
         className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-2xl border border-border bg-surface shadow-2xl shadow-black/40"
       >
         <div className="space-y-2 p-4">
@@ -229,7 +247,6 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
       role="listbox"
       aria-activedescendant={activeDescendantId}
       onKeyDown={handleKeyDown}
-      onMouseDown={(e) => e.stopPropagation()}
       className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-2xl border border-border bg-surface shadow-2xl shadow-black/40"
     >
       {showResults && totalResults === 0 && (
@@ -255,7 +272,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
             <button
               key={q}
               type="button"
-              onClick={() => navigate(`/budget?q=${encodeURIComponent(q)}`, q)}
+              onClick={() => navigate(`/budget?q=${encodeURIComponent(q)}`)}
               className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-alt transition-colors text-left"
             >
               <Clock className="h-4 w-4 shrink-0 text-text-muted" />
@@ -282,7 +299,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
                     type="button"
                     role="option"
                     aria-selected={highlightedIndex === flatIdx}
-                    onClick={() => navigate(getUrl({ kind: "transaction", data: tx }))}
+                    onClick={() => navigate(getUrl({ kind: "transaction", data: tx }), tx.merchant)}
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
                         ? "bg-primary/10 ring-1 ring-primary/30"
@@ -317,7 +334,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
                     type="button"
                     role="option"
                     aria-selected={highlightedIndex === flatIdx}
-                    onClick={() => navigate(getUrl({ kind: "asset", data: a }))}
+                    onClick={() => navigate(getUrl({ kind: "asset", data: a }), a.name)}
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
                         ? "bg-primary/10 ring-1 ring-primary/30"
@@ -348,7 +365,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
                     type="button"
                     role="option"
                     aria-selected={highlightedIndex === flatIdx}
-                    onClick={() => navigate(getUrl({ kind: "liability", data: l }))}
+                    onClick={() => navigate(getUrl({ kind: "liability", data: l }), l.name)}
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
                         ? "bg-primary/10 ring-1 ring-primary/30"
@@ -379,7 +396,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
                     type="button"
                     role="option"
                     aria-selected={highlightedIndex === flatIdx}
-                    onClick={() => navigate(getUrl({ kind: "debt", data: d }))}
+                    onClick={() => navigate(getUrl({ kind: "debt", data: d }), d.name)}
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
                         ? "bg-primary/10 ring-1 ring-primary/30"
@@ -410,7 +427,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
                     type="button"
                     role="option"
                     aria-selected={highlightedIndex === flatIdx}
-                    onClick={() => navigate(getUrl({ kind: "tool", data: t }))}
+                    onClick={() => navigate(getUrl({ kind: "tool", data: t }), t.name)}
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
                         ? "bg-primary/10 ring-1 ring-primary/30"
