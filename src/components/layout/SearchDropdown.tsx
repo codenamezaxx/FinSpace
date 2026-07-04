@@ -24,14 +24,22 @@ function getRecent(): string[] {
 }
 
 function addRecent(q: string) {
-  const list = getRecent().filter((s) => s !== q);
-  list.unshift(q);
-  if (list.length > MAX_RECENT) list.pop();
-  localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+  try {
+    const list = getRecent().filter((s) => s !== q);
+    list.unshift(q);
+    if (list.length > MAX_RECENT) list.pop();
+    localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+  } catch {
+    // Silently fail — localStorage may be full or unavailable
+  }
 }
 
 function clearRecent() {
-  localStorage.removeItem(RECENT_KEY);
+  try {
+    localStorage.removeItem(RECENT_KEY);
+  } catch {
+    // Silently fail
+  }
 }
 
 function formatAmount(amount: number): string {
@@ -67,9 +75,33 @@ export function SearchDropdown({ query, results, loading, onClose }: SearchDropd
     return items;
   }, [results]);
 
+  // Fix 4: Build Map for O(1) lookup by "kind:id" key
+  const idxMap = useMemo(() => {
+    const map = new Map<string, number>();
+    flatItems.forEach((item, idx) => {
+      map.set(`${item.kind}:${item.data.id}`, idx);
+    });
+    return map;
+  }, [flatItems]);
+
   useEffect(() => {
     setHighlightedIndex(-1);
   }, [results]);
+
+  const hasQuery = query.trim().length >= 2;
+  const hasResults = results !== null;
+  const showLoading = loading && hasQuery && !hasResults;
+  const showRecent = !hasQuery && recentSearches.length > 0;
+  const showResults = hasResults;
+  const dropdownVisible = showRecent || showResults || showLoading;
+
+  const totalResults = results
+    ? results.transactions.length +
+      results.assets.length +
+      results.liabilities.length +
+      results.debts.length +
+      results.tools.length
+    : 0;
 
   const navigate = useCallback(
     (url: string, recentQuery?: string) => {
@@ -94,8 +126,9 @@ export function SearchDropdown({ query, results, loading, onClose }: SearchDropd
     }
   }, []);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+  // Fix 1: Shared keyboard handler (works with both React.SyntheticEvent and native KeyboardEvent)
+  const handleKeyboardNav = useCallback(
+    (e: { key: string; preventDefault: () => void }) => {
       if (e.key === "Escape") {
         onClose();
         return;
@@ -116,13 +149,38 @@ export function SearchDropdown({ query, results, loading, onClose }: SearchDropd
       }
       if (e.key === "Enter" && highlightedIndex >= 0 && highlightedIndex < flatItems.length) {
         e.preventDefault();
-        const item = flatItems[highlightedIndex];
-        navigate(getUrl(item));
+        navigate(getUrl(flatItems[highlightedIndex]));
       }
     },
     [flatItems, highlightedIndex, navigate, getUrl, onClose]
   );
 
+  // Local handler for events bubbling from within the dropdown
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => handleKeyboardNav(e),
+    [handleKeyboardNav]
+  );
+
+  // Fix 1: Global keydown listener — captures events from the search input (where focus lives)
+  useEffect(() => {
+    if (!dropdownVisible) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Skip events that originated within the dropdown — those are handled by the local onKeyDown
+      if (dropdownRef.current?.contains(e.target as Node)) return;
+      handleKeyboardNav(e);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [dropdownVisible, handleKeyboardNav]);
+
+  // Fix 1: Auto-focus the dropdown container when it appears
+  useEffect(() => {
+    if (dropdownVisible && dropdownRef.current) {
+      dropdownRef.current.focus();
+    }
+  }, [dropdownVisible]);
+
+  // Click outside handler
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -133,22 +191,44 @@ export function SearchDropdown({ query, results, loading, onClose }: SearchDropd
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
-  const showRecent = query.trim().length < 2 && recentSearches.length > 0;
-  const showResults = results !== null;
+  // Fix 2: Loading skeleton
+  if (showLoading) {
+    return (
+      <div
+        ref={dropdownRef}
+        tabIndex={-1}
+        className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-2xl border border-border bg-surface shadow-2xl shadow-black/40"
+      >
+        <div className="space-y-2 p-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-center gap-3 px-4 py-2.5">
+              <div className="h-4 w-4 shrink-0 animate-pulse rounded bg-surface-alt" />
+              <div className="h-4 flex-1 animate-pulse rounded bg-surface-alt" />
+              <div className="h-4 w-20 animate-pulse rounded bg-surface-alt" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (!showRecent && !showResults) return null;
 
-  const totalResults = results
-    ? results.transactions.length +
-      results.assets.length +
-      results.liabilities.length +
-      results.debts.length +
-      results.tools.length
-    : 0;
+  // Fix 3: Compute active descendant id for aria-activedescendant
+  const highlightedItem =
+    highlightedIndex >= 0 && highlightedIndex < flatItems.length
+      ? flatItems[highlightedIndex]
+      : null;
+  const activeDescendantId = highlightedItem
+    ? `search-option-${highlightedItem.kind}-${highlightedItem.data.id}`
+    : undefined;
 
   return (
     <div
       ref={dropdownRef}
+      tabIndex={-1}
+      role="listbox"
+      aria-activedescendant={activeDescendantId}
       onKeyDown={handleKeyDown}
       className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-2xl border border-border bg-surface shadow-2xl shadow-black/40"
     >
@@ -193,13 +273,15 @@ export function SearchDropdown({ query, results, loading, onClose }: SearchDropd
                 Transaksi
               </p>
               {results!.transactions.map((tx) => {
-                const flatIdx = flatItems.indexOf(
-                  flatItems.find((f) => f.kind === "transaction" && f.data.id === tx.id)!
-                );
+                const flatIdx = idxMap.get("transaction:" + tx.id) ?? -1;
+                const optionId = `search-option-transaction-${tx.id}`;
                 return (
                   <button
+                    id={optionId}
                     key={tx.id}
                     type="button"
+                    role="option"
+                    aria-selected={highlightedIndex === flatIdx}
                     onClick={() => navigate(getUrl({ kind: "transaction", data: tx }))}
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
@@ -226,13 +308,15 @@ export function SearchDropdown({ query, results, loading, onClose }: SearchDropd
                 Aset
               </p>
               {results!.assets.map((a) => {
-                const flatIdx = flatItems.indexOf(
-                  flatItems.find((f) => f.kind === "asset" && f.data.id === a.id)!
-                );
+                const flatIdx = idxMap.get("asset:" + a.id) ?? -1;
+                const optionId = `search-option-asset-${a.id}`;
                 return (
                   <button
+                    id={optionId}
                     key={a.id}
                     type="button"
+                    role="option"
+                    aria-selected={highlightedIndex === flatIdx}
                     onClick={() => navigate(getUrl({ kind: "asset", data: a }))}
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
@@ -255,13 +339,15 @@ export function SearchDropdown({ query, results, loading, onClose }: SearchDropd
                 Liabilitas
               </p>
               {results!.liabilities.map((l) => {
-                const flatIdx = flatItems.indexOf(
-                  flatItems.find((f) => f.kind === "liability" && f.data.id === l.id)!
-                );
+                const flatIdx = idxMap.get("liability:" + l.id) ?? -1;
+                const optionId = `search-option-liability-${l.id}`;
                 return (
                   <button
+                    id={optionId}
                     key={l.id}
                     type="button"
+                    role="option"
+                    aria-selected={highlightedIndex === flatIdx}
                     onClick={() => navigate(getUrl({ kind: "liability", data: l }))}
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
@@ -284,13 +370,15 @@ export function SearchDropdown({ query, results, loading, onClose }: SearchDropd
                 Utang
               </p>
               {results!.debts.map((d) => {
-                const flatIdx = flatItems.indexOf(
-                  flatItems.find((f) => f.kind === "debt" && f.data.id === d.id)!
-                );
+                const flatIdx = idxMap.get("debt:" + d.id) ?? -1;
+                const optionId = `search-option-debt-${d.id}`;
                 return (
                   <button
+                    id={optionId}
                     key={d.id}
                     type="button"
+                    role="option"
+                    aria-selected={highlightedIndex === flatIdx}
                     onClick={() => navigate(getUrl({ kind: "debt", data: d }))}
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
@@ -313,13 +401,15 @@ export function SearchDropdown({ query, results, loading, onClose }: SearchDropd
                 Alat
               </p>
               {results!.tools.map((t) => {
-                const flatIdx = flatItems.indexOf(
-                  flatItems.find((f) => f.kind === "tool" && f.data.id === t.id)!
-                );
+                const flatIdx = idxMap.get("tool:" + t.id) ?? -1;
+                const optionId = `search-option-tool-${t.id}`;
                 return (
                   <button
+                    id={optionId}
                     key={t.id}
                     type="button"
+                    role="option"
+                    aria-selected={highlightedIndex === flatIdx}
                     onClick={() => navigate(getUrl({ kind: "tool", data: t }))}
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
