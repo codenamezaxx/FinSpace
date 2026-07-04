@@ -10,6 +10,7 @@ interface SearchDropdownProps {
   results: SearchResults | null;
   loading: boolean;
   onClose: () => void;
+  onNavigate?: () => void;
 }
 
 const RECENT_KEY = "finspace_recent_searches";
@@ -58,7 +59,7 @@ type FlatItem =
   | { kind: "debt"; data: DebtResult }
   | { kind: "tool"; data: ToolResult };
 
-export function SearchDropdown({ query, results, loading, onClose }: SearchDropdownProps) {
+export function SearchDropdown({ query, results, loading, onClose, onNavigate }: SearchDropdownProps) {
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -108,9 +109,10 @@ export function SearchDropdown({ query, results, loading, onClose }: SearchDropd
       if (recentQuery) addRecent(recentQuery);
       else if (query.trim().length >= 2) addRecent(query.trim());
       onClose();
+      onNavigate?.();
       router.push(url);
     },
-    [query, router, onClose]
+    [query, router, onClose, onNavigate]
   );
 
   const getUrl = useCallback((item: FlatItem): string => {
@@ -173,17 +175,13 @@ export function SearchDropdown({ query, results, loading, onClose }: SearchDropd
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [dropdownVisible, handleKeyboardNav]);
 
-  // Fix 1: Auto-focus the dropdown container when it appears
-  useEffect(() => {
-    if (dropdownVisible && dropdownRef.current) {
-      dropdownRef.current.focus();
-    }
-  }, [dropdownVisible]);
-
-  // Click outside handler
+  // Click outside handler — closes dropdown when clicking outside
+  // Skips search input clicks to avoid racing with focus event
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        const el = e.target as HTMLElement;
+        if (el.closest('input[type="search"]')) return;
         onClose();
       }
     };

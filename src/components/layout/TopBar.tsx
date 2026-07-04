@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { Search, ArrowLeft } from "lucide-react";
+import { Search, ArrowLeft, X } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { ProfileButton } from "./ProfileButton";
 import { SearchDropdown } from "./SearchDropdown";
@@ -22,6 +22,11 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
 
   const handleClose = useCallback(() => {
     setIsFocused(false);
+  }, []);
+
+  const handleSearchNavigate = useCallback(() => {
+    setIsFocused(false);
+    setSearchQuery("");
   }, []);
 
   const handleInputFocus = useCallback(() => {
@@ -93,14 +98,25 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
               onChange={handleInputChange}
               onFocus={handleInputFocus}
               autoFocus
-              className="w-full rounded-xl border border-border bg-surface-alt py-2 pl-10 pr-4 text-sm text-text-primary placeholder-text-muted outline-none transition-all duration-200 focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
+              className="w-full rounded-xl border border-border bg-surface-alt py-2 pl-10 pr-10 text-sm text-text-primary placeholder-text-muted outline-none transition-all duration-200 focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
             />
+            {searchQuery.length > 0 && (
+              <button
+                type="button"
+                onClick={() => { setSearchQuery(""); inputRef.current?.focus(); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary transition-colors"
+                aria-label="Hapus teks pencarian"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
             {showDropdown && (
               <SearchDropdown
                 query={searchQuery}
                 results={results}
                 loading={loading}
                 onClose={handleClose}
+                onNavigate={handleSearchNavigate}
               />
             )}
           </div>
@@ -116,14 +132,25 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
             value={searchQuery}
             onChange={handleInputChange}
             onFocus={handleInputFocus}
-            className="w-full rounded-xl border border-border bg-surface py-2 pl-10 pr-4 text-sm text-text-primary placeholder-text-muted outline-none transition-all duration-200 focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
+            className="w-full rounded-xl border border-border bg-surface py-2 pl-10 pr-10 text-sm text-text-primary placeholder-text-muted outline-none transition-all duration-200 focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
           />
+          {searchQuery.length > 0 && (
+            <button
+              type="button"
+              onClick={() => { setSearchQuery(""); inputRef.current?.focus(); }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary transition-colors"
+              aria-label="Hapus teks pencarian"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
           {showDropdown && (
             <SearchDropdown
               query={searchQuery}
               results={results}
               loading={loading}
               onClose={handleClose}
+              onNavigate={handleSearchNavigate}
             />
           )}
         </div>
