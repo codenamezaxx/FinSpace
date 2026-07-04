@@ -98,12 +98,12 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
               onChange={handleInputChange}
               onFocus={handleInputFocus}
               autoFocus
-              className="w-full rounded-xl border border-border bg-surface-alt py-2 pl-10 pr-10 text-sm text-text-primary placeholder-text-muted outline-none transition-all duration-200 focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
+              className="w-full appearance-none [&::-webkit-search-cancel-button]:hidden rounded-xl border border-border bg-surface-alt py-2 pl-10 pr-10 text-sm text-text-primary placeholder-text-muted outline-none transition-all duration-200 focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
             />
             {searchQuery.length > 0 && (
               <button
                 type="button"
-                onClick={() => { setSearchQuery(""); inputRef.current?.focus(); }}
+                onClick={() => { setSearchQuery(""); document.querySelector<HTMLInputElement>('[data-search-input="mobile"]')?.focus(); }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary transition-colors"
                 aria-label="Hapus teks pencarian"
               >
@@ -132,7 +132,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
             value={searchQuery}
             onChange={handleInputChange}
             onFocus={handleInputFocus}
-            className="w-full rounded-xl border border-border bg-surface py-2 pl-10 pr-10 text-sm text-text-primary placeholder-text-muted outline-none transition-all duration-200 focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
+            className="w-full appearance-none [&::-webkit-search-cancel-button]:hidden rounded-xl border border-border bg-surface py-2 pl-10 pr-10 text-sm text-text-primary placeholder-text-muted outline-none transition-all duration-200 focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
           />
           {searchQuery.length > 0 && (
             <button

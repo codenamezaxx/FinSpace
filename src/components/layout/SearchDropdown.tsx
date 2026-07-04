@@ -176,7 +176,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
   }, [dropdownVisible, handleKeyboardNav]);
 
   // Click outside handler — closes dropdown when clicking outside
-  // Skips search input clicks to avoid racing with focus event
+  // Stop propagation so clicks inside the dropdown never reach this handler
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -195,6 +195,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
       <div
         ref={dropdownRef}
         tabIndex={-1}
+        onMouseDown={(e) => e.stopPropagation()}
         className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-2xl border border-border bg-surface shadow-2xl shadow-black/40"
       >
         <div className="space-y-2 p-4">
@@ -228,6 +229,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
       role="listbox"
       aria-activedescendant={activeDescendantId}
       onKeyDown={handleKeyDown}
+      onMouseDown={(e) => e.stopPropagation()}
       className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-2xl border border-border bg-surface shadow-2xl shadow-black/40"
     >
       {showResults && totalResults === 0 && (
