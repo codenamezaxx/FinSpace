@@ -1,0 +1,22 @@
+"use client";
+
+import { type FC } from "react";
+import { Bot } from "lucide-react";
+
+interface FinnyTriggerProps {
+  onClick: () => void;
+}
+
+const FinnyTrigger: FC<FinnyTriggerProps> = ({ onClick }) => {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center justify-center w-14 h-14 rounded-full bg-accent-secondary text-white shadow-lg hover:opacity-90 transition-all active:scale-95"
+      aria-label="Buka Finny AI"
+    >
+      <Bot className="w-6 h-6" />
+    </button>
+  );
+};
+
+export default FinnyTrigger;
