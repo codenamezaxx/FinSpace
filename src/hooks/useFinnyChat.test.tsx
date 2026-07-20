@@ -19,10 +19,9 @@ vi.mock("@/lib/db", () => ({
 
 function createMockStream(content: string): ReadableStream {
   const encoder = new TextEncoder();
-  const data = `0:"${content}"\n`;
   return new ReadableStream({
     start(controller) {
-      controller.enqueue(encoder.encode(data));
+      controller.enqueue(encoder.encode(content));
       controller.close();
     },
   });

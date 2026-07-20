@@ -137,14 +137,7 @@ export function useFinnyChat(): UseFinnyChatResult {
           const { done, value } = await reader.read();
           if (done) break;
           const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split("\n");
-          for (const line of lines) {
-            if (line.startsWith('0:"')) {
-              fullContent += line.slice(2, -1).replace(/\\n/g, "\n");
-            } else if (line.startsWith("0:")) {
-              fullContent += line.slice(2);
-            }
-          }
+          fullContent += chunk;
 
           setMessages((prev) => {
             const last = prev[prev.length - 1];
