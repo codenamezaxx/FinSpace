@@ -36,7 +36,7 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose }) => {
           case "transaction": {
             const { db } = await import("@/lib/db");
             await db.transactions.add({
-              id: `tx_${Date.now()}`,
+              id: `trn_${Date.now()}`,
               type: data.type as "income" | "expense",
               amount: data.amount as number,
               category: data.category as string,
@@ -126,7 +126,7 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose }) => {
       />
 
       {/* Sheet — mobile: bottom sheet, desktop: floating panel */}
-      <div className={"fixed z-50 flex flex-col bg-surface-alt shadow-xl bottom-0 left-0 right-0 max-h-[80vh] rounded-t-2xl animate-slide-up lg:left-auto lg:right-6 lg:bottom-20 lg:w-96 lg:max-h-[500px] lg:rounded-2xl lg:animate-none"}>
+      <div className={"fixed z-50 flex flex-col bg-surface-alt shadow-xl bottom-0 left-0 right-0 max-h-[80vh] rounded-t-2xl animate-slide-up lg:left-auto lg:right-6 lg:bottom-5 lg:w-96 lg:h-auto lg:max-h-250 lg:rounded-2xl lg:animate-none"}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <div className="flex items-center gap-2">
