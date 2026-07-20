@@ -31,7 +31,7 @@ describe("SYSTEM_PROMPT", () => {
   });
 
   it("contains payment methods", () => {
-    const methods = ["Cash", "Transfer Bank", "QRIS", "Kartu Kredit"];
+    const methods = ["Cash", "Transfer Bank", "QRIS", "Kartu Kredit", "Kartu Debit", "E-Wallet", "Lainnya"];
     for (const method of methods) {
       expect(SYSTEM_PROMPT).toContain(method);
     }

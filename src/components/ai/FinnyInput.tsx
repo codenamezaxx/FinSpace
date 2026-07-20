@@ -31,7 +31,7 @@ const FinnyInput: FC<FinnyInputProps> = ({ onSend, isLoading, isOffline }) => {
   const canSend = text.trim().length > 0 && !isLoading;
 
   return (
-    <div className="flex items-center gap-2 border-t border-border bg-surface-alt p-3">
+    <div className="flex items-center gap-2 border-t border-border bg-surface-alt p-3 lg:rounded-b-2xl">
       {isOffline && (
         <div className="flex items-center gap-1 text-xs text-text-muted mr-1">
           <WifiOff className="w-3 h-3" />

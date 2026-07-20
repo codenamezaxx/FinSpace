@@ -76,6 +76,15 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto px-4 py-8">
+      {/* ── Back button ── */}
+      <Link
+        href="/dashboard"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text-primary"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Kembali
+      </Link>
+
       <h1 className="mb-1 text-2xl font-bold text-text-primary">Pengaturan</h1>
       <p className="mb-8 text-sm text-text-muted">
         Kelola sinkronisasi cloud dan akun Anda

@@ -44,6 +44,7 @@ dexie-cloud.*
 next-env.d.ts
 
 #agents
+.codegraph
 .superpowers
 docs
 
