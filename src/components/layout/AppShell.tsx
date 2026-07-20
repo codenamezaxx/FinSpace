@@ -4,8 +4,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { NavigationBar } from "./NavigationBar";
 import { TopBar } from "./TopBar";
-import { FloatingActionButton } from "./FloatingActionButton";
-import { ChatbotSheet } from "@/components/ai/ChatbotSheet";
+import { FinnyTrigger, FinnySheet } from "@/components/ai";
 import { TransactionModalProvider } from "@/lib/transaction-modal-context";
 import { GlobalTransactionModal } from "@/components/shared/GlobalTransactionModal";
 
@@ -37,8 +36,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           {children}
         </div>
       </main>
-      <FloatingActionButton onClick={() => setIsChatOpen(true)} />
-      <ChatbotSheet
+      <FinnyTrigger onClick={() => setIsChatOpen(true)} />
+      <FinnySheet
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
       />
