@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {children}
         </div>
       </main>
-      <div className="fixed bottom-24 right-6 z-50 lg:bottom-20 lg:right-8">
+      <div className="fixed bottom-28 right-6 z-50 lg:bottom-24 lg:right-8">
         <FinnyTrigger onClick={() => setIsChatOpen(true)} />
       </div>
       <FinnySheet
