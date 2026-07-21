@@ -1,8 +1,10 @@
 "use client";
 
+import { Fragment } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
+  Camera,
   LayoutDashboard,
   Wallet,
   TrendingUp,
@@ -24,9 +26,10 @@ const navItems = [
 interface NavigationBarProps {
   isCollapsed?: boolean;
   onToggle?: () => void;
+  onScan?: () => void;
 }
 
-export function NavigationBar({ isCollapsed = false, onToggle }: NavigationBarProps) {
+export function NavigationBar({ isCollapsed = false, onToggle, onScan }: NavigationBarProps) {
   const pathname = usePathname();
   const { openAddTransaction } = useTransactionModal();
 
@@ -34,26 +37,30 @@ export function NavigationBar({ isCollapsed = false, onToggle }: NavigationBarPr
     <>
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border bg-surface/60 backdrop-blur-xl px-2 py-2 lg:hidden">
-        {navItems.map((item) => {
+        {navItems.map((item, i) => {
           const isActive = pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-text-muted hover:text-text-secondary"
-              }`}
-            >
-              <Icon
-                className={`h-5 w-5 ${
-                  isActive ? "text-primary" : ""
+            <Fragment key={item.href}>
+              {i === 2 && onScan && (
+                <button
+                  onClick={onScan}
+                  className="flex items-center justify-center w-14 h-14 -mt-5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-primary/40 active:scale-95"
+                  aria-label="Scan struk"
+                >
+                  <Camera className="w-6 h-6" />
+                </button>
+              )}
+              <Link
+                href={item.href}
+                className={`flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                  isActive ? "bg-primary/10 text-primary" : "text-text-muted hover:text-text-secondary"
                 }`}
-              />
-              <span>{item.label}</span>
-            </Link>
+              >
+                <Icon className={`h-5 w-5 ${isActive ? "text-primary" : ""}`} />
+                <span>{item.label}</span>
+              </Link>
+            </Fragment>
           );
         })}
       </nav>
