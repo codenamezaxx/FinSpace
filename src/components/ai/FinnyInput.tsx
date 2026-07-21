@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useCallback, type FC, type KeyboardEvent } from "react";
-import { Send, WifiOff } from "lucide-react";
+import { Send, WifiOff, Camera } from "lucide-react";
 
 interface FinnyInputProps {
   onSend: (text: string) => void;
   isLoading: boolean;
   isOffline: boolean;
+  onScan?: () => void;
 }
 
-const FinnyInput: FC<FinnyInputProps> = ({ onSend, isLoading, isOffline }) => {
+const FinnyInput: FC<FinnyInputProps> = ({ onSend, isLoading, isOffline, onScan }) => {
   const [text, setText] = useState("");
 
   const handleSend = useCallback(() => {
@@ -49,10 +50,20 @@ const FinnyInput: FC<FinnyInputProps> = ({ onSend, isLoading, isOffline }) => {
         maxLength={1000}
         autoFocus
       />
+      {onScan && (
+        <button
+          onClick={onScan}
+          disabled={isLoading}
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-surface text-text-secondary cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors hover:bg-border"
+          aria-label="Scan struk"
+        >
+          <Camera className="w-4 h-4" />
+        </button>
+      )}
       <button
         onClick={handleSend}
         disabled={!canSend}
-        className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
+        className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
         aria-label="Kirim pesan"
       >
         <Send className="w-4 h-4" />
