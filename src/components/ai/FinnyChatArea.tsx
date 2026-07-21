@@ -32,7 +32,7 @@ const FinnyChatArea: FC<FinnyChatAreaProps> = ({ messages, isLoading }) => {
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="text-center">
           <div className="text-4xl mb-3">
-            <Bot className="w-12 h-12 text-accent-secondary/50 m-auto" />
+            <Bot className="w-12 h-12 text-primary m-auto" />
           </div>
           <p className="text-text-secondary text-sm">
             Halo! Aku Finny, asisten keuanganmu.
