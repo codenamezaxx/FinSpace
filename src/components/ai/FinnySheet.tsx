@@ -12,9 +12,10 @@ import type { FinnyMessage } from "./FinnyChatArea";
 interface FinnySheetProps {
   isOpen: boolean;
   onClose: () => void;
+  onScan?: () => void;
 }
 
-const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose }) => {
+const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
   const { messages, isLoading, isOffline, sendMessage } = useFinnyChat();
   const { pockets: pocketEnts } = usePockets();
   const [showPreview, setShowPreview] = useState(false);
@@ -196,6 +197,7 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose }) => {
           onSend={handleSend}
           isLoading={isLoading}
           isOffline={isOffline}
+          onScan={onScan}
         />
       </div>
 
