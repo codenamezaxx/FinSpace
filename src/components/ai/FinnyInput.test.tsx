@@ -38,3 +38,25 @@ describe("FinnyInput", () => {
     expect(screen.getByText("Offline")).toBeDefined();
   });
 });
+
+describe("FinnyInput scan button", () => {
+  it("renders camera button when onScan provided", () => {
+    render(<FinnyInput onSend={vi.fn()} isLoading={false} isOffline={false} onScan={vi.fn()} />);
+    const cameraBtn = screen.getByLabelText("Scan struk");
+    expect(cameraBtn).toBeDefined();
+  });
+
+  it("calls onScan when camera button clicked", () => {
+    const onScan = vi.fn();
+    render(<FinnyInput onSend={vi.fn()} isLoading={false} isOffline={false} onScan={onScan} />);
+    const cameraBtn = screen.getByLabelText("Scan struk");
+    fireEvent.click(cameraBtn);
+    expect(onScan).toHaveBeenCalled();
+  });
+
+  it("disables camera button when loading", () => {
+    render(<FinnyInput onSend={vi.fn()} isLoading={true} isOffline={false} onScan={vi.fn()} />);
+    const cameraBtn = screen.getByLabelText("Scan struk");
+    expect(cameraBtn.hasAttribute("disabled")).toBe(true);
+  });
+});
