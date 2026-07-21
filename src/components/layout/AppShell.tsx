@@ -7,6 +7,7 @@ import { TopBar } from "./TopBar";
 import { FinnyTrigger, FinnySheet } from "@/components/ai";
 import ScanResultModal from "@/components/ai/ScanResultModal";
 import { useFinnyScan } from "@/hooks/useFinnyScan";
+import { usePockets } from "@/hooks/usePockets";
 import { TransactionModalProvider } from "@/lib/transaction-modal-context";
 import { GlobalTransactionModal } from "@/components/shared/GlobalTransactionModal";
 
@@ -17,6 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [scanImageDataUrl, setScanImageDataUrl] = useState<string | null>(null);
 
   const { scanImage, result, isLoading, error, reset } = useFinnyScan();
+  const { pockets: pocketEnts } = usePockets();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleScanClick = useCallback(() => {
@@ -27,6 +29,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
+      // Batasi ukuran gambar — maks 5 MB
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Ukuran gambar terlalu besar. Maksimal 5 MB.");
+        e.target.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (event) => {
         const dataUrl = event.target?.result as string;
@@ -58,6 +66,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         switch (action) {
           case "transaction": {
             const { db } = await import("@/lib/db");
+            const pocketName = (data.pocket_name as string) || "Tunai";
+            const pocket = pocketEnts.find(
+              (p) => p.name.toLowerCase() === pocketName.toLowerCase()
+            ) ?? pocketEnts.find((p) => p.name === "Tunai");
             await db.transactions.add({
               id: `trn_${Date.now()}`,
               type: data.type as "income" | "expense",
@@ -65,7 +77,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               category: data.category as string,
               merchant: data.merchant as string,
               payment_method: data.payment_method as string,
-              pocketId: null,
+              pocketId: pocket?.id ?? null,
               timestamp: Date.now(),
             });
             break;
@@ -94,7 +106,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         console.error("Scan save error:", err);
       }
     },
-    [handleModalClose]
+    [handleModalClose, pocketEnts]
   );
 
   return (

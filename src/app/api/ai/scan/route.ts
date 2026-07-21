@@ -30,7 +30,16 @@ export async function POST(req: Request) {
     const text = result.text;
     let parsed;
     try { parsed = JSON.parse(text); }
-    catch { parsed = text.match(/\{[\s\S]*\}/)?.[0] ?? null; if (parsed) parsed = JSON.parse(parsed); }
+    catch {
+      // Strip markdown fences first, then try non-greedy first JSON object match
+      const cleaned = text.replace(/```(?:json)?\s*([\s\S]*?)```/g, "$1").trim();
+      const match = cleaned.match(/\{[\s\S]*?\}/);
+      if (match) {
+        try { parsed = JSON.parse(match[0]); } catch { parsed = null; }
+      } else {
+        parsed = null;
+      }
+    }
 
     if (!parsed) {
       return Response.json({

@@ -1,13 +1,7 @@
 "use client";
 import { useState, useCallback } from "react";
 import type { PocketInfo } from "./useFinnyChat";
-
-interface ScanResult {
-  action: string;
-  message: string;
-  data?: Record<string, unknown>;
-  confidence?: string;
-}
+import type { ScanResult } from "@/lib/ai/types";
 
 export function useFinnyScan() {
   const [result, setResult] = useState<ScanResult | null>(null);

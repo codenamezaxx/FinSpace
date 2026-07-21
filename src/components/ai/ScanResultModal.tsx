@@ -4,15 +4,7 @@ import { type FC, useEffect, useCallback } from "react";
 import { X, Camera, RefreshCw, Loader2 } from "lucide-react";
 import TransactionPreview from "./TransactionPreview";
 import type { PocketInfo } from "@/hooks/useFinnyChat";
-
-/* ─── Local types ─── */
-
-interface ScanResult {
-  action: string;
-  message: string;
-  data?: Record<string, unknown>;
-  confidence?: string;
-}
+import type { ScanResult } from "@/lib/ai/types";
 
 interface ScanResultModalProps {
   isOpen: boolean;
