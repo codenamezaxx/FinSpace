@@ -1,15 +1,25 @@
 "use client";
 
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery, useObservable } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import type { Pocket } from "@/lib/pocket";
 import type { Transaction } from "@/lib/db";
 import { PRESET_POCKETS, OLD_PRESET_NAMES } from "@/lib/pocket";
 import { useState, useCallback, useMemo, useEffect } from "react";
 
-// Module-level flag — survives React StrictMode double-mounts and HMR.
-// Only one seeding pass per page session, regardless of how many usePockets() mounts.
-let _seedInProgress = false;
+/** Hapus duplikat kantong berdasarkan nama — simpan yang pertama, hapus sisanya. */
+async function removeDuplicatePockets() {
+  const all = await db.pockets.toArray();
+  const seen = new Set<string>();
+  const dupIds: string[] = [];
+  for (const p of all) {
+    if (seen.has(p.name)) dupIds.push(p.id);
+    else seen.add(p.name);
+  }
+  if (dupIds.length > 0) {
+    await db.pockets.bulkDelete(dupIds);
+  }
+}
 
 export function usePockets() {
   const pockets = useLiveQuery(
@@ -17,55 +27,42 @@ export function usePockets() {
     []
   );
 
-  // ── Force seed presets via direct Dexie query ──
-  // useLiveQuery bisa return undefined (gagal silent karena @id schema + Dexie Cloud).
-  // Fallback ini bypass useLiveQuery dan langsung cek + seed via db.pockets API.
-  const [seedForce, setSeedForce] = useState(0);
+  // Tunggu Dexie Cloud sync selesai sebelum seed — cegah duplikat saat
+  // user beralih dari guest ke akun Google (realm transition wipe + re-sync).
+  const syncState = useObservable(db.cloud.syncState);
+  const isSyncing =
+    syncState?.phase === "pulling" || syncState?.phase === "pushing";
 
   useEffect(() => {
-    if (_seedInProgress) return;
-    _seedInProgress = true;
+    if (isSyncing) return; // jangan seed saat cloud masih sinkronisasi
 
-    // Tunggu 1 tick agar db siap, lalu cek count langsung
     const timeout = setTimeout(async () => {
       try {
-        const count = await db.pockets.count();
-        if (count === 0) {
-          const now = Date.now();
-          const presets = PRESET_POCKETS.map((p, i) => ({
-            name: p.name,
-            category: p.category,
-            sortOrder: i,
-            createdAt: now,
-          }));
-          await db.pockets.bulkAdd(presets);
-        }
+        // Bersihkan duplikat yang sudah ada (dari bug sebelumnya)
+        await removeDuplicatePockets();
+
+        const existing = await db.pockets.toArray();
+        const existingNames = new Set(existing.map((p) => p.name));
+        const missing = PRESET_POCKETS.filter(
+          (p) => !existingNames.has(p.name)
+        );
+        if (missing.length === 0) return;
+
+        const now = Date.now();
+        const presets = missing.map((p, i) => ({
+          name: p.name,
+          category: p.category,
+          sortOrder: existing.length + i,
+          createdAt: now,
+        }));
+        await db.pockets.bulkAdd(presets);
       } catch (err) {
         console.error("[usePockets] seed gagal:", err);
-      } finally {
-        _seedInProgress = false;
       }
     }, 100);
 
-    return () => {
-      clearTimeout(timeout);
-      _seedInProgress = false;
-    };
-  }, [seedForce]);
-
-  // Retry setiap 5 detik jika masih kosong (handle slow IndexedDB / cloud block)
-  useEffect(() => {
-    if (pockets === undefined) return; // masih loading, tunggu
-    if (pockets.length > 0) return; // sudah ada data
-
-    // Kosong — trigger force seed dan retry loop
-    const interval = setInterval(() => {
-      setSeedForce((v) => v + 1);
-    }, 5000);
-    setSeedForce((v) => v + 1); // seed segera
-
-    return () => clearInterval(interval);
-  }, [pockets]);
+    return () => clearTimeout(timeout);
+  }, [isSyncing]);
 
   // ── Cleanup old presets (via useLiveQuery, bukan seeding) ──
   useEffect(() => {

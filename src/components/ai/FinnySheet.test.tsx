@@ -19,7 +19,25 @@ vi.mock("@/hooks/useFinnyChat", () => ({
 vi.mock("@/lib/db", () => ({
   db: {
     transactions: { add: vi.fn() },
+    pockets: { toArray: vi.fn().mockResolvedValue([]), orderBy: vi.fn().mockReturnThis(), },
+    cloud: { syncState: undefined },
   },
+}));
+
+// Mock usePockets
+vi.mock("@/hooks/usePockets", () => ({
+  usePockets: () => ({
+    pockets: [],
+    balances: {},
+    totalBalance: 0,
+    addPocket: vi.fn(),
+    renamePocket: vi.fn(),
+    deletePocket: vi.fn(),
+    transferBetweenPockets: vi.fn(),
+    pocketFilter: null,
+    setPocketFilter: vi.fn(),
+    loading: false,
+  }),
 }));
 
 describe("FinnySheet", () => {
