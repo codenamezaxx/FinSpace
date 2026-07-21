@@ -58,7 +58,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
         isSidebarCollapsed ? "lg:left-[72px]" : "lg:left-64"
       }`}
     >
-      <div className="relative flex h-16 items-center gap-3 px-4">
+      <div className="relative flex h-16 items-center gap-3 px-5">
         {/* ── LEFT SIDE ── */}
 
         {/* Mobile: back button when search open */}
@@ -75,12 +75,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
         {/* Mobile: title + icon (hidden when search open) */}
         {!searchOpen && (
           <div className="flex items-center gap-2 lg:hidden">
-            <img
-              src="/icons/icon-192x192.svg"
-              alt=""
-              className="h-6 w-6"
-            />
-            <span className="text-base font-semibold text-text-primary">
+            <span className="text-base font-semibold text-primary">
               FinSpace
             </span>
           </div>
