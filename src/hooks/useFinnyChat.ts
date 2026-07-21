@@ -121,9 +121,30 @@ export function useFinnyChat(): UseFinnyChatResult {
         });
 
         if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
+          const errData: Record<string, unknown> = await response
+            .json()
+            .catch(() => ({}));
+
+          // Rate limit — tampilkan sebagai pesan asisten, bukan error
+          if (response.status === 429 && typeof errData.message === "string") {
+            const rateLimitMsg: FinnyMessage = {
+              id: `ai_${userMsg.id}`,
+              role: "assistant",
+              content: errData.message,
+              action:
+                typeof errData.action === "string"
+                  ? errData.action
+                  : "chat",
+            };
+            setMessages((prev) => [...prev, rateLimitMsg]);
+            setIsLoading(false);
+            return;
+          }
+
           throw new Error(
-            (errData as { error?: string }).error || "Gagal terhubung ke Finny"
+            typeof errData.error === "string"
+              ? errData.error
+              : "Gagal terhubung ke Finny"
           );
         }
 
@@ -155,7 +176,9 @@ export function useFinnyChat(): UseFinnyChatResult {
         const finalMsg: FinnyMessage = {
           id: `ai_${userMsg.id}`,
           role: "assistant",
-          content: parsed?.message ?? fullContent,
+          content:
+            (parsed?.message ?? fullContent) ||
+            "Maaf, sepertinya ada gangguan. Coba tanya lagi ya! 🙏",
           action: parsed?.action,
           data: parsed?.data,
           missingFields: parsed?.missing_fields,

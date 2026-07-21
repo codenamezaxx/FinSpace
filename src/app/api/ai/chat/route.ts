@@ -21,6 +21,30 @@ export async function POST(req: Request) {
 
     return result.toTextStreamResponse();
   } catch (error) {
+    const statusCode =
+      (error as { statusCode?: number }).statusCode ??
+      (error as { status?: number }).status;
+
+    const msg = String((error as Error).message ?? "").toLowerCase();
+    const isRateLimit =
+      statusCode === 429 ||
+      msg.includes("429") ||
+      msg.includes("quota") ||
+      msg.includes("rate limit") ||
+      msg.includes("resource exhausted") ||
+      msg.includes("too many requests");
+
+    if (isRateLimit) {
+      return Response.json(
+        {
+          action: "chat",
+          message:
+            "Maaf, aku sedang menerima terlalu banyak permintaan. Coba lagi dalam beberapa saat ya! 🙏",
+        },
+        { status: 429 }
+      );
+    }
+
     console.error("Finny AI error:", error);
     return Response.json(
       { error: "Gagal terhubung ke Finny. Coba lagi ya!" },
