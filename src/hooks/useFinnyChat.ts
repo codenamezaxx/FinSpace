@@ -40,12 +40,18 @@ function parseAiResponse(content: string): RawAiResponse | null {
   }
 }
 
+export interface PocketInfo {
+  id: string;
+  name: string;
+  category: string;
+}
+
 export interface UseFinnyChatResult {
   messages: FinnyMessage[];
   isLoading: boolean;
   isOffline: boolean;
   error: string | null;
-  sendMessage: (text: string) => Promise<void>;
+  sendMessage: (text: string, pockets?: PocketInfo[]) => Promise<void>;
   clearMessages: () => void;
   dismissError: () => void;
 }
@@ -69,7 +75,7 @@ export function useFinnyChat(): UseFinnyChatResult {
   }, []);
 
   const sendMessage = useCallback(
-    async (text: string) => {
+    async (text: string, pockets?: PocketInfo[]) => {
       if (!text.trim() || isLoading) return;
 
       const userMsg: FinnyMessage = {
@@ -116,7 +122,10 @@ export function useFinnyChat(): UseFinnyChatResult {
         const response = await fetch("/api/ai/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: history }),
+          body: JSON.stringify({
+            messages: history,
+            pockets: pockets ?? [],
+          }),
           signal: abortRef.current.signal,
         });
 

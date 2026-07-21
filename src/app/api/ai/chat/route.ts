@@ -4,7 +4,7 @@ import { buildSystemPrompt } from "@/lib/ai/prompts";
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const { messages, pockets } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return Response.json(
@@ -13,9 +13,14 @@ export async function POST(req: Request) {
       );
     }
 
+    const pocketNames: string[] =
+      Array.isArray(pockets) && pockets.length > 0
+        ? pockets.map((p: { name?: string }) => p.name ?? "").filter(Boolean)
+        : [];
+
     const result = streamText({
       model: google("gemini-2.5-flash"),
-      system: buildSystemPrompt(),
+      system: buildSystemPrompt(pocketNames.length > 0 ? pocketNames : undefined),
       messages,
     });
 

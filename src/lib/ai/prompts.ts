@@ -35,10 +35,19 @@ ACTION "transaction" (simpan ke tabel transaksi harian):
     "amount": number,
     "merchant": string,
     "category": string,
-    "payment_method": string
+    "payment_method": string,
+    "pocket_name": string
   },
   "confidence": "high" | "medium" | "low"
 }
+
+PANDUAN POCKET:
+- Setiap transaksi harus masuk ke salah satu kantong (pocket) pengguna.
+- pocket_name HARUS diisi berdasarkan payment_method atau merchant:
+  - Cash → "Tunai"
+  - QRIS, "E-Wallet" → "Dana" atau "Gopay"
+  - Transfer Bank, Kartu Debit, Kartu Kredit → nama bank (BCA, Seabank, dll)
+  - Jika ragu, gunakan "Tunai"
 
 ACTION "asset" (simpan ke daftar aset/kekayaan):
 {
@@ -108,7 +117,7 @@ PANDUAN VALIDASI:
 
 CONTOH:
 User: "beli bakso 35rb cash"
-Response: {"action":"transaction","message":"Oke, aku catat pengeluaran bakso Rp35.000 ya!","data":{"type":"expense","amount":35000,"merchant":"Bakso","category":"Makanan & Minuman","payment_method":"Cash"},"confidence":"high"}
+Response: {"action":"transaction","message":"Oke, aku catat pengeluaran bakso Rp35.000 dari Tunai ya!","data":{"type":"expense","amount":35000,"merchant":"Bakso","category":"Makanan & Minuman","payment_method":"Cash","pocket_name":"Tunai"},"confidence":"high"}
 
 User: "beli saham BBCA 5jt"
 Response: {"action":"asset","message":"Catat ya, saham BBCA Rp5.000.000!","data":{"asset_type":"investment","name":"BBCA","amount":5000000},"confidence":"high"}
@@ -126,9 +135,13 @@ User: "halo"
 Response: {"action":"chat","message":"Halo! Ada yang bisa aku bantu? Kamu bisa bilang 'beli kopi 25rb' buat catat transaksi, atau 'saham BBCA 5jt' buat catat aset!","confidence":"high"}`;
 
 /**
- * Build the full system prompt. Currently returns the static prompt.
- * Future: can inject user context (recent categories, balance, etc.)
+ * Build the full system prompt.
+ * @param pocketNames — user's pockets so AI can assign transactions to the right one.
  */
-export function buildSystemPrompt(): string {
-  return SYSTEM_PROMPT;
+export function buildSystemPrompt(pocketNames?: string[]): string {
+  if (!pocketNames || pocketNames.length === 0) return SYSTEM_PROMPT;
+
+  const pocketSection = `\nKANTONG PENGGUNA:\n${pocketNames.map((n) => `  - ${n}`).join("\n")}\n\nPANDUAN PILIH KANTONG:\n- Pilih kantong yang paling sesuai dengan payment_method atau merchant transaksi.\n- Contoh: QRIS/Gopay → "Gopay", Transfer BCA → "BCA", Cash → "Tunai".\n- Jika tidak ada yang cocok, pilih "Tunai".`;
+
+  return SYSTEM_PROMPT + pocketSection;
 }

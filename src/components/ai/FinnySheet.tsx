@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useCallback, type FC } from "react";
-import { X } from "lucide-react";
-import { useFinnyChat } from "@/hooks/useFinnyChat";
+import React, { useState, useCallback, useMemo, type FC } from "react";
+import { Bot, X } from "lucide-react";
+import { useFinnyChat, type PocketInfo } from "@/hooks/useFinnyChat";
+import { usePockets } from "@/hooks/usePockets";
 import FinnyChatArea from "./FinnyChatArea";
 import FinnyInput from "./FinnyInput";
 import TransactionPreview from "./TransactionPreview";
@@ -15,7 +16,24 @@ interface FinnySheetProps {
 
 const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose }) => {
   const { messages, isLoading, isOffline, sendMessage } = useFinnyChat();
+  const { pockets: pocketEnts } = usePockets();
   const [showPreview, setShowPreview] = useState(false);
+
+  const pocketInfo: PocketInfo[] = useMemo(
+    () =>
+      pocketEnts.map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+      })),
+    [pocketEnts]
+  );
+
+  // Wrap sendMessage so pockets are always included
+  const handleSend = useCallback(
+    (text: string) => sendMessage(text, pocketInfo),
+    [sendMessage, pocketInfo]
+  );
 
   // Find the last AI message with transaction data
   const lastParsedMsg = [...messages]
@@ -35,6 +53,11 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose }) => {
         switch (action) {
           case "transaction": {
             const { db } = await import("@/lib/db");
+            const pocketName = (data.pocket_name as string) || "Tunai";
+            const pocket = pocketEnts.find(
+              (p) => p.name.toLowerCase() === pocketName.toLowerCase()
+            ) ?? pocketEnts.find((p) => p.name === "Tunai");
+
             await db.transactions.add({
               id: `trn_${Date.now()}`,
               type: data.type as "income" | "expense",
@@ -42,6 +65,7 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose }) => {
               category: data.category as string,
               merchant: data.merchant as string,
               payment_method: data.payment_method as string,
+              pocketId: pocket?.id ?? null,
               timestamp: Date.now(),
             });
             break;
@@ -130,15 +154,19 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-accent-secondary animate-pulse" />
-            <span className="text-sm font-semibold text-text-primary">
-              Finny
+            <span className="w-8 h-8 rounded-full flex items-center justify-center bg-accent-secondary">
+              <Bot className="w-5 h-5 text-white m-auto" />
             </span>
-            <span className="text-xs text-text-muted">Asisten Keuangan</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-text-primary">
+                Finny
+              </span>
+              <span className="text-xs text-text-muted">Asisten Keuangan</span>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-surface transition-colors"
+            className="p-1.5 rounded-lg hover:bg-surface transition-colors cursor-pointer"
             aria-label="Tutup"
           >
             <X className="w-5 h-5 text-text-secondary" />
@@ -155,6 +183,7 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose }) => {
               <TransactionPreview
                 action={lastParsedMsg.action!}
                 data={lastParsedMsg.data}
+                pockets={pocketInfo}
                 onSave={handleSave}
                 onCancel={handleCancel}
               />
@@ -164,7 +193,7 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose }) => {
 
         {/* Input */}
         <FinnyInput
-          onSend={sendMessage}
+          onSend={handleSend}
           isLoading={isLoading}
           isOffline={isOffline}
         />

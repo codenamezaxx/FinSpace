@@ -2,6 +2,7 @@
 
 import { useState, useMemo, type FC } from "react";
 import { Check, X } from "lucide-react";
+import type { PocketInfo } from "@/hooks/useFinnyChat";
 
 const EXPENSE_CATEGORIES = [
   "Makanan & Minuman", "Transportasi", "Tagihan", "Kesehatan",
@@ -25,6 +26,7 @@ const ASSET_TYPES = [
 interface TransactionPreviewProps {
   action: string;
   data: Record<string, unknown> | undefined;
+  pockets?: PocketInfo[];
   onSave: (action: string, data: Record<string, unknown>) => void;
   onCancel: () => void;
 }
@@ -44,7 +46,7 @@ const actionIcons: Record<string, string> = {
 };
 
 const TransactionPreview: FC<TransactionPreviewProps> = ({
-  action, data, onSave, onCancel,
+  action, data, pockets, onSave, onCancel,
 }) => {
   const [editData, setEditData] = useState<Record<string, unknown>>(data ?? {});
 
@@ -54,6 +56,18 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
     }
     return [];
   }, [action, editData.type]);
+
+  const groupedPockets = useMemo(() => {
+    if (!pockets || pockets.length === 0) return [];
+    const cats = ["tunai", "ewallet", "rekening"] as const;
+    const labels: Record<string, string> = { tunai: "Tunai", ewallet: "E-Wallet", rekening: "Rekening" };
+    return cats
+      .filter((cat) => pockets.some((p) => p.category === cat))
+      .map((cat) => ({
+        label: labels[cat],
+        pockets: pockets.filter((p) => p.category === cat),
+      }));
+  }, [pockets]);
 
   if (!data) return null;
 
@@ -116,6 +130,30 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
               type="select"
               options={PAYMENT_METHODS}
             />
+            {/* Pocket selector */}
+            {pockets && pockets.length > 0 && (
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs text-text-muted shrink-0 w-20">
+                  Kantong
+                </span>
+                <select
+                  value={(editData.pocket_name as string) ?? ""}
+                  onChange={(e) => updateField("pocket_name", e.target.value)}
+                  className="flex-1 bg-surface-alt text-text-primary text-xs rounded-lg px-2.5 py-1.5 border border-border outline-none focus:ring-1 focus:ring-primary/50"
+                >
+                  <option value="">Pilih kantong...</option>
+                  {groupedPockets.map((group) => (
+                    <optgroup key={group.label} label={group.label}>
+                      {group.pockets.map((p) => (
+                        <option key={p.id} value={p.name}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+            )}
           </>
         )}
 
