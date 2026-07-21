@@ -4,22 +4,9 @@ import { useLiveQuery, useObservable } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import type { Pocket } from "@/lib/pocket";
 import type { Transaction } from "@/lib/db";
-import { PRESET_POCKETS, OLD_PRESET_NAMES } from "@/lib/pocket";
+import { OLD_PRESET_NAMES } from "@/lib/pocket";
+import { seedPresets, hasSeeded } from "@/lib/seedPresets";
 import { useState, useCallback, useMemo, useEffect } from "react";
-
-/** Hapus duplikat kantong berdasarkan nama — simpan yang pertama, hapus sisanya. */
-async function removeDuplicatePockets() {
-  const all = await db.pockets.toArray();
-  const seen = new Set<string>();
-  const dupIds: string[] = [];
-  for (const p of all) {
-    if (seen.has(p.name)) dupIds.push(p.id);
-    else seen.add(p.name);
-  }
-  if (dupIds.length > 0) {
-    await db.pockets.bulkDelete(dupIds);
-  }
-}
 
 export function usePockets() {
   const pockets = useLiveQuery(
@@ -27,41 +14,25 @@ export function usePockets() {
     []
   );
 
-  // Tunggu Dexie Cloud sync selesai sebelum seed — cegah duplikat saat
-  // user beralih dari guest ke akun Google (realm transition wipe + re-sync).
+  // ── Seed presets (idempotent, module-level lock) ──
+  // Only seed after cloud sync settles to avoid creating pockets
+  // during a realm transition (guest→Google DB wipe + re-sync).
   const syncState = useObservable(db.cloud.syncState);
   const isSyncing =
     syncState?.phase === "pulling" || syncState?.phase === "pushing";
 
   useEffect(() => {
-    if (isSyncing) return; // jangan seed saat cloud masih sinkronisasi
+    // Skip if already seeded, or cloud is still syncing.
+    if (hasSeeded() || isSyncing) return;
 
-    const timeout = setTimeout(async () => {
-      try {
-        // Bersihkan duplikat yang sudah ada (dari bug sebelumnya)
-        await removeDuplicatePockets();
-
-        const existing = await db.pockets.toArray();
-        const existingNames = new Set(existing.map((p) => p.name));
-        const missing = PRESET_POCKETS.filter(
-          (p) => !existingNames.has(p.name)
-        );
-        if (missing.length === 0) return;
-
-        const now = Date.now();
-        const presets = missing.map((p, i) => ({
-          name: p.name,
-          category: p.category,
-          sortOrder: existing.length + i,
-          createdAt: now,
-        }));
-        await db.pockets.bulkAdd(presets);
-      } catch (err) {
-        console.error("[usePockets] seed gagal:", err);
-      }
-    }, 100);
+    // Wait a tick for DB to be ready, then seed.
+    const timeout = setTimeout(() => {
+      seedPresets();
+    }, 150);
 
     return () => clearTimeout(timeout);
+    // Run when isSyncing transitions from true→false (sync complete).
+    // Also runs on mount if not syncing.
   }, [isSyncing]);
 
   // ── Cleanup old presets (via useLiveQuery, bukan seeding) ──
