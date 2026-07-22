@@ -45,7 +45,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
               {i === 2 && onScan && (
                 <button
                   onClick={onScan}
-                  className="flex items-center justify-center w-14 h-14 -mt-5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-primary/40 active:scale-95"
+                  className="flex items-center justify-center w-full max-w-14 h-14 -mt-5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-primary/40 active:scale-95"
                   aria-label="Scan struk"
                 >
                   <Camera className="w-6 h-6" />

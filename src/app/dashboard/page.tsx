@@ -32,6 +32,7 @@ import { totalMonthlyDebtObligation } from "@/lib/debtUtils";
 import type { HealthStatus } from "@/lib/financialRatios";
 import type { NetWorthResult, AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
 import { usePockets } from "@/hooks/usePockets";
+import { useCloudAuth } from "@/hooks/useCloudAuth";
 
 /* ─── Dynamic import — Recharts is heavy, only load when needed ─── */
 const MonthlyChart = dynamic(
@@ -55,10 +56,10 @@ const MonthlyChart = dynamic(
 
 function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Selamat Pagi!";
-  if (hour < 15) return "Selamat Siang!";
-  if (hour < 18) return "Selamat Sore!";
-  return "Selamat Malam!";
+  if (hour < 12) return "Selamat Pagi";
+  if (hour < 15) return "Selamat Siang";
+  if (hour < 18) return "Selamat Sore";
+  return "Selamat Malam";
 }
 
 /* ─── Skeletons ─── */
@@ -121,6 +122,7 @@ function TransactionSkeleton() {
 /* ─── Page ─── */
 
 export default function DashboardPage() {
+  const { user } = useCloudAuth();
   const { openAddTransaction } = useTransactionModal();
   const { openAssetLiabilityModal } = useAssetLiabilityModal();
   const now = new Date();
@@ -279,10 +281,10 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 pb-8 lg:px-4">
       {/* ── Header ── */}
-      <div className="flex items-start justify-between">
+      <div className="hidden lg:flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary lg:text-3xl">
-            {getGreeting()}
+            {getGreeting()}, {user?.name ?? "Pengguna"}!
           </h1>
           <p className="mt-2 text-sm text-text-muted">
             Berikut adalah ringkasan keuangan Anda

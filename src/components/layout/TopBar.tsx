@@ -6,12 +6,22 @@ import { ThemeToggle } from "./ThemeToggle";
 import { ProfileButton } from "./ProfileButton";
 import { SearchDropdown } from "./SearchDropdown";
 import { useSearch } from "@/hooks/useSearch";
+import { useCloudAuth } from "@/hooks/useCloudAuth";
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Selamat Pagi";
+  if (hour < 15) return "Selamat Siang";
+  if (hour < 18) return "Selamat Sore";
+  return "Selamat Malam";
+}
 
 interface TopBarProps {
   isSidebarCollapsed?: boolean;
 }
 
 export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
+  const { user } = useCloudAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -74,9 +84,12 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
 
         {/* Mobile: title + icon (hidden when search open) */}
         {!searchOpen && (
-          <div className="flex items-center gap-2 lg:hidden">
-            <span className="text-base font-semibold text-primary">
+          <div className="flex flex-col items-start lg:hidden">
+            <span className="text-base font-bold text-primary">
               FinSpace
+            </span>
+            <span className="text-xs text-foreground">
+              {getGreeting()}, <b>{user?.name ?? "Pengguna"}</b>!
             </span>
           </div>
         )}
