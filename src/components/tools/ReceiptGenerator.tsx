@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Receipt, Bluetooth, Printer } from "lucide-react";
 import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/netWorth";
+import { generateReceiptPdf } from "@/lib/receiptPdf";
 
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
@@ -117,7 +118,11 @@ export default function ReceiptGenerator() {
             Cetak via Bluetooth
           </button>
           <button
-            onClick={() => window.print()}
+            onClick={() => {
+              if (selectedTransaction) {
+                generateReceiptPdf(selectedTransaction);
+              }
+            }}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface-alt px-5 py-3 font-mono text-sm font-semibold text-text-secondary transition-all duration-200 hover:bg-surface"
           >
             <Printer className="h-4 w-4" />
