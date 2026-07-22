@@ -43,7 +43,7 @@ function parseAiResponse(content: string): RawAiResponse | null {
 export interface PocketInfo {
   id: string;
   name: string;
-  category: string;
+  category: "tunai" | "ewallet" | "rekening";
 }
 
 export interface UseFinnyChatResult {

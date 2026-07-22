@@ -282,7 +282,7 @@ export default function DashboardPage() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary lg:text-3xl">
-            {getGreeting()} 👋
+            {getGreeting()}
           </h1>
           <p className="mt-2 text-sm text-text-muted">
             Berikut adalah ringkasan keuangan Anda

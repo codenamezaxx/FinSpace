@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { SYSTEM_PROMPT, buildSystemPrompt } from "./prompts";
 
 describe("SYSTEM_PROMPT", () => {
-  it("contains all 6 action types", () => {
-    const actions = ["transaction", "asset", "liability", "debt", "clarify", "chat"];
+  it("contains all 7 action types", () => {
+    const actions = ["transaction", "asset", "liability", "debt", "create_pocket", "clarify", "chat"];
     for (const action of actions) {
       expect(SYSTEM_PROMPT).toContain(`"${action}"`);
     }

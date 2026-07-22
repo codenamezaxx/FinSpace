@@ -36,6 +36,7 @@ const actionLabels: Record<string, string> = {
   asset: "Aset",
   liability: "Liabilitas",
   debt: "Utang",
+  create_pocket: "Kantong Baru",
 };
 
 const actionIcons: Record<string, string> = {
@@ -43,7 +44,14 @@ const actionIcons: Record<string, string> = {
   asset: "📈",
   liability: "📝",
   debt: "💰",
+  create_pocket: "👛",
 };
+
+const POCKET_CATEGORIES = [
+  { value: "ewallet", label: "E-Wallet" },
+  { value: "rekening", label: "Rekening Bank" },
+  { value: "tunai", label: "Tunai / Kas" },
+];
 
 const TransactionPreview: FC<TransactionPreviewProps> = ({
   action, data, pockets, onSave, onCancel,
@@ -217,6 +225,42 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
               value={editData.interestRate != null ? String(editData.interestRate) : ""}
               onChange={(v) => updateField("interestRate", v ? Number(v) : null)}
               type="text"
+            />
+          </>
+        )}
+
+        {/* create_pocket-specific fields */}
+        {action === "create_pocket" && (
+          <>
+            <FieldRow
+              label="Nama Kantong"
+              value={(editData.name as string) ?? ""}
+              onChange={(v) => updateField("name", v)}
+              type="text"
+            />
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-text-muted shrink-0 w-20">Kategori</span>
+              <select
+                value={(editData.category as string) ?? "ewallet"}
+                onChange={(e) => updateField("category", e.target.value)}
+                className="flex-1 bg-surface-alt text-text-primary text-xs rounded-lg px-2.5 py-1.5 border border-border outline-none focus:ring-1 focus:ring-primary/50"
+              >
+                {POCKET_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <FieldRow
+              label="Saldo Awal"
+              value={
+                editData.initial_balance
+                  ? `Rp${Number(editData.initial_balance).toLocaleString("id-ID")}`
+                  : "Rp0"
+              }
+              onChange={(v) => updateField("initial_balance", Number(v.replace(/[^0-9]/g, "")))}
+              type="currency"
             />
           </>
         )}

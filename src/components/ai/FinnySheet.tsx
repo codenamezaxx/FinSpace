@@ -17,7 +17,7 @@ interface FinnySheetProps {
 
 const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
   const { messages, isLoading, isOffline, sendMessage } = useFinnyChat();
-  const { pockets: pocketEnts } = usePockets();
+  const { pockets: pocketEnts, addPocket } = usePockets();
   const [showPreview, setShowPreview] = useState(false);
 
   const pocketInfo: PocketInfo[] = useMemo(
@@ -117,6 +117,28 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
               createdAt: Date.now(),
             });
             localStorage.setItem("finspace_debts", JSON.stringify(debts));
+            break;
+          }
+          case "create_pocket": {
+            const name = data.name as string;
+            if (!name?.trim()) throw new Error("Nama kantong harus diisi");
+            const category = (data.category as "tunai" | "ewallet" | "rekening") ?? "ewallet";
+            const pocketId = await addPocket(name.trim(), category);
+            // Jika ada saldo awal, buat transaksi income untuk isi saldo
+            const initialBalance = (data.initial_balance as number) ?? 0;
+            if (initialBalance > 0) {
+              const { db } = await import("@/lib/db");
+              await db.transactions.add({
+                id: `trn_${Date.now()}`,
+                type: "income",
+                amount: initialBalance,
+                category: "Lainnya",
+                merchant: `Saldo awal ${name.trim()}`,
+                payment_method: "Lainnya",
+                pocketId,
+                timestamp: Date.now(),
+              });
+            }
             break;
           }
         }

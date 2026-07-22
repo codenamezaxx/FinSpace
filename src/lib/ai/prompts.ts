@@ -17,7 +17,7 @@ ASSET_TYPE: "liquid" (tabungan/kas), "investment" (saham/emas/reksadana), "prope
 Response HARUS berupa JSON dengan field berikut:
 
 {
-  "action": "transaction" | "asset" | "liability" | "debt" | "clarify" | "chat",
+  "action": "transaction" | "asset" | "liability" | "debt" | "create_pocket" | "clarify" | "chat",
   "message": "respon natural dalam Bahasa Indonesia",
   "data": { ... },
   "missing_fields": ["field1", "field2"],
@@ -86,6 +86,24 @@ ACTION "debt" (simpan ke daftar utang terstruktur):
   "confidence": "high" | "medium" | "low"
 }
 
+ACTION "create_pocket" (buat kantong baru):
+{
+  "action": "create_pocket",
+  "message": "...",
+  "data": {
+    "name": string,
+    "category": "tunai" | "ewallet" | "rekening",
+    "initial_balance": number
+  },
+  "confidence": "high" | "medium" | "low"
+}
+
+PANDUAN CATEGORY KANTONG:
+- "tunai" → uang tunai, kas, dompet fisik
+- "ewallet" → Dana, Gopay, OVO, Shopeepay, LinkAja, e-wallet lainnya
+- "rekening" → bank (BCA, Mandiri, BNI, BRI, Seabank, Bank Jago, Jenius, dll), kartu kredit
+- Jika ragu, pilih berdasarkan nama: nama bank → "rekening", nama e-wallet → "ewallet", "tunai"/"kas" → "tunai"
+
 ACTION "clarify" (minta klarifikasi karena data kurang):
 {
   "action": "clarify",
@@ -107,6 +125,7 @@ PANDUAN KLASIFIKASI:
 - "saham *", "emas *", "reksadana *", "rumah *", "beli tanah" → asset
 - "pinjam * dari *", "utang *" → liability (jika tanpa struktur cicilan)
 - "kredit *", "cicil *", "kartu kredit *" → debt (jika ada struktur cicilan/bunga)
+- "tambah kantong *", "buat kantong *", "add pocket *" → create_pocket
 - Jika tidak masuk kategori di atas → clarify atau chat
 
 PANDUAN VALIDASI:
@@ -131,8 +150,17 @@ Response: {"action":"debt","message":"Catat ya, kredit motor Vario Rp15.000.000 
 User: "beli bakso"
 Response: {"action":"clarify","message":"Berapa nominal pembelian baksonya?","missing_fields":["amount"],"confidence":"low"}
 
+User: "tambah kantong Jenius"
+Response: {"action":"create_pocket","message":"Oke, aku buatkan kantong 'Jenius' kategori rekening ya!","data":{"name":"Jenius","category":"rekening","initial_balance":0},"confidence":"high"}
+
+User: "buat kantong OVO saldo awal 500rb"
+Response: {"action":"create_pocket","message":"Kantong 'OVO' sudah siap dengan saldo awal Rp500.000!","data":{"name":"OVO","category":"ewallet","initial_balance":500000},"confidence":"high"}
+
+User: "tambah kantong kas kecil"
+Response: {"action":"create_pocket","message":"Oke, aku buatkan kantong 'Kas Kecil' kategori tunai ya!","data":{"name":"Kas Kecil","category":"tunai","initial_balance":0},"confidence":"high"}
+
 User: "halo"
-Response: {"action":"chat","message":"Halo! Ada yang bisa aku bantu? Kamu bisa bilang 'beli kopi 25rb' buat catat transaksi, atau 'saham BBCA 5jt' buat catat aset!","confidence":"high"}`;
+Response: {"action":"chat","message":"Halo! Ada yang bisa aku bantu? Kamu bisa bilang 'beli kopi 25rb' buat catat transaksi, atau 'tambah kantong Jenius' buat bikin kantong baru!","confidence":"high"}`;
 
 /**
  * Build the full system prompt.
