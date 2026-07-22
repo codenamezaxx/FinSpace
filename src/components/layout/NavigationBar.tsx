@@ -53,7 +53,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
               )}
               <Link
                 href={item.href}
-                className={`flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                className={`flex flex-col items-center w-full gap-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
                   isActive ? "bg-primary/10 text-primary" : "text-text-muted hover:text-text-secondary"
                 }`}
               >
