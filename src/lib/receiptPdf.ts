@@ -29,9 +29,14 @@ function drawDashedLine(doc: jsPDF, y: number): void {
 }
 
 export function generateReceiptPdf(transaction: Transaction): void {
+  // Pre-calculate total height so we can create the page at the correct size.
+  // jsPDF positions text relative to page height at render time; trimming
+  // after the fact clips the MediaBox but leaves content in the original coords.
+  const TOTAL_HEIGHT = 68; // mm — enough for header + 6 fields + total + footer
+
   const doc = new jsPDF({
     unit: "mm",
-    format: [MM_WIDTH, 200], // height will be trimmed
+    format: [MM_WIDTH, TOTAL_HEIGHT],
   });
 
   doc.setFont("courier", "normal");
@@ -100,8 +105,7 @@ export function generateReceiptPdf(transaction: Transaction): void {
   doc.text("FinSpace App v1.0", MM_WIDTH / 2, y, { align: "center" });
   y += 6;
 
-  // ── Trim height and save ──
-  doc.internal.pageSize.height = y;
+  // ── Save ──
   const safeMerchant = transaction.merchant.replace(/[^a-zA-Z0-9]/g, "_").slice(0, 20);
   const dateStr = formatDate(transaction.timestamp).replace(/\//g, "");
   doc.save(`struk-${safeMerchant}-${dateStr}.pdf`);
