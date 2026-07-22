@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import { Plus } from "lucide-react";
 import type { DebtEntry } from "@/lib/netWorth";
+import { formatInputValue, parseInputValue } from "@/lib/netWorth";
 
 interface DebtFormProps {
   isOpen: boolean;
@@ -75,9 +76,10 @@ export function DebtForm({ isOpen, onClose, onSave }: DebtFormProps) {
             Total Utang (IDR)
           </label>
           <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            type="text"
+            inputMode="numeric"
+            value={formatInputValue(amount)}
+            onChange={(e) => setAmount(parseInputValue(e.target.value))}
             placeholder="0"
             className={inputClasses}
           />

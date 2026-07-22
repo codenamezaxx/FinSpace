@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ArrowRightLeft } from "lucide-react";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import type { Pocket } from "@/lib/pocket";
-import { formatCurrency } from "@/lib/netWorth";
+import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
 
 interface TransferModalProps {
   isOpen: boolean;
@@ -110,10 +110,10 @@ export function TransferModal({
         <div>
           <label className="mb-1.5 block text-xs font-medium text-text-secondary">Jumlah</label>
           <input
-            type="number"
+            type="text"
             inputMode="numeric"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            value={formatInputValue(amount)}
+            onChange={(e) => setAmount(parseInputValue(e.target.value))}
             placeholder="0"
             min="0"
             className="w-full rounded-lg border border-border bg-surface p-2.5 text-sm text-text-primary font-mono placeholder-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import { Plus, Banknote, CreditCard } from "lucide-react";
 import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
-import { formatCurrency } from "@/lib/netWorth";
+import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
 
 type ItemType = "asset" | "liability";
 
@@ -146,9 +146,10 @@ export function AssetLiabilityForm({
             Jumlah (IDR)
           </label>
           <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            type="text"
+            inputMode="numeric"
+            value={formatInputValue(amount)}
+            onChange={(e) => setAmount(parseInputValue(e.target.value))}
             placeholder="0"
             className={inputClasses}
           />

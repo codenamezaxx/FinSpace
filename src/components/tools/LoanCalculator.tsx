@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Calculator } from "lucide-react";
-import { formatCurrency } from "@/lib/netWorth";
+import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
 
 const TENOR_OPTIONS = [6, 12, 24, 36, 48, 60];
 
@@ -57,8 +57,8 @@ export function LoanCalculator() {
           <input
             type="text"
             inputMode="numeric"
-            value={jumlah}
-            onChange={(e) => setJumlah(e.target.value)}
+            value={formatInputValue(jumlah)}
+            onChange={(e) => setJumlah(parseInputValue(e.target.value))}
             placeholder="Rp 0"
             className={inputClass}
           />

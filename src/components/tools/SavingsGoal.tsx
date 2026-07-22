@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { PiggyBank } from "lucide-react";
-import { formatCurrency } from "@/lib/netWorth";
+import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
 
 export function SavingsGoal() {
   const [target, setTarget] = useState("");
@@ -37,8 +37,8 @@ export function SavingsGoal() {
           <input
             type="text"
             inputMode="numeric"
-            value={target}
-            onChange={(e) => setTarget(e.target.value.replace(/[^0-9]/g, ""))}
+            value={formatInputValue(target)}
+            onChange={(e) => setTarget(parseInputValue(e.target.value))}
             placeholder="Rp 0"
             className="w-full rounded-xl border border-border bg-surface-alt px-4 py-2.5 font-mono text-sm text-text-primary placeholder-text-muted outline-none transition-all duration-200 focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
           />
@@ -65,10 +65,8 @@ export function SavingsGoal() {
           <input
             type="text"
             inputMode="numeric"
-            value={saldoAwal}
-            onChange={(e) =>
-              setSaldoAwal(e.target.value.replace(/[^0-9]/g, ""))
-            }
+            value={formatInputValue(saldoAwal)}
+            onChange={(e) => setSaldoAwal(parseInputValue(e.target.value))}
             placeholder="Rp 0"
             className="w-full rounded-xl border border-border bg-surface-alt px-4 py-2.5 font-mono text-sm text-text-primary placeholder-text-muted outline-none transition-all duration-200 focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
           />

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import { SendHorizonal } from "lucide-react";
 import type { DebtEntry } from "@/lib/netWorth";
-import { formatCurrency } from "@/lib/netWorth";
+import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
 import { remainingAmount } from "@/lib/debtUtils";
 
 interface PayDebtModalProps {
@@ -70,9 +70,10 @@ export function PayDebtModal({
             Nominal Pembayaran (IDR)
           </label>
           <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            type="text"
+            inputMode="numeric"
+            value={formatInputValue(amount)}
+            onChange={(e) => setAmount(parseInputValue(e.target.value))}
             placeholder="0"
             className={inputClasses}
           />

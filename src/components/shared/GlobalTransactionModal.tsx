@@ -5,6 +5,7 @@ import { ResponsiveModal } from "./ResponsiveModal";
 import { useTransactionModal } from "@/lib/transaction-modal-context";
 import { useTransactions } from "@/hooks/useTransactions";
 import { usePockets } from "@/hooks/usePockets";
+import { formatInputValue, parseInputValue } from "@/lib/netWorth";
 
 const EXPENSE_CATEGORIES = [
   "Makanan & Minuman",
@@ -110,11 +111,11 @@ export function GlobalTransactionModal() {
             Jumlah (Rp)
           </label>
           <input
-            type="number"
+            type="text"
             inputMode="numeric"
             placeholder="0"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            value={formatInputValue(amount)}
+            onChange={(e) => setAmount(parseInputValue(e.target.value))}
             className="w-full rounded-lg border border-border bg-surface-alt px-4 py-3 font-mono text-lg font-semibold text-text-primary placeholder-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors"
           />
         </div>

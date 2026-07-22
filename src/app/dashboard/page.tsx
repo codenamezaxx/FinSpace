@@ -259,7 +259,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div>
+        <div className="hidden lg:flex flex-col gap-3">
           <div className="h-8 w-52 animate-pulse rounded-lg bg-border" />
           <div className="mt-2 h-4 w-64 animate-pulse rounded bg-border" />
         </div>
@@ -305,7 +305,7 @@ export default function DashboardPage() {
             /* Balance View */
             <div
               key="balance"
-              className="rounded-2xl border border-border p-6"
+              className="rounded-2xl border-b-8 border-primary p-6"
               style={{
                 background: 'linear-gradient(to bottom left, var(--gradient-card-blue), var(--gradient-card-mid))',
               }}
@@ -357,6 +357,7 @@ export default function DashboardPage() {
               totalDebts={netWorthData.totalDebts}
               netWorth={netWorthData.netWorth}
               collapsible
+              className="border-0 border-b-8 border-accent-secondary"
               style={{
                 background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid))',
                 height: "100%",
@@ -370,7 +371,7 @@ export default function DashboardPage() {
       <div className="hidden gap-6 lg:grid lg:grid-cols-2">
         {/* Combined Balance + Income/Expense */}
         <div
-          className="rounded-2xl border border-border border-l-8 border-l-primary p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30"
+          className="rounded-2xl border-l-8 border-l-primary p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30"
           style={{
             background: 'linear-gradient(to bottom left, var(--gradient-card-blue), var(--gradient-card-mid))',
           }}

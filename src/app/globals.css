@@ -32,13 +32,15 @@
 :root {
   --color-background: #F1F5F9;
   --color-surface: #FFFFFF;
-  --color-surface-alt: #e0e8ef;
+  --color-surface-alt: #e6edf4;
   --color-border: #c7d6ea;
   --color-track: #CBD5E1;
   --color-text-primary: #0F172A;
   --color-text-secondary: #475569;
   --color-text-muted: #94A3B8;
   --color-warning: #D97706;
+  --color-accent: #EAB393;
+  --color-accent-secondary: #8940F9;
   --glass-bg: rgba(255, 255, 255, 0.72);
   --glass-border: rgba(0, 0, 0, 0.06);
   --glass-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.12);
@@ -64,6 +66,8 @@
   --color-text-secondary: #94A3B8;
   --color-text-muted: #64748B;
   --color-warning: #FFCF95;
+  --color-accent: #EAB393;
+  --color-accent-secondary: #8940F9;
   --glass-bg: rgba(30, 41, 59, 0.55);
   --glass-border: rgba(255, 255, 255, 0.06);
   --glass-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.5);

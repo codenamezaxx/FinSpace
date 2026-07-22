@@ -66,3 +66,20 @@ export function formatCurrency(amount: number): string {
     maximumFractionDigits: 0,
   }).format(amount);
 }
+
+/**
+ * Format a raw digit string for display with dot separators (Indonesian convention).
+ * "10000" → "10.000", "" → ""
+ */
+export function formatInputValue(raw: string): string {
+  if (!raw) return "";
+  return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+/**
+ * Parse a formatted input string back to raw digits.
+ * "10.000" → "10000", "Rp 10.000" → "10000"
+ */
+export function parseInputValue(formatted: string): string {
+  return formatted.replace(/[^0-9]/g, "");
+}
