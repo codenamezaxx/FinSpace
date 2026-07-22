@@ -131,7 +131,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
         )}
 
         {/* Desktop: search bar */}
-        <div className="relative hidden flex-1 max-w-md lg:block">
+        <div className="relative hidden flex-1 max-w-sm lg:block">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
           <input
             ref={inputRef}

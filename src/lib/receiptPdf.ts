@@ -32,7 +32,7 @@ export function generateReceiptPdf(transaction: Transaction): void {
   // Pre-calculate total height so we can create the page at the correct size.
   // jsPDF positions text relative to page height at render time; trimming
   // after the fact clips the MediaBox but leaves content in the original coords.
-  const TOTAL_HEIGHT = 68; // mm — enough for header + 6 fields + total + footer
+  const TOTAL_HEIGHT = 85; // mm — enough for header + 6 fields + total + footer
 
   const doc = new jsPDF({
     unit: "mm",

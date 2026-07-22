@@ -75,7 +75,7 @@ export default function SettingsPage() {
           : "Tersinkronisasi";
 
   return (
-    <div className="mx-auto px-4 py-8">
+    <div className="mx-auto px-4 py-2">
       {/* ── Back button ── */}
       <Link
         href="/dashboard"
