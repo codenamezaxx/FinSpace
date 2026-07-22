@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import type { ReactNode } from "react";
 import { NavigationBar } from "./NavigationBar";
 import { TopBar } from "./TopBar";
 import { FinnyTrigger, FinnySheet } from "@/components/ai";
 import ScanResultModal from "@/components/ai/ScanResultModal";
+import CameraOverlay from "@/components/shared/CameraOverlay";
 import { useFinnyScan } from "@/hooks/useFinnyScan";
 import { usePockets } from "@/hooks/usePockets";
 import { TransactionModalProvider } from "@/lib/transaction-modal-context";
@@ -19,35 +20,18 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const { scanImage, result, isLoading, error, reset } = useFinnyScan();
   const { pockets: pocketEnts } = usePockets();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleScanClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
+    reset();
+    setIsScanOpen(true);
+  }, [reset]);
 
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      // Batasi ukuran gambar — maks 5 MB
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Ukuran gambar terlalu besar. Maksimal 5 MB.");
-        e.target.value = "";
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result as string;
-        if (!dataUrl) return;
-        setScanImageDataUrl(dataUrl);
-        setIsScanOpen(true);
-        reset();
-        scanImage(dataUrl);
-      };
-      reader.readAsDataURL(file);
-      e.target.value = "";
+  const handleScanImage = useCallback(
+    (dataUrl: string) => {
+      setScanImageDataUrl(dataUrl);
+      scanImage(dataUrl);
     },
-    [reset, scanImage]
+    [scanImage]
   );
 
   const handleModalClose = useCallback(() => {
@@ -113,7 +97,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     <TransactionModalProvider>
       <GlobalTransactionModal />
       <div className="flex min-h-screen flex-col bg-background lg:flex-row">
-      <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} aria-hidden="true" />
       {/* Subtle radial glow behind content — shows through glass cards */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
         <div className="absolute -top-40 right-0 h-[500px] w-[500px] rounded-full blur-[120px]" style={{ background: "var(--glow-primary)" }} />
@@ -143,8 +126,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         onClose={() => setIsChatOpen(false)}
         onScan={handleScanClick}
       />
+      <CameraOverlay
+        isOpen={isScanOpen && !scanImageDataUrl}
+        onCapture={handleScanImage}
+        onClose={handleModalClose}
+      />
       <ScanResultModal
-        isOpen={isScanOpen}
+        isOpen={isScanOpen && !!scanImageDataUrl}
         imageDataUrl={scanImageDataUrl}
         result={result}
         isLoading={isLoading}
