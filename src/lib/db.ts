@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from "dexie";
 import dexieCloud from "dexie-cloud-addon";
 import type { Pocket } from "./pocket";
+import type { AssetEntry, LiabilityEntry, DebtEntry } from "./netWorth";
 export type { Pocket };
 
 export interface Transaction {
@@ -27,6 +28,9 @@ export class FinSpaceDB extends Dexie {
   transactions!: EntityTable<Transaction, "id">;
   ai_queue!: EntityTable<AiQueueItem, "queue_id">;
   pockets!: EntityTable<Pocket, "id">;
+  assets!: EntityTable<AssetEntry, "id">;
+  liabilities!: EntityTable<LiabilityEntry, "id">;
+  debts!: EntityTable<DebtEntry, "id">;
 
   constructor() {
     super("FinSpaceDB", { addons: [dexieCloud] });
@@ -49,6 +53,16 @@ export class FinSpaceDB extends Dexie {
       ai_queue: "@queue_id, input_type, created_at",
     });
 
+    // v4: wealth data — assets, liabilities, debts (migrate from localStorage to Dexie Cloud)
+    this.version(4).stores({
+      transactions: "@id, type, category, timestamp, pocketId",
+      pockets: "@id, category, sortOrder",
+      ai_queue: "@queue_id, input_type, created_at",
+      assets: "@id, type, createdAt",
+      liabilities: "@id, createdAt",
+      debts: "@id, createdAt",
+    });
+
     this.cloud.configure({
       databaseUrl: process.env.NEXT_PUBLIC_DEXIE_CLOUD_URL!,
       requireAuth: false, // anonymous first, login kapan saja
@@ -57,3 +71,28 @@ export class FinSpaceDB extends Dexie {
 }
 
 export const db = new FinSpaceDB();
+
+export async function migrateWealthFromLocalStorage(): Promise<void> {
+  if (typeof window === "undefined") return;
+  const MIGRATED_KEY = "finspace_wealth_migrated_v4";
+  if (localStorage.getItem(MIGRATED_KEY)) return;
+
+  try {
+    const assetsRaw = localStorage.getItem("finspace_assets");
+    const liabilitiesRaw = localStorage.getItem("finspace_liabilities");
+    const debtsRaw = localStorage.getItem("finspace_debts");
+
+    const assets: AssetEntry[] = assetsRaw ? JSON.parse(assetsRaw) : [];
+    const liabilities: LiabilityEntry[] = liabilitiesRaw ? JSON.parse(liabilitiesRaw) : [];
+    const debts: DebtEntry[] = debtsRaw ? JSON.parse(debtsRaw) : [];
+
+    if (assets.length > 0) await db.assets.bulkPut(assets);
+    if (liabilities.length > 0) await db.liabilities.bulkPut(liabilities);
+    if (debts.length > 0) await db.debts.bulkPut(debts);
+
+    localStorage.setItem(MIGRATED_KEY, "1");
+    console.log(`[FinSpace] Migrated wealth data: ${assets.length} assets, ${liabilities.length} liabilities, ${debts.length} debts`);
+  } catch (err) {
+    console.error("[FinSpace] Wealth migration failed:", err);
+  }
+}
