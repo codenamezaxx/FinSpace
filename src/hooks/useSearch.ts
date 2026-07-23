@@ -53,23 +53,13 @@ export const SEARCHABLE_TOOLS: ToolResult[] = [
   { id: "receipt-generator", name: "Generator Struk" },
 ];
 
-const ASSETS_KEY = "finspace_assets";
-const LIABILITIES_KEY = "finspace_liabilities";
-const DEBTS_KEY = "finspace_debts";
-
-function readStorage<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 export function useSearch(rawQuery: string) {
   const query = useDebounce(rawQuery.trim(), 300);
 
   const allTransactions = useLiveQuery(() => db.transactions.toArray());
+  const allAssets = useLiveQuery(() => db.assets.toArray(), []);
+  const allLiabilities = useLiveQuery(() => db.liabilities.toArray(), []);
+  const allDebts = useLiveQuery(() => db.debts.toArray(), []);
 
   return useMemo(() => {
     if (query.length < 2) {
@@ -97,18 +87,15 @@ export function useSearch(rawQuery: string) {
         timestamp: tx.timestamp,
       } satisfies TransactionResult));
 
-    const allAssets = readStorage<AssetResult[]>(ASSETS_KEY, []);
-    const matchingAssets = allAssets
+    const matchingAssets = (allAssets ?? [])
       .filter((a) => a.name.toLowerCase().includes(q))
       .slice(0, 5);
 
-    const allLiabilities = readStorage<LiabilityResult[]>(LIABILITIES_KEY, []);
-    const matchingLiabilities = allLiabilities
+    const matchingLiabilities = (allLiabilities ?? [])
       .filter((l) => l.name.toLowerCase().includes(q))
       .slice(0, 5);
 
-    const allDebts = readStorage<DebtResult[]>(DEBTS_KEY, []);
-    const matchingDebts = allDebts
+    const matchingDebts = (allDebts ?? [])
       .filter((d) => d.name.toLowerCase().includes(q))
       .slice(0, 5);
 
@@ -126,5 +113,5 @@ export function useSearch(rawQuery: string) {
       } satisfies SearchResults,
       loading: allTransactions === undefined,
     };
-  }, [query, allTransactions]);
+  }, [query, allTransactions, allAssets, allLiabilities, allDebts]);
 }
