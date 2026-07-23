@@ -225,7 +225,7 @@ const CameraOverlay: FC<CameraOverlayProps> = ({ isOpen, onCapture, onClose }) =
             autoPlay
             playsInline
             muted
-            className="flex-1 w-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
           />
 
           {/* Viewfinder frame */}
@@ -243,8 +243,8 @@ const CameraOverlay: FC<CameraOverlayProps> = ({ isOpen, onCapture, onClose }) =
             <X className="w-5 h-5" />
           </button>
 
-          {/* Bottom bar */}
-          <div className="relative flex items-center justify-center px-6 py-8 bg-gradient-to-t from-black/70 to-transparent">
+          {/* Bottom bar — floating so it stays visible on desktop too */}
+          <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center px-6 py-8 bg-gradient-to-t from-black/70 to-transparent">
             {/* Gallery button — bottom-left */}
             <button
               onClick={handleGalleryClick}
