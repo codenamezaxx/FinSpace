@@ -163,7 +163,7 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-full flex items-center justify-center bg-primary">
+            <span className="w-8 h-8 rounded-full flex items-center justify-center bg-accent-secondary">
               <Bot className="w-5 h-5 text-white m-auto" />
             </span>
             <div className="flex flex-col">
