@@ -11,6 +11,7 @@ import { useFinnyScan } from "@/hooks/useFinnyScan";
 import { usePockets } from "@/hooks/usePockets";
 import { TransactionModalProvider } from "@/lib/transaction-modal-context";
 import { GlobalTransactionModal } from "@/components/shared/GlobalTransactionModal";
+import { db } from "@/lib/db";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -67,21 +68,34 @@ export function AppShell({ children }: { children: ReactNode }) {
             break;
           }
           case "asset": {
-            const assets = JSON.parse(localStorage.getItem("finspace_assets") ?? "[]");
-            assets.push({ id: `asset_${Date.now()}`, name: data.name as string, amount: data.amount as number, type: data.asset_type as string, createdAt: Date.now() });
-            localStorage.setItem("finspace_assets", JSON.stringify(assets));
+            await db.assets.put({
+              id: `asset_${Date.now()}`,
+              name: data.name as string,
+              amount: data.amount as number,
+              type: data.asset_type as "liquid" | "investment" | "property" | "other",
+              createdAt: Date.now(),
+            });
             break;
           }
           case "liability": {
-            const liabilities = JSON.parse(localStorage.getItem("finspace_liabilities") ?? "[]");
-            liabilities.push({ id: `liab_${Date.now()}`, name: data.name as string, amount: data.amount as number, createdAt: Date.now() });
-            localStorage.setItem("finspace_liabilities", JSON.stringify(liabilities));
+            await db.liabilities.put({
+              id: `liab_${Date.now()}`,
+              name: data.name as string,
+              amount: data.amount as number,
+              createdAt: Date.now(),
+            });
             break;
           }
           case "debt": {
-            const debts = JSON.parse(localStorage.getItem("finspace_debts") ?? "[]");
-            debts.push({ id: `debt_${Date.now()}`, name: data.name as string, totalAmount: data.totalAmount as number, paidAmount: (data.paidAmount as number) ?? 0, dueDate: data.dueDate ? new Date(data.dueDate as string).getTime() : Date.now() + 365 * 86400000, interestRate: (data.interestRate as number) ?? undefined, createdAt: Date.now() });
-            localStorage.setItem("finspace_debts", JSON.stringify(debts));
+            await db.debts.put({
+              id: `debt_${Date.now()}`,
+              name: data.name as string,
+              totalAmount: data.totalAmount as number,
+              paidAmount: (data.paidAmount as number) ?? 0,
+              dueDate: data.dueDate ? new Date(data.dueDate as string).getTime() : Date.now() + 365 * 86400000,
+              interestRate: (data.interestRate as number) ?? undefined,
+              createdAt: Date.now(),
+            });
             break;
           }
         }

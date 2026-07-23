@@ -8,6 +8,7 @@ import FinnyChatArea from "./FinnyChatArea";
 import FinnyInput from "./FinnyInput";
 import TransactionPreview from "./TransactionPreview";
 import type { FinnyMessage } from "./FinnyChatArea";
+import { db } from "@/lib/db";
 
 interface FinnySheetProps {
   isOpen: boolean;
@@ -72,40 +73,26 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
             break;
           }
           case "asset": {
-            const assets = JSON.parse(
-              localStorage.getItem("finspace_assets") ?? "[]"
-            );
-            assets.push({
+            await db.assets.put({
               id: `asset_${Date.now()}`,
               name: data.name as string,
               amount: data.amount as number,
-              type: data.asset_type as string,
+              type: data.asset_type as "liquid" | "investment" | "property" | "other",
               createdAt: Date.now(),
             });
-            localStorage.setItem("finspace_assets", JSON.stringify(assets));
             break;
           }
           case "liability": {
-            const liabilities = JSON.parse(
-              localStorage.getItem("finspace_liabilities") ?? "[]"
-            );
-            liabilities.push({
+            await db.liabilities.put({
               id: `liab_${Date.now()}`,
               name: data.name as string,
               amount: data.amount as number,
               createdAt: Date.now(),
             });
-            localStorage.setItem(
-              "finspace_liabilities",
-              JSON.stringify(liabilities)
-            );
             break;
           }
           case "debt": {
-            const debts = JSON.parse(
-              localStorage.getItem("finspace_debts") ?? "[]"
-            );
-            debts.push({
+            await db.debts.put({
               id: `debt_${Date.now()}`,
               name: data.name as string,
               totalAmount: data.totalAmount as number,
@@ -116,7 +103,6 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
               interestRate: (data.interestRate as number) ?? undefined,
               createdAt: Date.now(),
             });
-            localStorage.setItem("finspace_debts", JSON.stringify(debts));
             break;
           }
           case "create_pocket": {
