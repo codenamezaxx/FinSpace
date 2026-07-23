@@ -25,7 +25,6 @@ interface MonthlyChartProps {
   assets: AssetEntry[];
   liabilities: LiabilityEntry[];
   debts?: DebtEntry[];
-  balance?: number;
 }
 
 /* ── Y-axis formatter: 1.5jt / 750rb / 500 ── */
@@ -84,7 +83,6 @@ export function MonthlyChart({
   assets,
   liabilities,
   debts = [],
-  balance = 0,
 }: MonthlyChartProps) {
   const [view, setView] = useState<ChartView>("income");
   const cfg = VIEW_CONFIG[view];
@@ -94,8 +92,8 @@ export function MonthlyChart({
     [transactions]
   );
   const netWorthData = useMemo(
-    () => computeMonthlyNetWorth(assets, liabilities, balance, debts),
-    [assets, liabilities, balance, debts]
+    () => computeMonthlyNetWorth(assets, liabilities, transactions, debts),
+    [assets, liabilities, transactions, debts]
   );
 
   const chartData: MonthlyDataPoint[] =

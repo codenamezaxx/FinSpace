@@ -56,20 +56,26 @@ export function computeMonthlyIncome(
  * Uses `createdAt` on AssetEntry/LiabilityEntry/DebtEntry to determine
  * which items existed in each month. Items without `createdAt`
  * (pre-feature data for assets/liabilities) are included in all months.
- * Uses current balance as the default for all months (no per-month history).
+ * Calculates cumulative cash balance from income/expense transactions.
  */
 export function computeMonthlyNetWorth(
   assets: AssetEntry[],
   liabilities: LiabilityEntry[],
-  balance: number,
+  transactions: Transaction[],
   debts: DebtEntry[],
 ): MonthlyDataPoint[] {
   const now = new Date();
   const result: MonthlyDataPoint[] = [];
+  let cumulativeBalance = 0;
 
   for (let i = 11; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const monthLabel = d.toLocaleDateString("id-ID", { month: "short" });
+    const startOfMonth = new Date(
+      d.getFullYear(),
+      d.getMonth(),
+      1
+    ).getTime();
     const endOfMonth = new Date(
       d.getFullYear(),
       d.getMonth() + 1,
@@ -79,6 +85,28 @@ export function computeMonthlyNetWorth(
       59,
       999
     ).getTime();
+
+    // Calculate income and expense for this month
+    const monthIncome = transactions
+      .filter(
+        (t) =>
+          t.type === "income" &&
+          t.timestamp >= startOfMonth &&
+          t.timestamp <= endOfMonth
+      )
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const monthExpense = transactions
+      .filter(
+        (t) =>
+          t.type === "expense" &&
+          t.timestamp >= startOfMonth &&
+          t.timestamp <= endOfMonth
+      )
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    // Update cumulative balance
+    cumulativeBalance += monthIncome - monthExpense;
 
     const assetsUpTo = assets
       .filter((a) => (a.createdAt ?? 0) <= endOfMonth)
@@ -97,7 +125,7 @@ export function computeMonthlyNetWorth(
 
     result.push({
       month: monthLabel,
-      value: balance + assetsUpTo - liabilitiesUpTo - debtsUpTo,
+      value: cumulativeBalance + assetsUpTo - liabilitiesUpTo - debtsUpTo,
     });
   }
 

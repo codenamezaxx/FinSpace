@@ -489,7 +489,6 @@ export default function DashboardPage() {
         assets={assetsList}
         liabilities={liabilitiesList}
         debts={debtsList}
-        balance={pocketTotalBalance}
       />
 
       {/* ── Bottom: Smart Insights + Transaction History ── */}
