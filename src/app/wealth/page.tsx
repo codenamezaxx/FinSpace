@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/lib/db";
 import { NetWorthCard } from "@/components/wealth/NetWorthCard";
 import { RatioCard } from "@/components/wealth/RatioCard";
 import { Speedometer } from "@/components/wealth/Speedometer";
@@ -17,7 +19,6 @@ import {
   getSavingsRateStatus,
   getDebtToIncomeStatus,
 } from "@/lib/financialRatios";
-import { loadFromStorage, saveToStorage } from "@/lib/storage";
 import { totalMonthlyDebtObligation } from "@/lib/debtUtils";
 import {
   Plus,
@@ -30,10 +31,6 @@ import {
 import { usePockets } from "@/hooks/usePockets";
 import type { AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
 import type { HealthStatus } from "@/lib/financialRatios";
-
-const ASSETS_KEY = "finspace_assets";
-const LIABILITIES_KEY = "finspace_liabilities";
-const DEBTS_KEY = "finspace_debts";
 
 export default function WealthPage() {
   const { openAssetLiabilityModal } = useAssetLiabilityModal();
@@ -59,27 +56,12 @@ export default function WealthPage() {
   const { addTransaction } = useTransactions();
   const { totalBalance: pocketTotalBalance } = usePockets();
 
-  const [assets, setAssets] = useState<AssetEntry[]>([]);
-  const [liabilities, setLiabilities] = useState<LiabilityEntry[]>([]);
-  const [debts, setDebts] = useState<DebtEntry[]>([]);
   const [showDebtForm, setShowDebtForm] = useState(false);
   const [payingDebt, setPayingDebt] = useState<DebtEntry | null>(null);
 
-  const loadData = useCallback(() => {
-    setAssets(loadFromStorage<AssetEntry>(ASSETS_KEY, []));
-    setLiabilities(loadFromStorage<LiabilityEntry>(LIABILITIES_KEY, []));
-    setDebts(loadFromStorage<DebtEntry>(DEBTS_KEY, []));
-  }, []);
-
-  useEffect(() => {
-    loadData();
-    window.addEventListener("finspace-assets-updated", loadData);
-    window.addEventListener("finspace-debts-updated", loadData);
-    return () => {
-      window.removeEventListener("finspace-assets-updated", loadData);
-      window.removeEventListener("finspace-debts-updated", loadData);
-    };
-  }, [loadData]);
+  const assets = useLiveQuery(() => db.assets.toArray(), []) ?? [];
+  const liabilities = useLiveQuery(() => db.liabilities.toArray(), []) ?? [];
+  const debts = useLiveQuery(() => db.debts.toArray(), []) ?? [];
 
   const netWorthData = useMemo(
     () => calculateNetWorth(assets, liabilities, pocketTotalBalance, debts),
@@ -126,25 +108,21 @@ export default function WealthPage() {
   }, [ratios]);
 
   const handleAddDebt = useCallback(
-    (debt: DebtEntry) => {
-      const updated = [...debts, debt];
-      setDebts(updated);
-      saveToStorage(DEBTS_KEY, updated);
-      window.dispatchEvent(new CustomEvent("finspace-debts-updated"));
+    async (debt: DebtEntry) => {
+      await db.debts.put(debt);
     },
-    [debts]
+    []
   );
 
   const handlePayDebt = useCallback(
-    (debtId: string, amount: number, debtName: string) => {
-      const updated = debts.map((d) =>
-        d.id === debtId
-          ? { ...d, paidAmount: (d.paidAmount || 0) + amount }
-          : d
-      );
-      setDebts(updated);
-      saveToStorage(DEBTS_KEY, updated);
-      window.dispatchEvent(new CustomEvent("finspace-debts-updated"));
+    async (debtId: string, amount: number, debtName: string) => {
+      const debt = await db.debts.get(debtId);
+      if (debt) {
+        await db.debts.put({
+          ...debt,
+          paidAmount: (debt.paidAmount || 0) + amount,
+        });
+      }
       addTransaction({
         amount,
         type: "expense",
@@ -153,17 +131,14 @@ export default function WealthPage() {
         payment_method: "Tunai",
       });
     },
-    [debts, addTransaction]
+    [addTransaction]
   );
 
   const handleDeleteDebt = useCallback(
-    (debtId: string) => {
-      const updated = debts.filter((d) => d.id !== debtId);
-      setDebts(updated);
-      saveToStorage(DEBTS_KEY, updated);
-      window.dispatchEvent(new CustomEvent("finspace-debts-updated"));
+    async (debtId: string) => {
+      await db.debts.delete(debtId);
     },
-    [debts]
+    []
   );
 
   const handlePurchase = useCallback(
@@ -179,16 +154,12 @@ export default function WealthPage() {
     [addTransaction]
   );
 
-  function removeAsset(id: string) {
-    const updated = assets.filter((a) => a.id !== id);
-    setAssets(updated);
-    localStorage.setItem(ASSETS_KEY, JSON.stringify(updated));
+  async function removeAsset(id: string) {
+    await db.assets.delete(id);
   }
 
-  function removeLiability(id: string) {
-    const updated = liabilities.filter((l) => l.id !== id);
-    setLiabilities(updated);
-    localStorage.setItem(LIABILITIES_KEY, JSON.stringify(updated));
+  async function removeLiability(id: string) {
+    await db.liabilities.delete(id);
   }
 
   return (
