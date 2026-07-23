@@ -74,7 +74,7 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
           }
           case "asset": {
             await db.assets.put({
-              id: `asset_${Date.now()}`,
+              id: `ass${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
               name: data.name as string,
               amount: data.amount as number,
               type: data.asset_type as "liquid" | "investment" | "property" | "other",
@@ -84,7 +84,7 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
           }
           case "liability": {
             await db.liabilities.put({
-              id: `liab_${Date.now()}`,
+              id: `lia${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
               name: data.name as string,
               amount: data.amount as number,
               createdAt: Date.now(),
@@ -93,7 +93,7 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
           }
           case "debt": {
             await db.debts.put({
-              id: `debt_${Date.now()}`,
+              id: `dbt${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
               name: data.name as string,
               totalAmount: data.totalAmount as number,
               paidAmount: (data.paidAmount as number) ?? 0,

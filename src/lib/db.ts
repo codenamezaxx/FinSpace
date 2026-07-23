@@ -82,9 +82,24 @@ export async function migrateWealthFromLocalStorage(): Promise<void> {
     const liabilitiesRaw = localStorage.getItem("finspace_liabilities");
     const debtsRaw = localStorage.getItem("finspace_debts");
 
-    const assets: AssetEntry[] = assetsRaw ? JSON.parse(assetsRaw) : [];
-    const liabilities: LiabilityEntry[] = liabilitiesRaw ? JSON.parse(liabilitiesRaw) : [];
-    const debts: DebtEntry[] = debtsRaw ? JSON.parse(debtsRaw) : [];
+    // Dexie Cloud @id requires prefix: ass/ass#, lia/lia#, dbt/dbt#
+    // Re-prefix old localStorage IDs (e.g. asset_XXX → assXXX) to avoid ConstraintError
+    const fixAssetId = (id: string) =>
+      id.startsWith("ass") || id.startsWith("#ass") ? id : `ass${id.replace(/^[^a-z]+/, "")}_${crypto.randomUUID().slice(0, 8)}`;
+    const fixLiabilityId = (id: string) =>
+      id.startsWith("lia") || id.startsWith("#lia") ? id : `lia${id.replace(/^[^a-z]+/, "")}_${crypto.randomUUID().slice(0, 8)}`;
+    const fixDebtId = (id: string) =>
+      id.startsWith("dbt") || id.startsWith("#dbt") ? id : `dbt${id.replace(/^[^a-z]+/, "")}_${crypto.randomUUID().slice(0, 8)}`;
+
+    const assets: AssetEntry[] = assetsRaw
+      ? (JSON.parse(assetsRaw) as AssetEntry[]).map((a) => ({ ...a, id: fixAssetId(a.id) }))
+      : [];
+    const liabilities: LiabilityEntry[] = liabilitiesRaw
+      ? (JSON.parse(liabilitiesRaw) as LiabilityEntry[]).map((l) => ({ ...l, id: fixLiabilityId(l.id) }))
+      : [];
+    const debts: DebtEntry[] = debtsRaw
+      ? (JSON.parse(debtsRaw) as DebtEntry[]).map((d) => ({ ...d, id: fixDebtId(d.id) }))
+      : [];
 
     if (assets.length > 0) await db.assets.bulkPut(assets);
     if (liabilities.length > 0) await db.liabilities.bulkPut(liabilities);
