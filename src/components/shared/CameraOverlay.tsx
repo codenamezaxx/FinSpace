@@ -96,6 +96,36 @@ const CameraOverlay: FC<CameraOverlayProps> = ({ isOpen, onCapture, onClose }) =
     startCamera();
   }, [startCamera]);
 
+  // ── Resize image to fit screen ──
+  // Prevents the preview from overflowing when a large gallery image is picked.
+  const resizePreview = useCallback((dataUrl: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_DIM = 1280; // longest edge in px
+        let { width, height } = img;
+        if (width <= MAX_DIM && height <= MAX_DIM) {
+          resolve(dataUrl);
+          return;
+        }
+        if (width > height) {
+          height = Math.round((height / width) * MAX_DIM);
+          width = MAX_DIM;
+        } else {
+          width = Math.round((width / height) * MAX_DIM);
+          height = MAX_DIM;
+        }
+        const c = document.createElement("canvas");
+        c.width = width;
+        c.height = height;
+        const ctx = c.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(c.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = dataUrl;
+    });
+  }, []);
+
   // ── Gallery pick ──
   const handleGalleryClick = useCallback(() => {
     fileInputRef.current?.click();
@@ -112,16 +142,17 @@ const CameraOverlay: FC<CameraOverlayProps> = ({ isOpen, onCapture, onClose }) =
     }
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const dataUrl = event.target?.result as string;
       if (!dataUrl) return;
-      setCapturedImage(dataUrl);
+      const resized = await resizePreview(dataUrl);
+      setCapturedImage(resized);
       stopCamera();
       setCameraState("preview");
     };
     reader.readAsDataURL(file);
     e.target.value = "";
-  }, [stopCamera]);
+  }, [stopCamera, resizePreview]);
 
   // ── Close ──
   const handleClose = useCallback(() => {
@@ -241,7 +272,7 @@ const CameraOverlay: FC<CameraOverlayProps> = ({ isOpen, onCapture, onClose }) =
           <img
             src={capturedImage}
             alt="Hasil jepretan"
-            className="flex-1 w-full object-contain bg-black"
+            className="flex-1 w-full h-full object-contain bg-black"
           />
 
           {/* Top close button */}
@@ -253,8 +284,8 @@ const CameraOverlay: FC<CameraOverlayProps> = ({ isOpen, onCapture, onClose }) =
             <X className="w-5 h-5" />
           </button>
 
-          {/* Bottom bar */}
-          <div className="flex items-center justify-between gap-4 px-6 py-8 bg-gradient-to-t from-black/70 to-transparent">
+          {/* Bottom bar — floating so it stays visible on any image size */}
+          <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between gap-4 px-6 py-8 bg-gradient-to-t from-black/70 to-transparent">
             <button
               onClick={handleRetake}
               className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/20 text-white text-sm font-medium hover:bg-white/30 transition-colors"
@@ -266,7 +297,7 @@ const CameraOverlay: FC<CameraOverlayProps> = ({ isOpen, onCapture, onClose }) =
               onClick={handleConfirm}
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90 transition-opacity"
             >
-              <Check className="w-4 h-4" />
+              <Check className="w-5 h-5" />
               Gunakan
             </button>
           </div>
