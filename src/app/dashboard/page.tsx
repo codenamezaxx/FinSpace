@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/lib/db";
 import {
   ArrowUpIcon,
   ArrowDownIcon,
   Plus,
   Wallet,
-  Gauge,
+  DollarSign,
   Wrench,
   Banknote,
 } from "lucide-react";
@@ -27,7 +29,6 @@ import {
   getDebtToIncomeStatus,
 } from "@/lib/financialRatios";
 import { formatCurrency, calculateNetWorth } from "@/lib/netWorth";
-import { loadFromStorage } from "@/lib/storage";
 import { totalMonthlyDebtObligation } from "@/lib/debtUtils";
 import type { HealthStatus } from "@/lib/financialRatios";
 import type { NetWorthResult, AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
@@ -149,9 +150,9 @@ export default function DashboardPage() {
   });
 
   /* ── Share data with Wealth page via localStorage ── */
-  const [assetsList, setAssetsList] = useState<AssetEntry[]>([]);
-  const [liabilitiesList, setLiabilitiesList] = useState<LiabilityEntry[]>([]);
-  const [debtsList, setDebtsList] = useState<DebtEntry[]>([]);
+  const assetsList = useLiveQuery(() => db.assets.toArray(), []) ?? [];
+  const liabilitiesList = useLiveQuery(() => db.liabilities.toArray(), []) ?? [];
+  const debtsList = useLiveQuery(() => db.debts.toArray(), []) ?? [];
   const { totalBalance: pocketTotalBalance } = usePockets();
 
   /* ── Derived values ── */
@@ -167,34 +168,6 @@ export default function DashboardPage() {
     () => calculateNetWorth(assetsList, liabilitiesList, pocketTotalBalance, debtsList),
     [assetsList, liabilitiesList, pocketTotalBalance, debtsList]
   );
-
-  /* ── Load from localStorage ── */
-  const loadAssets = useCallback(() => {
-    if (typeof window !== "undefined") {
-      try {
-        setAssetsList(loadFromStorage<AssetEntry>("finspace_assets", []));
-        setLiabilitiesList(loadFromStorage<LiabilityEntry>("finspace_liabilities", []));
-      } catch {
-        // ignore parse errors
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    loadAssets();
-    window.addEventListener("finspace-assets-updated", loadAssets);
-    return () =>
-      window.removeEventListener("finspace-assets-updated", loadAssets);
-  }, [loadAssets]);
-
-  /* ── Load debts from localStorage ── */
-  useEffect(() => {
-    setDebtsList(loadFromStorage<DebtEntry>("finspace_debts", []));
-    const handler = () =>
-      setDebtsList(loadFromStorage<DebtEntry>("finspace_debts", []));
-    window.addEventListener("finspace-debts-updated", handler);
-    return () => window.removeEventListener("finspace-debts-updated", handler);
-  }, []);
 
   const {
     income,
@@ -244,7 +217,7 @@ export default function DashboardPage() {
       savingsStatus: getSavingsRateStatus(ratios.savingsRate),
       debtStatus: getDebtToIncomeStatus(ratios.debtToIncome),
     };
-  }, [transactions, allTransactions, liquidAssets]);
+  }, [transactions, allTransactions, liquidAssets, debtsList]);
 
   const overallStatus: HealthStatus = useMemo(() => {
     const statuses = [liquidityStatus, savingsStatus, debtStatus];
@@ -456,7 +429,7 @@ export default function DashboardPage() {
               href="/budget"
               className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
-              <Wallet className="h-5 w-5 text-accent" />
+              <Wallet className="h-5 w-5 text-accent-secondary" />
               <span className="text-[11px] font-semibold text-text-secondary">
                 Anggaran
               </span>
@@ -465,7 +438,7 @@ export default function DashboardPage() {
               href="/wealth"
               className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
-              <Gauge className="h-5 w-5 text-accent-secondary" />
+              <DollarSign className="h-5 w-5 text-success" />
               <span className="text-[11px] font-semibold text-text-secondary">
                 Kekayaan
               </span>
@@ -474,7 +447,7 @@ export default function DashboardPage() {
               href="/tools"
               className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
-              <Wrench className="h-5 w-5 text-text-muted" />
+              <Wrench className="h-5 w-5 text-text-secondary" />
               <span className="text-[11px] font-semibold text-text-secondary">
                 Alat
               </span>
