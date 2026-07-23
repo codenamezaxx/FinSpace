@@ -27,13 +27,32 @@ const YEARS = Array.from(
   (_, i) => 2024 + i
 );
 
-function toCSVValue(value: string): string {
-  // Escape quotes and wrap in quotes if contains comma, quote, or newline
-  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
+/* ─── helpers ─── */
+
+function fmtRp(n: number): string {
+  return `Rp ${n.toLocaleString("id-ID")}`;
 }
+
+function fmtDate(ts: number): string {
+  return new Date(ts).toLocaleDateString("id-ID");
+}
+
+function fmtLabel(v: string): string {
+  return `"${v.replace(/"/g, '""')}"`;
+}
+
+/** Build a single CSV row from an array of strings */
+function row(...cells: string[]): string {
+  return cells
+    .map((c) => {
+      if (c.includes(",") || c.includes('"') || c.includes("\n"))
+        return `"${c.replace(/"/g, '""')}"`;
+      return c;
+    })
+    .join(",");
+}
+
+/* ─── component ─── */
 
 export function ExportCSV() {
   const [selectedMonth, setSelectedMonth] = useState(CURRENT_MONTH);
@@ -52,27 +71,193 @@ export function ExportCSV() {
 
   const { transactions } = useTransactions({ startTime, endTime });
 
-  const handleDownload = () => {
-    const header = "ID,Type,Amount,Category,Merchant,Payment Method,Date";
-    const rows = transactions.map((t) =>
-      [
-        toCSVValue(t.id),
-        toCSVValue(t.type),
-        t.amount,
-        toCSVValue(t.category),
-        toCSVValue(t.merchant),
-        toCSVValue(t.payment_method),
-        toCSVValue(new Date(t.timestamp).toLocaleDateString("id-ID")),
-      ].join(",")
-    );
+  /* ── Computed aggregates ── */
 
-    const csv = [header, ...rows].join("\n");
+  const incomeAgg = useMemo(() => {
+    const items = transactions.filter((t) => t.type === "income");
+    const total = items.reduce((s, t) => s + t.amount, 0);
+    const byCategory: Record<string, number> = {};
+    for (const t of items) {
+      byCategory[t.category] = (byCategory[t.category] ?? 0) + t.amount;
+    }
+    return { total, byCategory };
+  }, [transactions]);
+
+  const expenseAgg = useMemo(() => {
+    const items = transactions.filter((t) => t.type === "expense");
+    const total = items.reduce((s, t) => s + t.amount, 0);
+    const byCategory: Record<string, number> = {};
+    for (const t of items) {
+      byCategory[t.category] = (byCategory[t.category] ?? 0) + t.amount;
+    }
+    return { total, byCategory };
+  }, [transactions]);
+
+  /* ── Download ── */
+
+  const handleDownload = () => {
+    const monthName = INDONESIAN_MONTHS[selectedMonth - 1];
+    const nowStr = fmtDate(Date.now());
+    const blank = "";
+    const grandTotal = incomeAgg.total + expenseAgg.total;
+
+    const lines: string[] = [];
+
+    // ── 1. HEADER ──
+    lines.push(row("LAPORAN KEUANGAN BULANAN", "", "", ""));
+    lines.push(row(`Periode: ${monthName} ${selectedYear}`, "", "", ""));
+    lines.push(row(`Dibuat: ${nowStr}`, "", "", ""));
+    lines.push(blank);
+
+    // ── 2. RINGKASAN ──
+    lines.push(row("RINGKASAN KEUANGAN"));
+    lines.push(row("", "", "", "", "", ""));
+    const incomePct = grandTotal > 0 ? ((incomeAgg.total / grandTotal) * 100).toFixed(1) : "0";
+    const expensePct = grandTotal > 0 ? ((expenseAgg.total / grandTotal) * 100).toFixed(1) : "0";
+    lines.push(row("Pemasukan", fmtRp(incomeAgg.total), incomePct + "%", "", "", ""));
+    lines.push(row("Pengeluaran", fmtRp(expenseAgg.total), expensePct + "%", "", "", ""));
+    lines.push(blank);
+    const net = incomeAgg.total - expenseAgg.total;
+    lines.push(
+      row(
+        "Saldo Bersih",
+        fmtRp(net),
+        net >= 0 ? "Surplus" : "Defisit",
+        "", "", ""
+      )
+    );
+    lines.push(
+      row(
+        "Jumlah Transaksi",
+        `${transactions.length} transaksi`,
+        "", "", "", ""
+      )
+    );
+    lines.push(blank);
+    lines.push(blank);
+
+    // ── 3. PEMASUKAN PER KATEGORI ──
+    if (incomeAgg.total > 0) {
+      lines.push(row("RINCIAN PEMASUKAN PER KATEGORI"));
+      lines.push(blank);
+      lines.push(row("Kategori", "Jumlah", "Persentase", "", "", ""));
+      const sortedIncome = Object.entries(incomeAgg.byCategory).sort(
+        (a, b) => b[1] - a[1]
+      );
+      for (const [cat, amt] of sortedIncome) {
+        const pct = ((amt / incomeAgg.total) * 100).toFixed(1);
+        lines.push(row(fmtLabel(cat), fmtRp(amt), `${pct}%`, "", "", ""));
+      }
+      lines.push(
+        row(
+          "TOTAL PEMASUKAN",
+          fmtRp(incomeAgg.total),
+          "100%",
+          "", "", ""
+        )
+      );
+      lines.push(blank);
+      lines.push(blank);
+    }
+
+    // ── 4. PENGELUARAN PER KATEGORI ──
+    if (expenseAgg.total > 0) {
+      lines.push(row("RINCIAN PENGELUARAN PER KATEGORI"));
+      lines.push(blank);
+      lines.push(row("Kategori", "Jumlah", "Persentase", "", "", ""));
+      const sortedExpense = Object.entries(expenseAgg.byCategory).sort(
+        (a, b) => b[1] - a[1]
+      );
+      for (const [cat, amt] of sortedExpense) {
+        const pct = ((amt / expenseAgg.total) * 100).toFixed(1);
+        lines.push(row(fmtLabel(cat), fmtRp(amt), `${pct}%`, "", "", ""));
+      }
+      lines.push(
+        row(
+          "TOTAL PENGELUARAN",
+          fmtRp(expenseAgg.total),
+          "100%",
+          "", "", ""
+        )
+      );
+      lines.push(blank);
+      lines.push(blank);
+    }
+
+    // ── 5. TRANSAKSI TERBESAR ──
+    const topExpenses = [...transactions]
+      .filter((t) => t.type === "expense")
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+    if (topExpenses.length > 0) {
+      lines.push(row("5 PENGELUARAN TERBESAR"));
+      lines.push(blank);
+      lines.push(
+        row("No", "Tanggal", "Merchant", "Kategori", "Jumlah", "", "")
+      );
+      topExpenses.forEach((t, i) => {
+        lines.push(
+          row(
+            String(i + 1),
+            fmtDate(t.timestamp),
+            fmtLabel(t.merchant),
+            fmtLabel(t.category),
+            fmtRp(t.amount),
+            "", ""
+          )
+        );
+      });
+      lines.push(blank);
+      lines.push(blank);
+    }
+
+    // ── 6. RINCIAN TRANSAKSI ──
+    lines.push(row("RINCIAN TRANSAKSI"));
+    lines.push(blank);
+    lines.push(
+      row(
+        "No",
+        "Tanggal",
+        "Tipe",
+        "Kategori",
+        "Merchant",
+        "Jumlah",
+        "Pembayaran"
+      )
+    );
+    const sorted = [...transactions].sort(
+      (a, b) => b.timestamp - a.timestamp
+    );
+    sorted.forEach((t, i) => {
+      const tipeLabel = t.type === "income" ? "Pemasukan" : "Pengeluaran";
+      lines.push(
+        row(
+          String(i + 1),
+          fmtDate(t.timestamp),
+          tipeLabel,
+          fmtLabel(t.category),
+          fmtLabel(t.merchant),
+          t.type === "income" ? fmtRp(t.amount) : `(${fmtRp(t.amount)})`,
+          fmtLabel(t.payment_method)
+        )
+      );
+    });
+    lines.push(blank);
+    lines.push(blank);
+
+    // ── 7. FOOTER ──
+    lines.push(row(`— Akhir Laporan — ${monthName} ${selectedYear} —`));
+
+    // ── Build blob & download ──
+    // Use UTF-8 BOM so Excel opens Indonesian characters correctly
+    const bom = "\uFEFF";
+    const csv = bom + lines.join("\r\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement("a");
     link.href = url;
-    link.download = `finspace-transaksi-${selectedMonth}-${selectedYear}.csv`;
+    link.download = `FinSpace_Laporan_${monthName}_${selectedYear}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
