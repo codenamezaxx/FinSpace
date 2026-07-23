@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Receipt, Bluetooth, Printer } from "lucide-react";
+import { Receipt, Printer, FileDown } from "lucide-react";
 import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/netWorth";
 import { generateReceiptPdf } from "@/lib/receiptPdf";
+import { printReceiptHtml } from "@/lib/printReceipt";
 
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
@@ -111,11 +112,15 @@ export default function ReceiptGenerator() {
       {selectedTransaction && (
         <div className="mt-5 flex flex-col gap-3">
           <button
-            onClick={() => alert("Fitur Bluetooth akan segera tersedia")}
+            onClick={() => {
+              if (selectedTransaction) {
+                printReceiptHtml(selectedTransaction);
+              }
+            }}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-mono text-sm font-bold text-white transition-all duration-200 hover:bg-primary-hover"
           >
-            <Bluetooth className="h-4 w-4" />
-            Cetak via Bluetooth
+            <Printer className="h-4 w-4" />
+            Cetak struk
           </button>
           <button
             onClick={() => {
@@ -125,7 +130,7 @@ export default function ReceiptGenerator() {
             }}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface-alt px-5 py-3 font-mono text-sm font-semibold text-text-secondary transition-all duration-200 hover:bg-surface"
           >
-            <Printer className="h-4 w-4" />
+            <FileDown className="h-4 w-4" />
             Unduh PDF
           </button>
         </div>
