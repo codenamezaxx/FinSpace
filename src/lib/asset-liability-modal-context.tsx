@@ -9,9 +9,8 @@ import {
 } from "react";
 import { AssetLiabilityForm } from "@/components/wealth/AssetLiabilityForm";
 import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
+import { db } from "@/lib/db";
 
-const ASSETS_KEY = "finspace_assets";
-const LIABILITIES_KEY = "finspace_liabilities";
 const UPDATE_EVENT = "finspace-assets-updated";
 
 interface ModalOptions {
@@ -33,15 +32,6 @@ function dispatchUpdate() {
   }
 }
 
-function loadFromStorage<T>(key: string, fallback: T[]): T[] {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 export function AssetLiabilityModalProvider({
   children,
 }: {
@@ -60,18 +50,11 @@ export function AssetLiabilityModalProvider({
   }, []);
 
   const handleSave = useCallback(
-    (item: AssetEntry | LiabilityEntry) => {
+    async (item: AssetEntry | LiabilityEntry) => {
       if ("type" in item) {
-        const assets = loadFromStorage<AssetEntry>(ASSETS_KEY, []);
-        assets.push(item);
-        localStorage.setItem(ASSETS_KEY, JSON.stringify(assets));
+        await db.assets.put(item);
       } else {
-        const liabilities = loadFromStorage<LiabilityEntry>(
-          LIABILITIES_KEY,
-          []
-        );
-        liabilities.push(item);
-        localStorage.setItem(LIABILITIES_KEY, JSON.stringify(liabilities));
+        await db.liabilities.put(item);
       }
       dispatchUpdate();
       close();
