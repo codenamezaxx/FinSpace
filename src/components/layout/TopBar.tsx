@@ -5,6 +5,8 @@ import { Search, ArrowLeft, X } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { ProfileButton } from "./ProfileButton";
 import { SearchDropdown } from "./SearchDropdown";
+import { BellButton } from "@/components/notifications/BellButton";
+import { useNotificationsContext } from "@/components/notifications/NotificationsProvider";
 import { useSearch } from "@/hooks/useSearch";
 import { useCloudAuth } from "@/hooks/useCloudAuth";
 
@@ -22,6 +24,7 @@ interface TopBarProps {
 
 export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
   const { user } = useCloudAuth();
+  useNotificationsContext(); // consumed by BellButton via context
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -178,6 +181,18 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
             <Search className="h-5 w-5" />
           </button>
         )}
+
+        {/* Mobile: bell icon (notifications) */}
+        {!searchOpen && (
+          <div className="lg:hidden">
+            <BellButton />
+          </div>
+        )}
+
+        {/* Bell (notifications) — desktop */}
+        <div className="relative hidden lg:block">
+          <BellButton />
+        </div>
 
         {/* Theme toggle */}
         <div className="hidden lg:block">
