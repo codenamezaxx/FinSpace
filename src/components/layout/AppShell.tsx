@@ -7,11 +7,15 @@ import { TopBar } from "./TopBar";
 import { FinnyTrigger, FinnySheet } from "@/components/ai";
 import ScanResultModal from "@/components/ai/ScanResultModal";
 import CameraOverlay from "@/components/shared/CameraOverlay";
+import { NotificationSheet } from "@/components/notifications/NotificationSheet";
+import { useNotificationsContext } from "@/components/notifications/NotificationsProvider";
 import { useFinnyScan } from "@/hooks/useFinnyScan";
 import { usePockets } from "@/hooks/usePockets";
 import { TransactionModalProvider } from "@/lib/transaction-modal-context";
 import { GlobalTransactionModal } from "@/components/shared/GlobalTransactionModal";
+import { notifyTransaction, checkOverspending, checkCreditReminders } from "@/lib/notificationTriggers";
 import { db, migrateWealthFromLocalStorage, deduplicateWealthData } from "@/lib/db";
+import type { Transaction } from "@/lib/db";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -21,10 +25,23 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const { scanImage, result, isLoading, error, reset } = useFinnyScan();
   const { pockets: pocketEnts } = usePockets();
+  const {
+    isOpen: isNotificationsOpen,
+    closeNotifications,
+    notifications,
+    unreadCount,
+    loading: notificationsLoading,
+    markAsRead,
+    markAllAsRead,
+    clearAll,
+  } = useNotificationsContext();
 
   // Run wealth data migration from localStorage → IndexedDB once on startup, then dedup
   useEffect(() => {
-    migrateWealthFromLocalStorage().then(() => deduplicateWealthData());
+    migrateWealthFromLocalStorage()
+      .then(() => deduplicateWealthData())
+      .then(() => db.transactions.toArray())
+      .then((txns) => checkCreditReminders(txns as any[]));
   }, []);
 
   const handleScanClick = useCallback(() => {
@@ -60,8 +77,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             const pocket = pocketEnts.find(
               (p) => p.name.toLowerCase() === pocketName.toLowerCase()
             ) ?? pocketEnts.find((p) => p.name === "Tunai");
+            const id = `trn_${Date.now()}`;
             await db.transactions.add({
-              id: `trn_${Date.now()}`,
+              id,
               type: data.type as "income" | "expense",
               amount: data.amount as number,
               category: data.category as string,
@@ -70,6 +88,29 @@ export function AppShell({ children }: { children: ReactNode }) {
               pocketId: pocket?.id ?? null,
               timestamp: Date.now(),
             });
+
+            // Create notification for the scanned transaction
+            const scannedTxn: Transaction = {
+              id,
+              type: data.type as "income" | "expense",
+              amount: data.amount as number,
+              category: data.category as string,
+              merchant: data.merchant as string,
+              payment_method: data.payment_method as string,
+              pocketId: pocket?.id ?? null,
+              timestamp: Date.now(),
+            };
+            await notifyTransaction(scannedTxn as any);
+
+            // Check overspending
+            const allTxns = await db.transactions.toArray();
+            const pocketBudgets = pocketEnts.map((p) => ({
+              pocketId: p.id,
+              category: p.category,
+              budget: (p as any).budget ?? 0,
+            }));
+            await checkOverspending(allTxns as any[], pocketBudgets);
+
             break;
           }
           case "asset": {
@@ -159,6 +200,16 @@ export function AppShell({ children }: { children: ReactNode }) {
         onSave={handleSave}
         onClose={handleModalClose}
         onRetry={handleRetry}
+      />
+      <NotificationSheet
+        isOpen={isNotificationsOpen}
+        onClose={closeNotifications}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        loading={notificationsLoading}
+        onMarkAsRead={markAsRead}
+        onMarkAllAsRead={markAllAsRead}
+        onClearAll={clearAll}
       />
     </div>
     </TransactionModalProvider>

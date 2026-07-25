@@ -6,6 +6,8 @@ import { useTransactionModal } from "@/lib/transaction-modal-context";
 import { useTransactions } from "@/hooks/useTransactions";
 import { usePockets } from "@/hooks/usePockets";
 import { formatInputValue, parseInputValue } from "@/lib/netWorth";
+import { notifyTransaction, checkOverspending } from "@/lib/notificationTriggers";
+import { db, type Transaction } from "@/lib/db";
 
 const EXPENSE_CATEGORIES = [
   "Makanan & Minuman",
@@ -62,7 +64,7 @@ export function GlobalTransactionModal() {
 
     setSubmitting(true);
     try {
-      await addTransaction({
+      const id = await addTransaction({
         amount: numAmount,
         type: tab,
         category: tab === "income" ? "Pemasukkan" : category,
@@ -70,6 +72,29 @@ export function GlobalTransactionModal() {
         payment_method: pockets.find((p) => p.id === selectedPocketId)?.name ?? "Tunai",
         pocketId: selectedPocketId,
       });
+
+      // Create transaction notification (for expenses only — notifyTransaction handles income skip internally)
+      const newTxn: Transaction = {
+        id,
+        type: tab,
+        amount: tab === "expense" ? -numAmount : numAmount,
+        category: tab === "income" ? "Pemasukkan" : category,
+        merchant: merchant.trim(),
+        payment_method: pockets.find((p) => p.id === selectedPocketId)?.name ?? "Tunai",
+        pocketId: selectedPocketId,
+        timestamp: Date.now(),
+      };
+      await notifyTransaction(newTxn as any);
+
+      // Check overspending for all pockets
+      const allTxns = await db.transactions.toArray();
+      const pocketBudgets = pockets.map((p) => ({
+        pocketId: p.id,
+        category: p.category,
+        budget: (p as any).budget ?? 0,
+      }));
+      await checkOverspending(allTxns as any[], pocketBudgets);
+
       closeAddTransaction();
     } catch {
       setError("Gagal menyimpan transaksi.");
