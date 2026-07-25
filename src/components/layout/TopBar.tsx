@@ -6,6 +6,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { ProfileButton } from "./ProfileButton";
 import { SearchDropdown } from "./SearchDropdown";
 import { BellButton } from "@/components/notifications/BellButton";
+import { NotificationPanel } from "@/components/notifications/NotificationPanel";
 import { useNotificationsContext } from "@/components/notifications/NotificationsProvider";
 import { useSearch } from "@/hooks/useSearch";
 import { useCloudAuth } from "@/hooks/useCloudAuth";
@@ -24,7 +25,16 @@ interface TopBarProps {
 
 export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
   const { user } = useCloudAuth();
-  useNotificationsContext(); // consumed by BellButton via context
+  const {
+    isOpen: isNotificationsOpen,
+    closeNotifications,
+    notifications,
+    unreadCount,
+    loading: notificationsLoading,
+    markAsRead,
+    markAllAsRead,
+    clearAll,
+  } = useNotificationsContext();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -189,9 +199,19 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
           </div>
         )}
 
-        {/* Bell (notifications) — desktop */}
+        {/* Bell (notifications) — desktop with dropdown panel */}
         <div className="relative hidden lg:block">
           <BellButton />
+          <NotificationPanel
+            isOpen={isNotificationsOpen}
+            onClose={closeNotifications}
+            notifications={notifications}
+            unreadCount={unreadCount}
+            loading={notificationsLoading}
+            onMarkAsRead={markAsRead}
+            onMarkAllAsRead={markAllAsRead}
+            onClearAll={clearAll}
+          />
         </div>
 
         {/* Theme toggle */}

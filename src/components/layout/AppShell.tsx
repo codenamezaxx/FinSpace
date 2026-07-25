@@ -201,16 +201,18 @@ export function AppShell({ children }: { children: ReactNode }) {
         onClose={handleModalClose}
         onRetry={handleRetry}
       />
-      <NotificationSheet
-        isOpen={isNotificationsOpen}
-        onClose={closeNotifications}
-        notifications={notifications}
-        unreadCount={unreadCount}
-        loading={notificationsLoading}
-        onMarkAsRead={markAsRead}
-        onMarkAllAsRead={markAllAsRead}
-        onClearAll={clearAll}
-      />
+      <div className="lg:hidden">
+        <NotificationSheet
+          isOpen={isNotificationsOpen}
+          onClose={closeNotifications}
+          notifications={notifications}
+          unreadCount={unreadCount}
+          loading={notificationsLoading}
+          onMarkAsRead={markAsRead}
+          onMarkAllAsRead={markAllAsRead}
+          onClearAll={clearAll}
+        />
+      </div>
     </div>
     </TransactionModalProvider>
   );
