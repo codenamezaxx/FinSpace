@@ -3,8 +3,10 @@ import Script from "next/script";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { AppShell } from "@/components/layout/AppShell";
 import { ClientSerwistProvider } from "@/components/layout/ClientSerwistProvider";
+import { LanguageProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme-context";
 import { AssetLiabilityModalProvider } from "@/lib/asset-liability-modal-context";
+import { NotificationsProvider } from "@/components/notifications/NotificationsProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -132,13 +134,17 @@ export default function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem("finspace-theme");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")}catch(e){}})()`,
           }}
         />
-        <ThemeProvider>
-          <ClientSerwistProvider>
-            <AssetLiabilityModalProvider>
-              <AppShell>{children}</AppShell>
-            </AssetLiabilityModalProvider>
-          </ClientSerwistProvider>
-        </ThemeProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <ClientSerwistProvider>
+              <AssetLiabilityModalProvider>
+                <NotificationsProvider>
+                  <AppShell>{children}</AppShell>
+                </NotificationsProvider>
+              </AssetLiabilityModalProvider>
+            </ClientSerwistProvider>
+          </ThemeProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -5,18 +5,20 @@ import { Search, ArrowLeft, X } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { ProfileButton } from "./ProfileButton";
 import { SearchDropdown } from "./SearchDropdown";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { BellButton } from "@/components/notifications/BellButton";
 import { NotificationPanel } from "@/components/notifications/NotificationPanel";
 import { useNotificationsContext } from "@/components/notifications/NotificationsProvider";
 import { useSearch } from "@/hooks/useSearch";
 import { useCloudAuth } from "@/hooks/useCloudAuth";
+import { useLanguage } from "@/lib/i18n";
 
-function getGreeting(): string {
+function getGreeting(t: (key: string) => string): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Selamat Pagi";
-  if (hour < 15) return "Selamat Siang";
-  if (hour < 18) return "Selamat Sore";
-  return "Selamat Malam";
+  if (hour < 12) return t("topbar.greeting_morning");
+  if (hour < 15) return t("topbar.greeting_afternoon");
+  if (hour < 18) return t("topbar.greeting_evening");
+  return t("topbar.greeting_night");
 }
 
 interface TopBarProps {
@@ -25,6 +27,7 @@ interface TopBarProps {
 
 export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
   const { user } = useCloudAuth();
+  const { t } = useLanguage();
   const {
     isOpen: isNotificationsOpen,
     closeNotifications,
@@ -89,7 +92,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
           <button
             onClick={handleMobileBack}
             className="flex items-center justify-center rounded-lg p-1 text-text-muted transition-colors hover:text-text-primary lg:hidden"
-            aria-label="Tutup pencarian"
+            aria-label={t("common.close")}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -102,7 +105,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
               FinSpace
             </span>
             <span className="text-xs text-foreground italic">
-              {getGreeting()}, <b>{user?.name ?? "Pengguna"}!</b>
+              {getGreeting(t)}, <b>{user?.name ?? t("profile.user")}!</b>
             </span>
           </div>
         )}
@@ -114,7 +117,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
             <input
               data-search-input="mobile"
               type="search"
-              placeholder="Cari transaksi, aset, alat..."
+              placeholder={t("topbar.search_placeholder")}
               value={searchQuery}
               onChange={handleInputChange}
               onFocus={handleInputFocus}
@@ -126,7 +129,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
                 type="button"
                 onClick={() => { setSearchQuery(""); document.querySelector<HTMLInputElement>('[data-search-input="mobile"]')?.focus(); }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary transition-colors"
-                aria-label="Hapus teks pencarian"
+                aria-label={t("common.close")}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -149,7 +152,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
           <input
             ref={inputRef}
             type="search"
-            placeholder="Cari transaksi, aset, alat..."
+            placeholder={t("topbar.search_placeholder")}
             value={searchQuery}
             onChange={handleInputChange}
             onFocus={handleInputFocus}
@@ -160,7 +163,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
               type="button"
               onClick={() => { setSearchQuery(""); inputRef.current?.focus(); }}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary transition-colors"
-              aria-label="Hapus teks pencarian"
+              aria-label={t("common.close")}
             >
               <X className="h-4 w-4" />
             </button>
@@ -186,7 +189,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
           <button
             onClick={handleMobileOpen}
             className="flex items-center justify-center rounded-lg p-2 text-text-muted transition-all duration-200 hover:bg-surface hover:text-text-primary lg:hidden"
-            aria-label="Cari transaksi"
+            aria-label={t("common.search")}
           >
             <Search className="h-5 w-5" />
           </button>
@@ -217,6 +220,11 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
         {/* Theme toggle */}
         <div className="hidden lg:block">
           <ThemeToggle compact />
+        </div>
+
+        {/* Language switcher — desktop */}
+        <div className="hidden lg:block">
+          <LanguageSwitcher compact />
         </div>
 
         {/* Profile */}

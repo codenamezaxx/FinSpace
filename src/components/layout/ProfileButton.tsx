@@ -5,11 +5,14 @@ import { LogOut, Settings, Cloud, CloudOff, User, Sun, Moon } from "lucide-react
 import { useCloudAuth } from "@/hooks/useCloudAuth";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { useTheme } from "@/lib/theme-context";
+import { useLanguage } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import Link from "next/link";
 
 export function ProfileButton() {
   const { user, isLoggedIn, isLoading, login, logout } = useCloudAuth();
   const { toggleTheme } = useTheme();
+  const { t } = useLanguage();
   const sync = useSyncStatus();
   const [open, setOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -37,10 +40,10 @@ export function ProfileButton() {
 
   const syncLabel =
     sync.status === "syncing"
-      ? "Menyinkronkan..."
+      ? t("profile.syncing")
       : sync.status === "offline"
-        ? "Offline"
-        : "Tersinkronisasi";
+        ? t("profile.offline")
+        : t("profile.synced");
 
   // ── Loading/hydrating state ──
   // SSR dan client render awal harus sama untuk mencegah hydration mismatch
@@ -60,13 +63,13 @@ export function ProfileButton() {
         className={`relative h-8 w-8 overflow-hidden rounded-full border-2 border-white/10 bg-surface-alt cursor-pointer transition-all duration-200 hover:shadow-[0_0_24px_#3B82F666] ${
           !isLoggedIn ? "bg-surface" : ""
         }`}
-        aria-label="Profil"
+        aria-label={t("profile.profile")}
       >
         {user ? (
           user.picture ? (
             <img
               src={user.picture}
-              alt={user.name ?? "Foto profil"}
+              alt={user.name ?? t("profile.photo")}
               className="h-full w-full rounded-full object-cover"
               referrerPolicy="no-referrer"
               onError={(e) => {
@@ -125,7 +128,7 @@ export function ProfileButton() {
                   {user.picture ? (
                     <img
                       src={user.picture}
-                      alt={user.name ?? "Foto profil"}
+                      alt={user.name ?? t("profile.photo")}
                       className="h-full w-full object-cover"
                       referrerPolicy="no-referrer"
                     />
@@ -137,7 +140,7 @@ export function ProfileButton() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-text-primary">
-                    {user.name ?? "Pengguna"}
+                    {user.name ?? t("profile.user")}
                   </p>
                   <p className="truncate text-xs text-text-muted">
                     {user.email ?? ""}
@@ -155,7 +158,7 @@ export function ProfileButton() {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Masuk dengan Google
+                {t("profile.sign_in_google")}
               </button>
             )}
 
@@ -181,9 +184,14 @@ export function ProfileButton() {
               >
                 <Sun className="h-4 w-4 light-only" />
                 <Moon className="h-4 w-4 dark-only" />
-                <span className="light-only">Mode Gelap</span>
-                <span className="dark-only">Mode Terang</span>
+                <span className="light-only">{t("profile.dark_mode")}</span>
+                <span className="dark-only">{t("profile.light_mode")}</span>
               </button>
+            </div>
+
+            {/* Language switcher — mobile */}
+            <div className="lg:hidden mb-3">
+              <LanguageSwitcher />
             </div>
 
             {/* ── BOTTOM: Settings + Logout ── */}
@@ -193,7 +201,7 @@ export function ProfileButton() {
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-surface hover:text-text-primary"
             >
               <Settings className="h-4 w-4" />
-              Pengaturan
+              {t("profile.settings")}
             </Link>
             {isLoggedIn && (
               <button
@@ -201,7 +209,7 @@ export function ProfileButton() {
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-surface hover:text-danger"
               >
                 <LogOut className="h-4 w-4" />
-                Keluar
+                {t("profile.sign_out")}
               </button>
             )}
           </div>
