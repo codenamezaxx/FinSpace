@@ -111,3 +111,54 @@ export async function migrateWealthFromLocalStorage(): Promise<void> {
     console.error("[FinSpace] Wealth migration failed:", err);
   }
 }
+
+/**
+ * Deduplicate assets, liabilities, and debts by name.
+ * Keeps the entry with the earliest createdAt for each name.
+ * Safe to call on every startup — idempotent.
+ */
+export async function deduplicateWealthData(): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  async function dedup<T extends { id: string; name: string; createdAt?: number }>(
+    table: EntityTable<T, "id">
+  ): Promise<number> {
+    const all = await table.toArray();
+    const seen = new Map<string, T>();
+    const idsToDelete: string[] = [];
+
+    // Sort by createdAt ascending so first occurrence is the oldest
+    all.sort((a, b) => (a.createdAt ?? 0) - (b.createdAt ?? 0));
+
+    for (const item of all) {
+      const key = item.name.trim().toLowerCase();
+      if (seen.has(key)) {
+        idsToDelete.push(item.id);
+      } else {
+        seen.set(key, item);
+      }
+    }
+
+    if (idsToDelete.length > 0) {
+      await db.transaction("rw", table, async () => {
+        for (const id of idsToDelete) {
+          await table.delete(id as never);
+        }
+      });
+      console.log(`[FinSpace] Dedup ${table.name}: removed ${idsToDelete.length} duplicates`);
+    }
+    return idsToDelete.length;
+  }
+
+  try {
+    let totalRemoved = 0;
+    totalRemoved += await dedup(db.assets);
+    totalRemoved += await dedup(db.liabilities);
+    totalRemoved += await dedup(db.debts);
+    if (totalRemoved > 0) {
+      console.log(`[FinSpace] Total wealth duplicates removed: ${totalRemoved}`);
+    }
+  } catch (err) {
+    console.error("[FinSpace] Wealth dedup failed:", err);
+  }
+}

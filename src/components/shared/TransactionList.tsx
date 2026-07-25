@@ -1,8 +1,11 @@
 "use client";
 
-import { ArrowDownUp, Search } from "lucide-react";
+import { ArrowDownUp, Eye, Search } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { TransactionCard } from "./TransactionCard";
+import { TransactionDetailModal } from "./TransactionDetailModal";
+import { TransactionEditModal } from "./TransactionEditModal";
+import { ConfirmModal } from "./ConfirmModal";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { Transaction } from "@/lib/db";
@@ -34,8 +37,13 @@ interface TransactionListProps {
   searchQuery?: string; // from global search
 }
 
-export function TransactionList({ pocketFilter = null, pockets = [], searchQuery }: TransactionListProps) {
-  const { transactions, loading, deleteTransaction } = useTransactions();
+export function TransactionList({
+  pocketFilter = null,
+  pockets = [],
+  searchQuery,
+}: TransactionListProps) {
+  const { transactions, loading, deleteTransaction, updateTransaction } =
+    useTransactions();
   const [search, setSearch] = useState("");
   // Sync external searchQuery prop
   useEffect(() => {
@@ -46,8 +54,16 @@ export function TransactionList({ pocketFilter = null, pockets = [], searchQuery
   const debouncedSearch = useDebounce(search, 300);
   const [sortField, setSortField] = useState<SortField>("timestamp");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">(
+    "all"
+  );
   const [hideTransfers, setHideTransfers] = useState(false);
+
+  // Detail / Edit / Delete modal state
+  const [detailTx, setDetailTx] = useState<Transaction | null>(null);
+  const [editTx, setEditTx] = useState<Transaction | null>(null);
+  const [deleteTx, setDeleteTx] = useState<Transaction | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const filtered = useMemo(() => {
     let result = [...transactions];
@@ -82,7 +98,15 @@ export function TransactionList({ pocketFilter = null, pockets = [], searchQuery
     });
 
     return result;
-  }, [transactions, debouncedSearch, sortField, sortDir, typeFilter, pocketFilter, hideTransfers]);
+  }, [
+    transactions,
+    debouncedSearch,
+    sortField,
+    sortDir,
+    typeFilter,
+    pocketFilter,
+    hideTransfers,
+  ]);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -90,6 +114,17 @@ export function TransactionList({ pocketFilter = null, pockets = [], searchQuery
     } else {
       setSortField(field);
       setSortDir("desc");
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTx) return;
+    setDeleting(true);
+    try {
+      await deleteTransaction(deleteTx.id);
+      setDeleteTx(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -140,7 +175,11 @@ export function TransactionList({ pocketFilter = null, pockets = [], searchQuery
                   : "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
               }`}
             >
-              {t === "all" ? "Semua" : t === "income" ? "Pemasukan" : "Pengeluaran"}
+              {t === "all"
+                ? "Semua"
+                : t === "income"
+                  ? "Pemasukan"
+                  : "Pengeluaran"}
             </button>
           ))}
           <button
@@ -159,7 +198,11 @@ export function TransactionList({ pocketFilter = null, pockets = [], searchQuery
       {/* Mobile: Card List */}
       <div className="space-y-3 md:hidden">
         {filtered.map((t) => (
-          <TransactionCard key={t.id} transaction={t} />
+          <TransactionCard
+            key={t.id}
+            transaction={t}
+            onShowDetail={setDetailTx}
+          />
         ))}
       </div>
 
@@ -168,9 +211,15 @@ export function TransactionList({ pocketFilter = null, pockets = [], searchQuery
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border bg-surface-alt">
-              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Tipe</th>
-              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Merchant</th>
-              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Kategori</th>
+              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">
+                Tipe
+              </th>
+              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">
+                Merchant
+              </th>
+              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">
+                Kategori
+              </th>
               <th
                 className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted cursor-pointer hover:text-text-secondary"
                 onClick={() => toggleSort("amount")}
@@ -182,7 +231,9 @@ export function TransactionList({ pocketFilter = null, pockets = [], searchQuery
                   )}
                 </span>
               </th>
-              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">Kantong</th>
+              <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">
+                Kantong
+              </th>
               <th
                 className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted cursor-pointer hover:text-text-secondary"
                 onClick={() => toggleSort("timestamp")}
@@ -201,7 +252,8 @@ export function TransactionList({ pocketFilter = null, pockets = [], searchQuery
             {filtered.map((t) => (
               <tr
                 key={t.id}
-                className="border-b border-border/50 last:border-0 hover:bg-surface-alt/50 transition-colors"
+                onClick={() => setDetailTx(t)}
+                className="border-b border-border/50 last:border-0 hover:bg-surface-alt/50 transition-colors cursor-pointer"
               >
                 <td className="px-4 py-3">
                   <span
@@ -217,7 +269,9 @@ export function TransactionList({ pocketFilter = null, pockets = [], searchQuery
                 <td className="px-4 py-3 font-medium text-text-primary">
                   {t.merchant}
                 </td>
-                <td className="px-4 py-3 text-text-secondary">{t.category}</td>
+                <td className="px-4 py-3 text-text-secondary">
+                  {t.category}
+                </td>
                 <td
                   className={`px-4 py-3 font-mono font-semibold ${
                     t.type === "expense" ? "text-danger" : "text-success"
@@ -227,18 +281,22 @@ export function TransactionList({ pocketFilter = null, pockets = [], searchQuery
                   {formatAmount(t.amount)}
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
-                  {pockets.find((p) => p.id === t.pocketId)?.name ?? t.payment_method}
+                  {pockets.find((p) => p.id === t.pocketId)?.name ??
+                    t.payment_method}
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
                   {formatDate(t.timestamp)}
                 </td>
                 <td className="px-4 py-3">
                   <button
-                    onClick={() => deleteTransaction(t.id)}
-                    className="text-text-muted hover:text-danger transition-colors"
-                    aria-label="Hapus transaksi"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDetailTx(t);
+                    }}
+                    className="text-text-muted hover:text-primary transition-colors"
+                    aria-label="Lihat detail transaksi"
                   >
-                    <span className="text-lg leading-none">&times;</span>
+                    <Eye className="h-4 w-4" />
                   </button>
                 </td>
               </tr>
@@ -246,6 +304,35 @@ export function TransactionList({ pocketFilter = null, pockets = [], searchQuery
           </tbody>
         </table>
       </div>
+
+      {/* Detail Modal */}
+      <TransactionDetailModal
+        isOpen={!!detailTx}
+        onClose={() => setDetailTx(null)}
+        transaction={detailTx}
+        onEdit={(tx) => setEditTx(tx)}
+        onDelete={(tx) => setDeleteTx(tx)}
+      />
+
+      {/* Edit Modal */}
+      <TransactionEditModal
+        isOpen={!!editTx}
+        onClose={() => setEditTx(null)}
+        transaction={editTx}
+        onSave={updateTransaction}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteTx}
+        onClose={() => setDeleteTx(null)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Transaksi?"
+        message={`Transaksi "${deleteTx?.merchant}" akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.`}
+        confirmLabel="Hapus"
+        confirmVariant="danger"
+        isLoading={deleting}
+      />
     </div>
   );
 }

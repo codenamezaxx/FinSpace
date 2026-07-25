@@ -20,6 +20,7 @@ import {
   getDebtToIncomeStatus,
 } from "@/lib/financialRatios";
 import { totalMonthlyDebtObligation } from "@/lib/debtUtils";
+import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import {
   Plus,
   Trash2,
@@ -58,6 +59,11 @@ export default function WealthPage() {
 
   const [showDebtForm, setShowDebtForm] = useState(false);
   const [payingDebt, setPayingDebt] = useState<DebtEntry | null>(null);
+  const [assetToDelete, setAssetToDelete] = useState<AssetEntry | null>(null);
+  const [liabilityToDelete, setLiabilityToDelete] =
+    useState<LiabilityEntry | null>(null);
+  const [debtToDelete, setDebtToDelete] = useState<DebtEntry | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const assets = useLiveQuery(() => db.assets.toArray(), []) ?? [];
   const liabilities = useLiveQuery(() => db.liabilities.toArray(), []) ?? [];
@@ -161,6 +167,39 @@ export default function WealthPage() {
   async function removeLiability(id: string) {
     await db.liabilities.delete(id);
   }
+
+  const handleConfirmDeleteAsset = async () => {
+    if (!assetToDelete) return;
+    setDeleting(true);
+    try {
+      await removeAsset(assetToDelete.id);
+      setAssetToDelete(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleConfirmDeleteLiability = async () => {
+    if (!liabilityToDelete) return;
+    setDeleting(true);
+    try {
+      await removeLiability(liabilityToDelete.id);
+      setLiabilityToDelete(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleConfirmDeleteDebt = async () => {
+    if (!debtToDelete) return;
+    setDeleting(true);
+    try {
+      await handleDeleteDebt(debtToDelete.id);
+      setDebtToDelete(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="space-y-6 lg:px-4">
@@ -285,7 +324,7 @@ export default function WealthPage() {
                     </span>
                     <button
                       type="button"
-                      onClick={() => removeAsset(asset.id)}
+                      onClick={() => setAssetToDelete(asset)}
                       className="text-text-muted transition-colors duration-200 hover:text-danger"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -322,7 +361,7 @@ export default function WealthPage() {
                     </span>
                     <button
                       type="button"
-                      onClick={() => removeLiability(liability.id)}
+                      onClick={() => setLiabilityToDelete(liability)}
                       className="text-text-muted transition-colors duration-200 hover:text-danger"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -353,7 +392,10 @@ export default function WealthPage() {
         <DebtList
           debts={debts}
           onPay={(debt) => setPayingDebt(debt)}
-          onDelete={handleDeleteDebt}
+          onDelete={(id) => {
+            const debt = debts.find((d) => d.id === id);
+            if (debt) setDebtToDelete(debt);
+          }}
         />
       </div>
 
@@ -368,6 +410,35 @@ export default function WealthPage() {
         debt={payingDebt}
         onClose={() => setPayingDebt(null)}
         onPay={handlePayDebt}
+      />
+
+      {/* Delete Confirmation Modals */}
+      <ConfirmModal
+        isOpen={!!assetToDelete}
+        onClose={() => setAssetToDelete(null)}
+        onConfirm={handleConfirmDeleteAsset}
+        title="Hapus Aset?"
+        message={`Aset "${assetToDelete?.name}" akan dihapus secara permanen dari daftar aset Anda.`}
+        confirmLabel="Hapus"
+        isLoading={deleting}
+      />
+      <ConfirmModal
+        isOpen={!!liabilityToDelete}
+        onClose={() => setLiabilityToDelete(null)}
+        onConfirm={handleConfirmDeleteLiability}
+        title="Hapus Liabilitas?"
+        message={`Liabilitas "${liabilityToDelete?.name}" akan dihapus secara permanen dari daftar liabilitas Anda.`}
+        confirmLabel="Hapus"
+        isLoading={deleting}
+      />
+      <ConfirmModal
+        isOpen={!!debtToDelete}
+        onClose={() => setDebtToDelete(null)}
+        onConfirm={handleConfirmDeleteDebt}
+        title="Hapus Utang?"
+        message={`Utang "${debtToDelete?.name}" akan dihapus secara permanen dari daftar utang Anda.`}
+        confirmLabel="Hapus"
+        isLoading={deleting}
       />
     </div>
   );

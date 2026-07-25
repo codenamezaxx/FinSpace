@@ -11,7 +11,7 @@ import { useFinnyScan } from "@/hooks/useFinnyScan";
 import { usePockets } from "@/hooks/usePockets";
 import { TransactionModalProvider } from "@/lib/transaction-modal-context";
 import { GlobalTransactionModal } from "@/components/shared/GlobalTransactionModal";
-import { db, migrateWealthFromLocalStorage } from "@/lib/db";
+import { db, migrateWealthFromLocalStorage, deduplicateWealthData } from "@/lib/db";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -22,9 +22,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { scanImage, result, isLoading, error, reset } = useFinnyScan();
   const { pockets: pocketEnts } = usePockets();
 
-  // Run wealth data migration from localStorage → IndexedDB once on startup
+  // Run wealth data migration from localStorage → IndexedDB once on startup, then dedup
   useEffect(() => {
-    migrateWealthFromLocalStorage();
+    migrateWealthFromLocalStorage().then(() => deduplicateWealthData());
   }, []);
 
   const handleScanClick = useCallback(() => {

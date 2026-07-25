@@ -54,13 +54,13 @@ export function AssetLiabilityForm({
 
   function handleSave() {
     if (!validate()) return;
-    const id = crypto.randomUUID();
-    const parsed = Math.round(Number(amount));
     const now = Date.now();
+    const suffix = `${now}_${crypto.randomUUID().slice(0, 8)}`;
+    const parsed = Math.round(Number(amount));
 
     if (type === "asset") {
       onSave({
-        id,
+        id: `ass${suffix}`,
         name: name.trim(),
         amount: parsed,
         type: assetType,
@@ -68,7 +68,7 @@ export function AssetLiabilityForm({
       } as AssetEntry);
     } else {
       onSave({
-        id,
+        id: `lia${suffix}`,
         name: name.trim(),
         amount: parsed,
         createdAt: now,

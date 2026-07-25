@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
+import { formatInputValue, parseInputValue } from "@/lib/netWorth";
 import type { Pocket } from "@/lib/pocket";
 
 interface PocketFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (name: string, category: Pocket["category"]) => void;
+  onSave: (name: string, category: Pocket["category"], initialBalance?: number) => void;
   initialName?: string;
   title: string;
 }
@@ -21,12 +22,14 @@ const CATEGORIES: Array<{ value: Pocket["category"]; label: string }> = [
 export function PocketFormModal({ isOpen, onClose, onSave, initialName, title }: PocketFormModalProps) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Pocket["category"]>("ewallet");
+  const [initialBalance, setInitialBalance] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (isOpen) {
       setName(initialName ?? "");
       setCategory("ewallet");
+      setInitialBalance("");
       setError("");
     }
   }, [isOpen, initialName]);
@@ -38,7 +41,12 @@ export function PocketFormModal({ isOpen, onClose, onSave, initialName, title }:
       setError("Nama kantong tidak boleh kosong.");
       return;
     }
-    onSave(trimmed, category);
+    const balance = Number(initialBalance);
+    if (initialBalance && (isNaN(balance) || balance < 0)) {
+      setError("Saldo awal harus berupa angka positif.");
+      return;
+    }
+    onSave(trimmed, category, balance > 0 ? balance : undefined);
     onClose();
   };
 
@@ -56,25 +64,40 @@ export function PocketFormModal({ isOpen, onClose, onSave, initialName, title }:
           />
         </div>
         {!initialName && (
-          <div>
-            <label className="mb-2 block text-sm font-medium text-text-secondary">Kategori</label>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setCategory(c.value)}
-                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                    category === c.value
-                      ? "bg-primary text-white"
-                      : "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
-                  }`}
-                >
-                  {c.label}
-                </button>
-              ))}
+          <>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-text-secondary">Kategori</label>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setCategory(c.value)}
+                    className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                      category === c.value
+                        ? "bg-primary text-white"
+                        : "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+                Saldo Awal (opsional)
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="0"
+                value={formatInputValue(initialBalance)}
+                onChange={(e) => setInitialBalance(parseInputValue(e.target.value))}
+                className="w-full rounded-lg border border-border bg-surface-alt px-4 py-3 font-mono text-sm text-text-primary placeholder-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors"
+              />
+            </div>
+          </>
         )}
         {error && <p className="text-xs font-medium text-danger">{error}</p>}
         <button

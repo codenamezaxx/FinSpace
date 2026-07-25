@@ -33,14 +33,15 @@ export function DebtForm({ isOpen, onClose, onSave }: DebtFormProps) {
 
   function handleSave() {
     if (!validate()) return;
+    const now = Date.now();
     onSave({
-      id: crypto.randomUUID(),
+      id: `dbt${now}_${crypto.randomUUID().slice(0, 8)}`,
       name: name.trim(),
       totalAmount: Math.round(Number(amount)),
       dueDate: new Date(dueDate).getTime(),
       paidAmount: 0,
       interestRate: interestRate ? Number(interestRate) : undefined,
-      createdAt: Date.now(),
+      createdAt: now,
     });
     setName("");
     setAmount("");

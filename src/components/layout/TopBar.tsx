@@ -88,8 +88,8 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
             <span className="text-base font-bold text-primary">
               FinSpace
             </span>
-            <span className="text-xs text-foreground">
-              {getGreeting()}, <b>{user?.name ?? "Pengguna"}</b>!
+            <span className="text-xs text-foreground italic">
+              {getGreeting()}, <b>{user?.name ?? "Pengguna"}!</b>
             </span>
           </div>
         )}

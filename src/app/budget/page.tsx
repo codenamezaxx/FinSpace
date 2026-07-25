@@ -180,7 +180,22 @@ function BudgetPageInner() {
       <PocketFormModal
         isOpen={showPocketForm}
         onClose={() => setShowPocketForm(false)}
-        onSave={(name, category) => addPocket(name, category)}
+        onSave={async (name, category, initialBalance) => {
+          const pocketId = await addPocket(name, category);
+          if (initialBalance && initialBalance > 0) {
+            const { db } = await import("@/lib/db");
+            await db.transactions.add({
+              id: `trn_${Date.now()}`,
+              type: "income",
+              amount: initialBalance,
+              category: "Lainnya",
+              merchant: `Saldo awal ${name}`,
+              payment_method: "Lainnya",
+              pocketId,
+              timestamp: Date.now(),
+            });
+          }
+        }}
         title="Tambah Kantong"
       />
       <PocketFormModal

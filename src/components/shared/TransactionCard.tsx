@@ -27,16 +27,34 @@ function formatAmount(amount: number): string {
 
 interface TransactionCardProps {
   transaction: Transaction;
+  onShowDetail?: (tx: Transaction) => void;
 }
 
-export const TransactionCard = memo(function TransactionCard({ transaction }: TransactionCardProps) {
+export const TransactionCard = memo(function TransactionCard({ transaction, onShowDetail }: TransactionCardProps) {
   const isExpense = transaction.type === "expense";
   const { pockets } = usePockets();
   const pocket = pockets.find((p) => p.id === transaction.pocketId);
   const Icon = categoryIcons[transaction.category] || ShoppingBag;
 
   return (
-    <div className="glass flex items-center gap-3 rounded-2xl p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+    <div
+      role={onShowDetail ? "button" : undefined}
+      tabIndex={onShowDetail ? 0 : undefined}
+      onClick={onShowDetail ? () => onShowDetail(transaction) : undefined}
+      onKeyDown={
+        onShowDetail
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onShowDetail(transaction);
+              }
+            }
+          : undefined
+      }
+      className={`glass flex items-center gap-3 rounded-2xl p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${
+        onShowDetail ? "cursor-pointer active:scale-[0.985]" : ""
+      }`}
+    >
       {/* Direction indicator */}
       <div
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
