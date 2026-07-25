@@ -24,6 +24,17 @@ export interface AiQueueItem {
   created_at: number;
 }
 
+export interface Notification {
+  id: string;
+  type: "transaction" | "overspending" | "credit_reminder";
+  title: string;
+  message: string;
+  /** 0 = unread, 1 = read (stored as number for IndexedDB key compatibility) */
+  read: number;
+  createdAt: number;
+  relatedId?: string;
+}
+
 export class FinSpaceDB extends Dexie {
   transactions!: EntityTable<Transaction, "id">;
   ai_queue!: EntityTable<AiQueueItem, "queue_id">;
@@ -31,6 +42,7 @@ export class FinSpaceDB extends Dexie {
   assets!: EntityTable<AssetEntry, "id">;
   liabilities!: EntityTable<LiabilityEntry, "id">;
   debts!: EntityTable<DebtEntry, "id">;
+  notifications!: EntityTable<Notification, "id">;
 
   constructor() {
     super("FinSpaceDB", { addons: [dexieCloud] });
@@ -61,6 +73,17 @@ export class FinSpaceDB extends Dexie {
       assets: "@id, type, createdAt",
       liabilities: "@id, createdAt",
       debts: "@id, createdAt",
+    });
+
+    // v5: notifications
+    this.version(5).stores({
+      transactions: "@id, type, category, timestamp, pocketId",
+      pockets: "@id, category, sortOrder",
+      ai_queue: "@queue_id, input_type, created_at",
+      assets: "@id, type, createdAt",
+      liabilities: "@id, createdAt",
+      debts: "@id, createdAt",
+      notifications: "@id, type, read, createdAt",
     });
 
     this.cloud.configure({
