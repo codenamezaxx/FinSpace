@@ -50,7 +50,7 @@ export const RatioCard = memo(function RatioCard({
           className="font-mono text-[10px] font-semibold uppercase tracking-wide"
           style={{ color }}
         >
-          {getStatusLabel(status, true)}
+          {getStatusLabel(status)}
         </span>
       </div>
     </div>

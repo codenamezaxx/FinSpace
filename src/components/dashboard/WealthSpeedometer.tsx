@@ -2,6 +2,7 @@
 
 import type { HealthStatus } from "@/lib/financialRatios";
 import { getStatusLabel } from "@/lib/financialRatios";
+import { useLanguage } from "@/lib/i18n";
 
 interface WealthSpeedometerProps {
   overallStatus: HealthStatus;
@@ -39,8 +40,9 @@ export function WealthSpeedometer({
     scores.reduce((a, b) => a + b, 0) / scores.length
   );
 
+  const { t } = useLanguage();
   const color = scoreToColor(compositeScore);
-  const label = getStatusLabel(overallStatus, true);
+  const label = getStatusLabel(overallStatus);
 
   // SVG semi-circle gauge
   const viewBoxWidth = 200;
@@ -87,7 +89,7 @@ export function WealthSpeedometer({
         <svg
           viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
           className="w-full max-w-[220px]"
-          aria-label={`Kesehatan keuangan: ${label}`}
+          aria-label={t("wealth.health_score_aria", { score: compositeScore })}
         >
           {/* Background track */}
           <path

@@ -6,21 +6,6 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { generateMonthlyReportPdf } from "@/lib/monthlyReportPdf";
 import { useLanguage } from "@/lib/i18n";
 
-const INDONESIAN_MONTHS = [
-  "Januari",
-  "Februari",
-  "Maret",
-  "April",
-  "Mei",
-  "Juni",
-  "Juli",
-  "Agustus",
-  "September",
-  "Oktober",
-  "November",
-  "Desember",
-];
-
 const CURRENT_YEAR = new Date().getFullYear();
 const CURRENT_MONTH = new Date().getMonth() + 1;
 
@@ -97,7 +82,8 @@ export function ExportCSV() {
 
     const link = document.createElement("a");
     link.href = url;
-    link.download = `FinSpace_Transaksi_${INDONESIAN_MONTHS[selectedMonth - 1]}_${selectedYear}.csv`;
+    const months = t("tools.months_array").split(",");
+    link.download = `FinSpace_Transaksi_${months[selectedMonth - 1]}_${selectedYear}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -131,7 +117,7 @@ export function ExportCSV() {
             onChange={(e) => setSelectedMonth(Number(e.target.value))}
             className="w-full rounded-xl border border-border bg-surface-alt px-3 py-2.5 font-mono text-sm text-text-primary outline-none transition-colors focus:border-primary"
           >
-            {INDONESIAN_MONTHS.map((name, index) => (
+            {t("tools.months_array").split(",").map((name, index) => (
               <option key={index + 1} value={index + 1}>
                 {name}
               </option>

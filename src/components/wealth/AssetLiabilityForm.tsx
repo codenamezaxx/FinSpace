@@ -109,7 +109,7 @@ export function AssetLiabilityForm({
             }`}
           >
             <Banknote className="h-4 w-4" />
-            Aset
+            {t("wealth.asset")}
           </button>
           <button
             type="button"
@@ -121,7 +121,7 @@ export function AssetLiabilityForm({
             }`}
           >
             <CreditCard className="h-4 w-4" />
-            Liabilitas
+            {t("wealth.liability")}
           </button>
         </div>
 

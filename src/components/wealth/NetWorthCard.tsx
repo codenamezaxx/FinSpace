@@ -165,7 +165,7 @@ export function NetWorthCard({
             <div className="border-t border-border pt-2">
               <div className="flex items-center justify-between">
                 <p className="font-mono text-xs font-bold text-text-primary">
-                  Kekayaan Bersih
+                  {t("wealth.net_net_worth")}
                 </p>
                 <p
                   className={`font-mono text-base font-bold ${
