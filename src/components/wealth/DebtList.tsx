@@ -86,7 +86,9 @@ function DebtItem({
       : null;
 
   return (
-    <div className="glass rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20">
+    <div
+    onClick={onPay} 
+    className="glass rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm font-medium text-text-primary">{debt.name}</p>
@@ -104,6 +106,15 @@ function DebtItem({
           <span className="font-mono text-sm font-semibold text-text-primary">
             {formatCurrency(remaining)}
           </span>
+          <button
+            type="button"
+            onClick={onPay}
+            disabled={remaining <= 0}
+            className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 font-mono text-sm font-medium text-primary transition-all duration-200 cursor-pointer hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <HandCoins className="h-3.5 w-3.5" />
+            {t("debt.pay")}
+          </button>
           <button
             type="button"
             onClick={onDelete}
@@ -125,7 +136,7 @@ function DebtItem({
         <span className="font-mono text-[11px] text-text-muted">{progress}%</span>
       </div>
 
-      {/* Due date + pay button */}
+      {/* Due date */}
       <div className="mt-2 flex items-center justify-between">
         <p className="font-mono text-[11px] text-text-muted">
           {t("debt.due_date", {
@@ -136,15 +147,7 @@ function DebtItem({
             }),
           })}
         </p>
-        <button
-          type="button"
-          onClick={onPay}
-          disabled={remaining <= 0}
-          className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 font-mono text-xs font-medium text-primary transition-all duration-200 hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <HandCoins className="h-3.5 w-3.5" />
-          {t("debt.pay")}
-        </button>
+        
       </div>
     </div>
   );

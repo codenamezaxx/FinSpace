@@ -60,7 +60,7 @@ export function ProfileButton() {
       {/* Avatar button — guest icon or user initials */}
       <button
         onClick={() => setOpen(!open)}
-        className={`relative h-8 w-8 overflow-hidden rounded-full border-2 border-white/10 bg-surface-alt cursor-pointer transition-all duration-200 hover:shadow-[0_0_24px_#3B82F666] ${
+        className={`relative h-8 w-8 overflow-hidden rounded-full border-2 border-white/10 bg-surface-alt cursor-pointer transition-all duration-200 hover:border-primary/60 ${
           !isLoggedIn ? "bg-surface" : ""
         }`}
         aria-label={t("profile.profile")}

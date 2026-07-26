@@ -70,7 +70,7 @@ export function ResponsiveModal({
           </h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-alt hover:text-text-primary"
+            className="rounded-lg p-1.5 text-text-muted transition-colors cursor-pointer hover:bg-surface-alt hover:text-text-primary"
             aria-label="Tutup"
           >
             <X className="h-5 w-5" />

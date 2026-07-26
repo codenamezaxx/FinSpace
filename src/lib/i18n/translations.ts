@@ -106,7 +106,7 @@ export const translations = {
       close: "Close notifications",
     },
     budget: {
-      title: "Budget",
+      title: "Budget & Cash Flow",
       add_pocket: "Add Pocket",
       edit_pocket: "Edit Pocket",
       pocket_name: "Pocket Name",
@@ -591,7 +591,7 @@ export const translations = {
       close: "Tutup notifikasi",
     },
     budget: {
-      title: "Anggaran",
+      title: "Anggaran & Arus Kas",
       add_pocket: "Tambah Kantong",
       edit_pocket: "Ubah Kantong",
       pocket_name: "Nama Kantong",

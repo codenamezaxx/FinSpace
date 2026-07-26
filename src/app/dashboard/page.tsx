@@ -8,7 +8,6 @@ import {
   ArrowDownIcon,
   Plus,
   Wallet,
-  DollarSign,
   Wrench,
   Banknote,
 } from "lucide-react";
@@ -68,20 +67,40 @@ function getGreeting(t: (key: string) => string): string {
 
 function BalanceSkeleton() {
   return (
-    <div className="glass rounded-2xl p-6 shadow-lg shadow-black/10">
-      <div className="h-3 w-24 animate-pulse rounded bg-border" />
-      <div className="mt-4 flex items-baseline gap-3">
-        <div className="h-9 w-40 animate-pulse rounded-lg bg-border" />
-        <div className="h-5 w-20 animate-pulse rounded-full bg-border" />
-      </div>
-      <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
-        <div className="space-y-2">
-          <div className="h-3 w-14 animate-pulse rounded bg-border" />
-          <div className="h-6 w-28 animate-pulse rounded bg-border" />
+    <div className="flex flex-row gap-3">
+      <div className="glass rounded-2xl p-6 shadow-lg shadow-black/10 w-full">
+        <div className="h-3 w-24 animate-pulse rounded bg-border" />
+        <div className="mt-4 flex items-baseline gap-3">
+          <div className="h-9 w-40 animate-pulse rounded-lg bg-border" />
+          <div className="h-5 w-20 animate-pulse rounded-full bg-border" />
         </div>
-        <div className="space-y-2">
-          <div className="h-3 w-14 animate-pulse rounded bg-border" />
-          <div className="h-6 w-28 animate-pulse rounded bg-border" />
+        <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
+          <div className="space-y-2">
+            <div className="h-3 w-14 animate-pulse rounded bg-border" />
+            <div className="h-6 w-28 animate-pulse rounded bg-border" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-3 w-14 animate-pulse rounded bg-border" />
+            <div className="h-6 w-28 animate-pulse rounded bg-border" />
+          </div>
+        </div>
+        
+      </div>
+      <div className="hidden lg:block glass rounded-2xl p-6 shadow-lg shadow-black/10 w-full">
+        <div className="h-3 w-24 animate-pulse rounded bg-border" />
+        <div className="mt-4 flex items-baseline gap-3">
+          <div className="h-9 w-40 animate-pulse rounded-lg bg-border" />
+          <div className="h-5 w-20 animate-pulse rounded-full bg-border" />
+        </div>
+        <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
+          <div className="space-y-2">
+            <div className="h-3 w-14 animate-pulse rounded bg-border" />
+            <div className="h-6 w-28 animate-pulse rounded bg-border" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-3 w-14 animate-pulse rounded bg-border" />
+            <div className="h-6 w-28 animate-pulse rounded bg-border" />
+          </div>
         </div>
       </div>
     </div>
@@ -428,7 +447,7 @@ export default function DashboardPage() {
               href="/budget"
               className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
-              <Wallet className="h-5 w-5 text-accent-secondary" />
+              <Wallet className="h-5 w-5 text-primary" />
               <span className="text-[11px] font-semibold text-text-secondary">
                 {t("nav.budget")}
               </span>
@@ -437,7 +456,7 @@ export default function DashboardPage() {
               href="/wealth"
               className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
-              <DollarSign className="h-5 w-5 text-success" />
+              <Banknote className="h-5 w-5 text-success" />
               <span className="text-[11px] font-semibold text-text-secondary">
                 {t("nav.wealth")}
               </span>

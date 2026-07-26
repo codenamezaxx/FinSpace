@@ -90,7 +90,7 @@ export function PayDebtModal({
         <button
           type="button"
           onClick={handlePay}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-mono text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-mono text-sm font-semibold text-white cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25"
         >
           <SendHorizonal className="h-4 w-4" />
           {t("wealth.pay_debt_confirm")}
