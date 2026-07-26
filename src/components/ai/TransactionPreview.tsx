@@ -339,7 +339,7 @@ const FieldRow: FC<FieldRowProps> = ({ label, value, onChange, type, options, op
           onChange={(e) => onChange(e.target.value)}
           className="flex-1 bg-surface-alt text-text-primary text-xs rounded-lg px-2.5 py-1.5 border border-border outline-none focus:ring-1 focus:ring-primary/50"
         >
-          <option value="">{tFunc("common.search")} {label.toLowerCase()}...</option>
+          <option value="">{tFunc("common.select")} {label.toLowerCase()}...</option>
           {options.map((opt, i) => (
             <option key={opt} value={opt}>
               {optionLabels?.[i] ?? opt}
@@ -352,7 +352,7 @@ const FieldRow: FC<FieldRowProps> = ({ label, value, onChange, type, options, op
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="flex-1 bg-surface-alt text-text-primary text-xs rounded-lg px-2.5 py-1.5 border border-border outline-none focus:ring-1 focus:ring-primary/50 text-right"
-          placeholder={`${tFunc("common.search")} ${label.toLowerCase()}...`}
+          placeholder={`${tFunc("common.select")} ${label.toLowerCase()}...`}
         />
       )}
     </div>

@@ -418,8 +418,8 @@ export default function WealthPage() {
         isOpen={!!assetToDelete}
         onClose={() => setAssetToDelete(null)}
         onConfirm={handleConfirmDeleteAsset}
-        title={t("confirm.delete_title")}
-        message={t("confirm.delete_message", { item: t("wealth.title") })}
+        title={t("confirm.delete_asset")}
+        message={t("confirm.delete_message", { item: assetToDelete?.name ?? "" })}
         confirmLabel={t("confirm.confirm")}
         isLoading={deleting}
       />
@@ -427,8 +427,8 @@ export default function WealthPage() {
         isOpen={!!liabilityToDelete}
         onClose={() => setLiabilityToDelete(null)}
         onConfirm={handleConfirmDeleteLiability}
-        title={t("confirm.delete_title")}
-        message={t("confirm.delete_message", { item: t("wealth.total_liabilities") })}
+        title={t("confirm.delete_liability")}
+        message={t("confirm.delete_message", { item: liabilityToDelete?.name ?? "" })}
         confirmLabel={t("confirm.confirm")}
         isLoading={deleting}
       />
@@ -436,8 +436,8 @@ export default function WealthPage() {
         isOpen={!!debtToDelete}
         onClose={() => setDebtToDelete(null)}
         onConfirm={handleConfirmDeleteDebt}
-        title={t("confirm.delete_title")}
-        message={t("confirm.delete_message", { item: t("wealth.total_debts") })}
+        title={t("confirm.delete_debt")}
+        message={t("confirm.delete_message", { item: debtToDelete?.name ?? "" })}
         confirmLabel={t("confirm.confirm")}
         isLoading={deleting}
       />

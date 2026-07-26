@@ -123,7 +123,7 @@ export function ExportCSV() {
             htmlFor="export-bulan"
             className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted"
           >
-            {t("tools.monthly_saving")}
+            {t("tools.month")}
           </label>
           <select
             id="export-bulan"
@@ -145,7 +145,7 @@ export function ExportCSV() {
             htmlFor="export-tahun"
             className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted"
           >
-            {t("settings.version")}
+            {t("tools.year")}
           </label>
           <select
             id="export-tahun"
@@ -165,7 +165,7 @@ export function ExportCSV() {
       {/* Info */}
       {transactions.length > 0 && (
         <p className="mt-3 font-mono text-xs text-text-muted">
-          {transactions.length.toLocaleString("id-ID")} {t("search.transactions").toLowerCase()} {t("tools.monthly_report").toLowerCase()}
+          {t("tools.X_transactions_found", { count: transactions.length })}
         </p>
       )}
 
@@ -176,7 +176,7 @@ export function ExportCSV() {
             <FileDown className="h-5 w-5 text-text-muted" />
           </div>
           <p className="mt-3 text-sm text-text-muted">
-            {t("tools.monthly_report")}
+            {t("tools.no_transactions_period")}
           </p>
         </div>
       )}

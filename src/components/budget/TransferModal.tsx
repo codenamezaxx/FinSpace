@@ -46,6 +46,7 @@ export function TransferModal({
 
   const numericAmount = Number(amount) || 0;
   const sourceBalance = fromId ? (balances[fromId] ?? 0) : 0;
+  const sourcePocketName = fromId ? pockets.find((p) => p.id === fromId)?.name ?? "" : "";
   const availableDestinations = pockets.filter((p) => p.id !== fromId);
 
   const handleSubmit = async () => {
@@ -122,7 +123,7 @@ export function TransferModal({
           />
           {numericAmount > sourceBalance && (
             <p className="mt-1 text-xs text-warning">
-              {t("budget.remaining")} {formatCurrency(sourceBalance)}
+              {t("transfer.insufficient_balance", { pocket: sourcePocketName, balance: formatCurrency(sourceBalance) })}
             </p>
           )}
         </div>

@@ -8,6 +8,7 @@ import {
   ArrowDownIcon,
   Plus,
   Wallet,
+  DollarSign,
   Wrench,
   Banknote,
 } from "lucide-react";
@@ -427,7 +428,7 @@ export default function DashboardPage() {
               href="/budget"
               className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
-              <Wallet className="h-5 w-5 text-primary" />
+              <Wallet className="h-5 w-5 text-accent-secondary" />
               <span className="text-[11px] font-semibold text-text-secondary">
                 {t("nav.budget")}
               </span>
@@ -436,7 +437,7 @@ export default function DashboardPage() {
               href="/wealth"
               className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
-              <Banknote className="h-5 w-5 text-success" />
+              <DollarSign className="h-5 w-5 text-success" />
               <span className="text-[11px] font-semibold text-text-secondary">
                 {t("nav.wealth")}
               </span>
@@ -445,7 +446,7 @@ export default function DashboardPage() {
               href="/tools"
               className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
-              <Wrench className="h-5 w-5 text-accent-secondary" />
+              <Wrench className="h-5 w-5 text-text-secondary" />
               <span className="text-[11px] font-semibold text-text-secondary">
                 {t("nav.tools")}
               </span>

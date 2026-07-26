@@ -96,7 +96,7 @@ export function LoanCalculator() {
             </option>
             {TENOR_OPTIONS.map((tenorOpt) => (
               <option key={tenorOpt} value={tenorOpt}>
-                {tenorOpt} {t("tools.monthly_saving")}
+                {tenorOpt} {t("common.months")}
               </option>
             ))}
           </select>

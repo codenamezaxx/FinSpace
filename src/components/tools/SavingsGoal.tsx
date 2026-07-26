@@ -85,12 +85,12 @@ export function SavingsGoal() {
               {formatCurrency(Math.round(monthly))}
             </p>
             <p className="mt-1 text-xs text-text-muted">
-              {t("tools.target_date")} {waktuNum} {t("tools.remaining")}
+              {t("tools.for_duration", { months: waktuNum })}
             </p>
           </div>
         ) : (
           <p className="text-center text-xs text-text-muted">
-            {t("tools.goal_amount")} {t("tools.target_date")}
+            {t("tools.saving_goal_empty")}
           </p>
         )}
       </div>
