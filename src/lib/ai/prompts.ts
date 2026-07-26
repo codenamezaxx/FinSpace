@@ -165,11 +165,17 @@ Response: {"action":"chat","message":"Halo! Ada yang bisa aku bantu? Kamu bisa b
 /**
  * Build the full system prompt.
  * @param pocketNames — user's pockets so AI can assign transactions to the right one.
+ * @param language — user's language code ("id" or "en"). Appends a language instruction.
  */
-export function buildSystemPrompt(pocketNames?: string[]): string {
-  if (!pocketNames || pocketNames.length === 0) return SYSTEM_PROMPT;
+export function buildSystemPrompt(pocketNames?: string[], language?: string): string {
+  const langInstruction =
+    language === "en"
+      ? "\n\nIMPORTANT: You MUST respond in English. The 'message' field in your JSON response must be in English. All user-facing text must be in English."
+      : "\n\nIMPORTANT: Kamu WAJIB merespon dalam Bahasa Indonesia. Field 'message' di JSON response harus dalam Bahasa Indonesia.";
+
+  if (!pocketNames || pocketNames.length === 0) return SYSTEM_PROMPT + langInstruction;
 
   const pocketSection = `\nKANTONG PENGGUNA:\n${pocketNames.map((n) => `  - ${n}`).join("\n")}\n\nPANDUAN PILIH KANTONG:\n- Pilih kantong yang paling sesuai dengan payment_method atau merchant transaksi.\n- Contoh: QRIS/Gopay → "Gopay", Transfer BCA → "BCA", Cash → "Tunai".\n- Jika tidak ada yang cocok, pilih "Tunai".`;
 
-  return SYSTEM_PROMPT + pocketSection;
+  return SYSTEM_PROMPT + pocketSection + langInstruction;
 }

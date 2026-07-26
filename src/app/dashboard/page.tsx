@@ -31,7 +31,7 @@ import {
 import { formatCurrency, calculateNetWorth } from "@/lib/netWorth";
 import { totalMonthlyDebtObligation } from "@/lib/debtUtils";
 import type { HealthStatus } from "@/lib/financialRatios";
-import type { NetWorthResult, AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
+import type { NetWorthResult } from "@/lib/netWorth";
 import { usePockets } from "@/hooks/usePockets";
 import { useCloudAuth } from "@/hooks/useCloudAuth";
 import { useLanguage } from "@/lib/i18n";
@@ -124,7 +124,7 @@ function TransactionSkeleton() {
 /* ─── Page ─── */
 
 export default function DashboardPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { user } = useCloudAuth();
   const { openAddTransaction } = useTransactionModal();
   const { openAssetLiabilityModal } = useAssetLiabilityModal();
@@ -263,7 +263,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <p className="hidden text-right text-sm text-text-muted font-mono lg:block">
-          {now.toLocaleDateString("id-ID", {
+          {now.toLocaleDateString(lang === "id" ? "id-ID" : "en-US", {
             month: "long",
             year: "numeric",
           })}

@@ -3,6 +3,7 @@
 import { Plus } from "lucide-react";
 import { PocketCard } from "./PocketCard";
 import type { Pocket } from "@/lib/pocket";
+import { useLanguage } from "@/lib/i18n";
 
 interface PocketGridProps {
   pockets: Pocket[];
@@ -18,6 +19,7 @@ interface PocketGridProps {
 export function PocketGrid({
   pockets, balances, selectedId, onSelect, onAdd, onRename, onDelete, onTransfer,
 }: PocketGridProps) {
+  const { t } = useLanguage();
   if (pockets.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 py-8">
@@ -27,9 +29,9 @@ export function PocketGrid({
           className="flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-border p-6 text-text-muted transition-all duration-200 hover:border-primary hover:text-primary hover:bg-primary/5"
         >
           <Plus className="h-6 w-6" />
-          <span className="text-sm font-semibold">Buat Kantong Pertama</span>
+          <span className="text-sm font-semibold">{t("pockets.create_first")}</span>
         </button>
-        <p className="text-xs text-text-muted">Tidak ada kantong. Buat satu untuk mulai mengatur keuangan.</p>
+        <p className="text-xs text-text-muted">{t("pockets.empty")}</p>
       </div>
     );
   }
@@ -55,7 +57,7 @@ export function PocketGrid({
           className="flex shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border p-4 text-text-muted transition-all duration-200 hover:border-primary hover:text-primary hover:bg-primary/5 w-36"
         >
           <Plus className="h-5 w-5" />
-          <span className="text-xs font-semibold">Tambah Kantong</span>
+          <span className="text-xs font-semibold">{t("pockets.add_pocket")}</span>
         </button>
       </div>
       <div className="flex gap-2">
@@ -68,18 +70,18 @@ export function PocketGrid({
               : "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
           }`}
         >
-          Semua Kantong
+          {t("pockets.all_pockets")}
         </button>
         <button
           type="button"
           onClick={() => onTransfer()}
           className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-muted hover:bg-surface-alt hover:text-text-secondary transition-colors"
         >
-          Pindah Saldo
+          {t("pockets.transfer_balance")}
         </button>
         {selectedId && (
           <span className="self-center text-[11px] text-text-muted">
-            Menampilkan transaksi kantong terpilih
+            {t("pockets.showing_selected")}
           </span>
         )}
       </div>

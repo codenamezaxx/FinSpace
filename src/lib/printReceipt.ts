@@ -17,11 +17,13 @@ function formatRp(amount: number): string {
   return `Rp ${amount.toLocaleString("id-ID")}`;
 }
 
+export type TranslateFn = (key: string) => string;
+
 /**
  * Open a print dialog with a thermal-receipt-style layout matching the PDF design.
  * Opens a new window with the receipt HTML, triggers print, then closes after.
  */
-export function printReceiptHtml(transaction: Transaction): void {
+export function printReceiptHtml(transaction: Transaction, t: TranslateFn): void {
   const totalAmount = transaction.amount;
   const isIncome = transaction.type === "income";
   const amountColor = isIncome ? "#22C55E" : "#EF4444";
@@ -30,7 +32,7 @@ export function printReceiptHtml(transaction: Transaction): void {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Cetak Struk - FinSpace</title>
+  <title>${t("receipt.print_title")} - FinSpace</title>
   <style>
     @page {
       size: 58mm auto;
@@ -79,30 +81,30 @@ export function printReceiptHtml(transaction: Transaction): void {
 <body>
   <!-- Header -->
   <div class="center bold" style="font-size: 14px;">FINSPACE</div>
-  <div class="center muted" style="font-size: 8px; margin-bottom: 2mm;">Struk Transaksi</div>
+  <div class="center muted" style="font-size: 8px; margin-bottom: 2mm;">${t("print.receipt_title")}</div>
 
   <hr class="dashed">
 
   <!-- Fields -->
-  <div class="row"><span class="muted">Merchant:</span><span class="bold">${escapeHtml(transaction.merchant)}</span></div>
-  <div class="row"><span class="muted">Tanggal:</span><span class="bold">${formatDate(transaction.timestamp)}</span></div>
-  <div class="row"><span class="muted">Jam:</span><span class="bold">${formatTime(transaction.timestamp)}</span></div>
-  <div class="row"><span class="muted">Kategori:</span><span class="bold">${escapeHtml(transaction.category)}</span></div>
-  <div class="row"><span class="muted">Metode:</span><span class="bold">${escapeHtml(transaction.payment_method)}</span></div>
-  <div class="row"><span class="muted">ID:</span><span class="bold">${transaction.id.slice(0, 12)}</span></div>
+  <div class="row"><span class="muted">${t("print.merchant")}</span><span class="bold">${escapeHtml(transaction.merchant)}</span></div>
+  <div class="row"><span class="muted">${t("print.date")}</span><span class="bold">${formatDate(transaction.timestamp)}</span></div>
+  <div class="row"><span class="muted">${t("print.time")}</span><span class="bold">${formatTime(transaction.timestamp)}</span></div>
+  <div class="row"><span class="muted">${t("print.category")}</span><span class="bold">${escapeHtml(transaction.category)}</span></div>
+  <div class="row"><span class="muted">${t("print.method")}</span><span class="bold">${escapeHtml(transaction.payment_method)}</span></div>
+  <div class="row"><span class="muted">${t("print.id_label")}</span><span class="bold">${transaction.id.slice(0, 12)}</span></div>
 
   <hr class="dashed">
 
   <!-- Total -->
   <div class="total-row">
-    <span>Total:</span>
+    <span>${t("print.total")}</span>
     <span style="color: ${amountColor};">${formatRp(totalAmount)}</span>
   </div>
 
   <hr class="dashed">
 
   <!-- Footer -->
-  <div class="footer">Terima kasih!</div>
+  <div class="footer">${t("print.thank_you")}</div>
   <div class="footer">FinSpace App v1.0</div>
 </body>
 </html>`;
@@ -110,7 +112,7 @@ export function printReceiptHtml(transaction: Transaction): void {
   const printWindow = window.open("", "_blank", "width=400,height=600,menubar=no,toolbar=no,location=no,status=no");
   if (!printWindow) {
     // Fallback: if popup blocked, try printing from current page
-    alert("Izinkan pop-up untuk mencetak struk, atau gunakan Unduh PDF.");
+    alert(t("print.popup_blocked"));
     return;
   }
 

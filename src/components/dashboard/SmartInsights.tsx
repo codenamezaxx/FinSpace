@@ -3,7 +3,8 @@
 import { useState, useMemo } from "react";
 import { Lightbulb, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import type { FinancialRatios, HealthStatus } from "@/lib/financialRatios";
-import { getStatusColor, getStatusLabel } from "@/lib/financialRatios";
+import { getStatusColor } from "@/lib/financialRatios";
+import { useLanguage } from "@/lib/i18n";
 import { HealthScoreRing } from "./HealthScoreRing";
 import insightsData from "@/lib/insights.json";
 
@@ -43,6 +44,7 @@ export function SmartInsights({
   overallStatus,
 }: SmartInsightsProps) {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useLanguage();
 
   const insights = useMemo(() => {
     const result: Array<{
@@ -54,21 +56,30 @@ export function SmartInsights({
       status: HealthStatus;
     }> = [];
 
+    const liqKey = `insights.liquidity_${liquidityStatus}`;
     result.push({
-      category: "Likuiditas",
-      ...insightsData.liquidity[liquidityStatus],
+      category: t("wealth.liquidity_label"),
+      title: t(`${liqKey}_title`),
+      message: t(`${liqKey}_message`),
+      action: t(`${liqKey}_action`),
       priority: insightsData.liquidity[liquidityStatus].priority as PriorityLevel,
       status: liquidityStatus,
     });
+    const savKey = `insights.savings_${savingsStatus}`;
     result.push({
-      category: "Tabungan",
-      ...insightsData.savings[savingsStatus],
+      category: t("wealth.savings_label"),
+      title: t(`${savKey}_title`),
+      message: t(`${savKey}_message`),
+      action: t(`${savKey}_action`),
       priority: insightsData.savings[savingsStatus].priority as PriorityLevel,
       status: savingsStatus,
     });
+    const debtKey = `insights.debt_${debtStatus}`;
     result.push({
-      category: "Utang",
-      ...insightsData.debt[debtStatus],
+      category: t("wealth.debt_label"),
+      title: t(`${debtKey}_title`),
+      message: t(`${debtKey}_message`),
+      action: t(`${debtKey}_action`),
       priority: insightsData.debt[debtStatus].priority as PriorityLevel,
       status: debtStatus,
     });
@@ -76,7 +87,7 @@ export function SmartInsights({
     result.sort((a, b) => getPriorityWeight(b.priority) - getPriorityWeight(a.priority));
 
     return result;
-  }, [liquidityStatus, savingsStatus, debtStatus]);
+  }, [liquidityStatus, savingsStatus, debtStatus, t]);
 
   const topInsight = insights[0];
   const topColor = getStatusColor(topInsight.status);
@@ -89,11 +100,11 @@ export function SmartInsights({
       {/* Header */}
       <div className="flex items-center gap-2.5 mb-4">
         <Lightbulb className="h-5 w-5 text-accent" />
-        <h2 className="text-sm font-semibold text-text-primary">Wawasan Cerdas</h2>
+        <h2 className="text-sm font-semibold text-text-primary">{t("wealth.smart_insights")}</h2>
         {topInsight.priority === "high" && (
           <span className="ml-auto flex items-center gap-1 rounded-full bg-danger/10 px-2.5 py-0.5 text-[10px] font-medium text-danger">
             <AlertTriangle className="h-3 w-3" />
-            Perlu Tindakan
+            {t("wealth.needs_action")}
           </span>
         )}
       </div>
@@ -123,7 +134,7 @@ export function SmartInsights({
                   color: topColor,
                 }}
               >
-                {getStatusLabel(topInsight.status, true)}
+                {t(`financial.score_${topInsight.status}`)}
               </span>
               <span className="text-xs font-medium" style={{ color: topColor }}>
                 {topInsight.action}
@@ -163,7 +174,7 @@ export function SmartInsights({
                       color: c,
                     }}
                   >
-                    {getStatusLabel(insight.status, true)}
+                    {t(`financial.score_${insight.status}`)}
                   </span>
                   <span className="text-xs font-medium" style={{ color: c }}>
                     {insight.action}

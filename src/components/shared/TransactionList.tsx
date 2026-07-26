@@ -12,16 +12,16 @@ import { useDebounce } from "@/hooks/useDebounce";
 import type { Transaction } from "@/lib/db";
 import type { Pocket } from "@/lib/pocket";
 
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString("id-ID", {
+function formatDate(ts: number, locale: string): string {
+  return new Date(ts).toLocaleDateString(locale, {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
 }
 
-function formatAmount(amount: number): string {
-  return new Intl.NumberFormat("id-ID", {
+function formatAmount(amount: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "IDR",
     minimumFractionDigits: 0,
@@ -43,7 +43,7 @@ export function TransactionList({
   pockets = [],
   searchQuery,
 }: TransactionListProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { transactions, loading, deleteTransaction, updateTransaction } =
     useTransactions();
   const [search, setSearch] = useState("");
@@ -280,14 +280,14 @@ export function TransactionList({
                   }`}
                 >
                   {tx.type === "expense" ? "-" : "+"}
-                  {formatAmount(tx.amount)}
+                  {formatAmount(tx.amount, lang === "id" ? "id-ID" : "en-US")}
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
                   {pockets.find((p) => p.id === tx.pocketId)?.name ??
                     tx.payment_method}
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
-                  {formatDate(tx.timestamp)}
+                  {formatDate(tx.timestamp, lang === "id" ? "id-ID" : "en-US")}
                 </td>
                 <td className="px-4 py-3">
                   <button

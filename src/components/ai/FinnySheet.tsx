@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useMemo, type FC } from "react";
 import { Bot, X } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 import { useFinnyChat, type PocketInfo } from "@/hooks/useFinnyChat";
 import { usePockets } from "@/hooks/usePockets";
 import FinnyChatArea from "./FinnyChatArea";
@@ -17,6 +18,7 @@ interface FinnySheetProps {
 }
 
 const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
+  const { lang, t } = useLanguage();
   const { messages, isLoading, isOffline, sendMessage } = useFinnyChat();
   const { pockets: pocketEnts, addPocket } = usePockets();
   const [showPreview, setShowPreview] = useState(false);
@@ -31,10 +33,10 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
     [pocketEnts]
   );
 
-  // Wrap sendMessage so pockets are always included
+  // Wrap sendMessage so pockets and language are always included
   const handleSend = useCallback(
-    (text: string) => sendMessage(text, pocketInfo),
-    [sendMessage, pocketInfo]
+    (text: string) => sendMessage(text, pocketInfo, lang),
+    [sendMessage, pocketInfo, lang]
   );
 
   // Find the last AI message with transaction data
@@ -170,13 +172,13 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
               <span className="text-sm font-semibold text-text-primary">
                 Finny
               </span>
-              <span className="text-xs text-text-muted">Asisten Keuangan</span>
+              <span className="text-xs text-text-muted">{t("ai.assistant_title")}</span>
             </div>
           </div>
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg hover:bg-surface transition-colors cursor-pointer"
-            aria-label="Tutup"
+            aria-label={t("common.close")}
           >
             <X className="w-5 h-5 text-text-secondary" />
           </button>

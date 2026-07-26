@@ -90,10 +90,15 @@ ACTION "chat":
   "confidence": "high" | "low"
 }`;
 
-export function buildScanPrompt(pocketNames?: string[]): string {
-  if (!pocketNames || pocketNames.length === 0) return SCAN_PROMPT;
+export function buildScanPrompt(pocketNames?: string[], language?: string): string {
+  const langInstruction =
+    language === "en"
+      ? "\n\nIMPORTANT: You MUST respond in English. The 'message' field in your JSON response must be in English. All user-facing text must be in English."
+      : "\n\nIMPORTANT: Kamu WAJIB merespon dalam Bahasa Indonesia. Field 'message' di JSON response harus dalam Bahasa Indonesia.";
+
+  if (!pocketNames || pocketNames.length === 0) return SCAN_PROMPT + langInstruction;
 
   const pocketSection = `\nKANTONG PENGGUNA:\n${pocketNames.map((n) => `  - ${n}`).join("\n")}\n\nPANDUAN PILIH KANTONG:\n- Pilih kantong yang paling sesuai dengan payment_method atau merchant transaksi.\n- Contoh: QRIS/Gopay → "Gopay", Transfer BCA → "BCA", Cash → "Tunai".\n- Jika tidak ada yang cocok, pilih "Tunai".`;
 
-  return SCAN_PROMPT + pocketSection;
+  return SCAN_PROMPT + pocketSection + langInstruction;
 }

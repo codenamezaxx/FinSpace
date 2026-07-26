@@ -4,6 +4,7 @@ import { useRef, useEffect, type FC } from "react";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import { Bot } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 export interface FinnyMessage {
   id: string;
@@ -21,6 +22,7 @@ interface FinnyChatAreaProps {
 }
 
 const FinnyChatArea: FC<FinnyChatAreaProps> = ({ messages, isLoading }) => {
+  const { t } = useLanguage();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,10 +37,10 @@ const FinnyChatArea: FC<FinnyChatAreaProps> = ({ messages, isLoading }) => {
             <Bot className="w-12 h-12 text-accent-secondary m-auto" />
           </div>
           <p className="text-text-secondary text-sm">
-            Halo! Aku Finny, asisten keuanganmu.
+            {t("ai.welcome")}
           </p>
           <p className="text-text-muted text-xs mt-1">
-            Coba bilang: &ldquo;beli kopi 25rb&rdquo; atau &ldquo;gajian 5jt&rdquo;
+            {t("ai.welcome_hint")}
           </p>
         </div>
       </div>
