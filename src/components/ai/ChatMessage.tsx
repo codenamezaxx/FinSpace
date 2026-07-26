@@ -1,6 +1,7 @@
 "use client";
 
 import { Bot, User } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface ChatMessageProps {
   role: "user" | "bot";
@@ -9,7 +10,9 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ role, text, timestamp }: ChatMessageProps) {
+  const { lang } = useLanguage();
   const isBot = role === "bot";
+  const locale = lang === "id" ? "id-ID" : "en-US";
 
   return (
     <div className={`flex gap-3 ${isBot ? "" : "flex-row-reverse"}`}>
@@ -37,7 +40,7 @@ export function ChatMessage({ role, text, timestamp }: ChatMessageProps) {
         </div>
         {timestamp && (
           <span className="mt-1 px-1 text-[10px] text-text-muted">
-            {new Date(timestamp).toLocaleTimeString("id-ID", {
+            {new Date(timestamp).toLocaleTimeString(locale, {
               hour: "2-digit",
               minute: "2-digit",
             })}

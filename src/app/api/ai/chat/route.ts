@@ -3,8 +3,12 @@ import { streamText } from "ai";
 import { buildSystemPrompt } from "@/lib/ai/prompts";
 
 export async function POST(req: Request) {
+  let language: string | undefined;
+
   try {
-    const { messages, pockets } = await req.json();
+    const body = await req.json();
+    language = body.language;
+    const { messages, pockets } = body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return Response.json(
@@ -20,7 +24,7 @@ export async function POST(req: Request) {
 
     const result = streamText({
       model: google("gemini-2.5-flash"),
-      system: buildSystemPrompt(pocketNames.length > 0 ? pocketNames : undefined),
+      system: buildSystemPrompt(pocketNames.length > 0 ? pocketNames : undefined, language),
       messages,
     });
 
@@ -44,7 +48,9 @@ export async function POST(req: Request) {
         {
           action: "chat",
           message:
-            "Maaf, aku sedang menerima terlalu banyak permintaan. Coba lagi dalam beberapa saat ya! 🙏",
+            language === "en"
+              ? "Sorry, I'm receiving too many requests right now. Please try again in a moment! 🙏"
+              : "Maaf, aku sedang menerima terlalu banyak permintaan. Coba lagi dalam beberapa saat ya! 🙏",
         },
         { status: 429 }
       );
@@ -52,7 +58,12 @@ export async function POST(req: Request) {
 
     console.error("Finny AI error:", error);
     return Response.json(
-      { error: "Gagal terhubung ke Finny. Coba lagi ya!" },
+      {
+        error:
+          language === "en"
+            ? "Failed to connect to Finny. Please try again!"
+            : "Gagal terhubung ke Finny. Coba lagi ya!",
+      },
       { status: 500 }
     );
   }

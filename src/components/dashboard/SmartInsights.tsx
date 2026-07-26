@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Lightbulb, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import type { FinancialRatios, HealthStatus } from "@/lib/financialRatios";
-import { getStatusColor, getStatusLabel } from "@/lib/financialRatios";
+import { getStatusColor } from "@/lib/financialRatios";
 import { useLanguage } from "@/lib/i18n";
 import { HealthScoreRing } from "./HealthScoreRing";
 import insightsData from "@/lib/insights.json";
@@ -56,21 +56,30 @@ export function SmartInsights({
       status: HealthStatus;
     }> = [];
 
+    const liqKey = `insights.liquidity_${liquidityStatus}`;
     result.push({
       category: t("wealth.liquidity_label"),
-      ...insightsData.liquidity[liquidityStatus],
+      title: t(`${liqKey}_title`),
+      message: t(`${liqKey}_message`),
+      action: t(`${liqKey}_action`),
       priority: insightsData.liquidity[liquidityStatus].priority as PriorityLevel,
       status: liquidityStatus,
     });
+    const savKey = `insights.savings_${savingsStatus}`;
     result.push({
       category: t("wealth.savings_label"),
-      ...insightsData.savings[savingsStatus],
+      title: t(`${savKey}_title`),
+      message: t(`${savKey}_message`),
+      action: t(`${savKey}_action`),
       priority: insightsData.savings[savingsStatus].priority as PriorityLevel,
       status: savingsStatus,
     });
+    const debtKey = `insights.debt_${debtStatus}`;
     result.push({
       category: t("wealth.debt_label"),
-      ...insightsData.debt[debtStatus],
+      title: t(`${debtKey}_title`),
+      message: t(`${debtKey}_message`),
+      action: t(`${debtKey}_action`),
       priority: insightsData.debt[debtStatus].priority as PriorityLevel,
       status: debtStatus,
     });
@@ -125,7 +134,7 @@ export function SmartInsights({
                   color: topColor,
                 }}
               >
-                {getStatusLabel(topInsight.status)}
+                {t(`financial.score_${topInsight.status}`)}
               </span>
               <span className="text-xs font-medium" style={{ color: topColor }}>
                 {topInsight.action}
@@ -165,7 +174,7 @@ export function SmartInsights({
                       color: c,
                     }}
                   >
-                    {getStatusLabel(insight.status)}
+                    {t(`financial.score_${insight.status}`)}
                   </span>
                   <span className="text-xs font-medium" style={{ color: c }}>
                     {insight.action}

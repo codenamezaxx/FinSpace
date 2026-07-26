@@ -51,7 +51,7 @@ export interface UseFinnyChatResult {
   isLoading: boolean;
   isOffline: boolean;
   error: string | null;
-  sendMessage: (text: string, pockets?: PocketInfo[]) => Promise<void>;
+  sendMessage: (text: string, pockets?: PocketInfo[], language?: string) => Promise<void>;
   clearMessages: () => void;
   dismissError: () => void;
 }
@@ -75,7 +75,7 @@ export function useFinnyChat(): UseFinnyChatResult {
   }, []);
 
   const sendMessage = useCallback(
-    async (text: string, pockets?: PocketInfo[]) => {
+    async (text: string, pockets?: PocketInfo[], language?: string) => {
       if (!text.trim() || isLoading) return;
 
       const userMsg: FinnyMessage = {
@@ -104,7 +104,9 @@ export function useFinnyChat(): UseFinnyChatResult {
         const offlineMsg: FinnyMessage = {
           id: generateId(),
           role: "assistant",
-          content: "Pesanmu sudah masuk antrean. Aku akan proses saat online kembali ya! 🙏",
+          content: language === "en"
+            ? "Your message has been queued. I'll process it when you're back online! 🙏"
+            : "Pesanmu sudah masuk antrean. Aku akan proses saat online kembali ya! 🙏",
           action: "chat",
         };
         setMessages((prev) => [...prev, offlineMsg]);
@@ -125,6 +127,7 @@ export function useFinnyChat(): UseFinnyChatResult {
           body: JSON.stringify({
             messages: history,
             pockets: pockets ?? [],
+            language: language ?? "id",
           }),
           signal: abortRef.current.signal,
         });
@@ -153,7 +156,9 @@ export function useFinnyChat(): UseFinnyChatResult {
           throw new Error(
             typeof errData.error === "string"
               ? errData.error
-              : "Gagal terhubung ke Finny"
+              : language === "en"
+                ? "Failed to connect to Finny"
+                : "Gagal terhubung ke Finny"
           );
         }
 
@@ -187,7 +192,9 @@ export function useFinnyChat(): UseFinnyChatResult {
           role: "assistant",
           content:
             (parsed?.message ?? fullContent) ||
-            "Maaf, sepertinya ada gangguan. Coba tanya lagi ya! 🙏",
+            (language === "en"
+              ? "Sorry, something went wrong. Please ask again! 🙏"
+              : "Maaf, sepertinya ada gangguan. Coba tanya lagi ya! 🙏"),
           action: parsed?.action,
           data: parsed?.data,
           missingFields: parsed?.missing_fields,
@@ -204,13 +211,18 @@ export function useFinnyChat(): UseFinnyChatResult {
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
         const errorMsg =
-          (err as Error).message || "Maaf, ada masalah koneksi. Coba lagi ya!";
+          (err as Error).message ||
+          (language === "en"
+            ? "Sorry, connection issue. Please try again!"
+            : "Maaf, ada masalah koneksi. Coba lagi ya!");
         setError(errorMsg);
 
         const errAiMsg: FinnyMessage = {
           id: `ai_${userMsg.id}`,
           role: "assistant",
-          content: "Maaf, aku lagi bermasalah. Coba lagi ya! 🙏",
+          content: language === "en"
+            ? "Sorry, I'm having trouble. Please try again! 🙏"
+            : "Maaf, aku lagi bermasalah. Coba lagi ya! 🙏",
           action: "chat",
         };
         setMessages((prev) => [...prev, errAiMsg]);

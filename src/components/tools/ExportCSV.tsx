@@ -93,7 +93,7 @@ export function ExportCSV() {
   /* ── PDF Download ── */
 
   const handleDownloadPdf = () => {
-    generateMonthlyReportPdf(transactions, selectedMonth, selectedYear);
+    generateMonthlyReportPdf(transactions, selectedMonth, selectedYear, t);
   };
 
   return (

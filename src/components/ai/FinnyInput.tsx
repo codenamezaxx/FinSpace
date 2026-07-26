@@ -2,6 +2,7 @@
 
 import { useState, useCallback, type FC, type KeyboardEvent } from "react";
 import { Send, WifiOff, Camera } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface FinnyInputProps {
   onSend: (text: string) => void;
@@ -11,6 +12,7 @@ interface FinnyInputProps {
 }
 
 const FinnyInput: FC<FinnyInputProps> = ({ onSend, isLoading, isOffline, onScan }) => {
+  const { t } = useLanguage();
   const [text, setText] = useState("");
 
   const handleSend = useCallback(() => {
@@ -44,7 +46,7 @@ const FinnyInput: FC<FinnyInputProps> = ({ onSend, isLoading, isOffline, onScan 
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Ketik pesan..."
+        placeholder={t("ai.input_placeholder")}
         disabled={isLoading}
         className="flex-1 bg-surface text-text-primary placeholder-text-muted rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
         maxLength={1000}
@@ -55,7 +57,7 @@ const FinnyInput: FC<FinnyInputProps> = ({ onSend, isLoading, isOffline, onScan 
           onClick={onScan}
           disabled={isLoading}
           className="flex items-center justify-center w-10 h-10 rounded-full bg-surface text-text-secondary cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors hover:bg-border"
-          aria-label="Scan struk"
+          aria-label={t("ai.scan_receipt")}
         >
           <Camera className="w-4 h-4" />
         </button>
@@ -64,7 +66,7 @@ const FinnyInput: FC<FinnyInputProps> = ({ onSend, isLoading, isOffline, onScan 
         onClick={handleSend}
         disabled={!canSend}
         className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
-        aria-label="Kirim pesan"
+        aria-label={t("ai.send_message")}
       >
         <Send className="w-4 h-4" />
       </button>

@@ -10,7 +10,9 @@ interface HealthScoreRingProps {
 export function HealthScoreRing({ score }: HealthScoreRingProps) {
   const { t } = useLanguage();
   const color = scoreToColor(score);
-  const label = scoreToLabel(score);
+  const rawLabel = scoreToLabel(score);
+  const labelKey = rawLabel === "Aman" ? "financial.score_safe" : rawLabel === "Waspada" ? "financial.score_warning" : "financial.score_danger";
+  const label = t(labelKey);
 
   /* ── SVG ring ── */
   const size = 184;

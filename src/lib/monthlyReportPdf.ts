@@ -2,12 +2,9 @@ import { jsPDF } from "jspdf";
 import autoTable, { type UserOptions } from "jspdf-autotable";
 import type { Transaction } from "@/lib/db";
 
-/* ─── Helpers ─── */
+type TranslateFn = (key: string, vars?: Record<string, string | number>) => string;
 
-const INDONESIAN_MONTHS = [
-  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-  "Juli", "Agustus", "September", "Oktober", "November", "Desember",
-];
+/* ─── Helpers ─── */
 
 function fmtRp(n: number): string {
   return `Rp ${n.toLocaleString("id-ID")}`;
@@ -43,7 +40,8 @@ function aggregate(transactions: Transaction[], type: "income" | "expense"): Agg
 export function generateMonthlyReportPdf(
   transactions: Transaction[],
   month: number,
-  year: number
+  year: number,
+  t: TranslateFn
 ): void {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const PAGE_W = 210;
@@ -53,9 +51,10 @@ export function generateMonthlyReportPdf(
   const incomeAgg = aggregate(transactions, "income");
   const expenseAgg = aggregate(transactions, "expense");
   const net = incomeAgg.total - expenseAgg.total;
-  const monthName = INDONESIAN_MONTHS[month - 1];
+  const monthsArr = t("tools.months_array").split(",");
+  const monthName = monthsArr[month - 1];
   const now = new Date();
-  const nowStr = now.toLocaleDateString("id-ID", {
+  const nowStr = now.toLocaleDateString("en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -92,7 +91,7 @@ export function generateMonthlyReportPdf(
   doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 41, 59);
-  doc.text("LAPORAN KEUANGAN BULANAN", PAGE_W / 2, y + 12, {
+  doc.text(t("pdf_report.title"), PAGE_W / 2, y + 12, {
     align: "center",
   });
   y += 18;
@@ -100,16 +99,16 @@ export function generateMonthlyReportPdf(
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...grayColor);
-  doc.text(`Periode: ${monthName} ${year}`, PAGE_W / 2, y, { align: "center" });
+  doc.text(t("pdf_report.period", { month: monthName, year }), PAGE_W / 2, y, { align: "center" });
   y += 7;
-  doc.text(`Dibuat: ${nowStr}`, PAGE_W / 2, y, { align: "center" });
+  doc.text(t("pdf_report.created", { date: nowStr }), PAGE_W / 2, y, { align: "center" });
   y += 14;
 
   /* ═══════════════════════════════════════════════════════════════
      2. RINGKASAN KEUANGAN
      ═══════════════════════════════════════════════════════════════ */
 
-  sectionTitle("Ringkasan Keuangan");
+  sectionTitle(t("pdf_report.summary"));
 
   const grandTotal = incomeAgg.total + expenseAgg.total;
   const incomePct = grandTotal > 0 ? ((incomeAgg.total / grandTotal) * 100).toFixed(1) : "0";
@@ -120,12 +119,12 @@ export function generateMonthlyReportPdf(
     margin: { left: MARGIN, right: MARGIN },
     tableWidth: CONTENT_W,
     theme: "grid",
-    head: [["", "Jumlah", "Proporsi"]],
+    head: [["", t("pdf_report.amount"), t("pdf_report.percentage")]],
     body: [
-      ["Pemasukan", fmtRp(incomeAgg.total), incomePct + "%"],
-      ["Pengeluaran", fmtRp(expenseAgg.total), expensePct + "%"],
-      ["Saldo Bersih", fmtRp(net), net >= 0 ? "Surplus" : "Defisit"],
-      ["Jumlah Transaksi", `${transactions.length} transaksi`, ""],
+      [t("pdf_report.income"), fmtRp(incomeAgg.total), incomePct + "%"],
+      [t("pdf_report.expenses"), fmtRp(expenseAgg.total), expensePct + "%"],
+      [t("pdf_report.net_balance"), fmtRp(net), net >= 0 ? t("pdf_report.surplus") : t("pdf_report.deficit")],
+      [t("pdf_report.total_transactions"), `${transactions.length} ${t("pdf_report.transactions_suffix")}`, ""],
     ],
     headStyles: {
       fillColor: primaryColor,
@@ -160,7 +159,7 @@ export function generateMonthlyReportPdf(
      ═══════════════════════════════════════════════════════════════ */
 
   if (incomeAgg.total > 0) {
-    sectionTitle("Rincian Pemasukan per Kategori");
+    sectionTitle(t("pdf_report.income_by_category"));
 
     const sortedIncome = Object.entries(incomeAgg.byCategory).sort(
       (a, b) => b[1] - a[1]
@@ -170,14 +169,14 @@ export function generateMonthlyReportPdf(
       fmtRp(amt),
       ((amt / incomeAgg.total) * 100).toFixed(1) + "%",
     ]);
-    incomeRows.push(["TOTAL PEMASUKAN", fmtRp(incomeAgg.total), "100%"]);
+    incomeRows.push([t("pdf_report.total_income"), fmtRp(incomeAgg.total), "100%"]);
 
     autoTable(doc, {
       startY: y,
       margin: { left: MARGIN, right: MARGIN },
       tableWidth: CONTENT_W,
       theme: "grid",
-      head: [["Kategori", "Jumlah", "Persentase"]],
+      head: [[t("pdf_report.category"), t("pdf_report.amount"), t("pdf_report.percentage")]],
       body: incomeRows,
       headStyles: {
         fillColor: successColor,
@@ -202,7 +201,7 @@ export function generateMonthlyReportPdf(
      ═══════════════════════════════════════════════════════════════ */
 
   if (expenseAgg.total > 0) {
-    sectionTitle("Rincian Pengeluaran per Kategori");
+    sectionTitle(t("pdf_report.expense_by_category"));
 
     const sortedExpense = Object.entries(expenseAgg.byCategory).sort(
       (a, b) => b[1] - a[1]
@@ -212,14 +211,14 @@ export function generateMonthlyReportPdf(
       fmtRp(amt),
       ((amt / expenseAgg.total) * 100).toFixed(1) + "%",
     ]);
-    expenseRows.push(["TOTAL PENGELUARAN", fmtRp(expenseAgg.total), "100%"]);
+    expenseRows.push([t("pdf_report.total_expenses"), fmtRp(expenseAgg.total), "100%"]);
 
     autoTable(doc, {
       startY: y,
       margin: { left: MARGIN, right: MARGIN },
       tableWidth: CONTENT_W,
       theme: "grid",
-      head: [["Kategori", "Jumlah", "Persentase"]],
+      head: [[t("pdf_report.category"), t("pdf_report.amount"), t("pdf_report.percentage")]],
       body: expenseRows,
       headStyles: {
         fillColor: dangerColor,
@@ -249,7 +248,7 @@ export function generateMonthlyReportPdf(
     .slice(0, 5);
 
   if (topExpenses.length > 0) {
-    sectionTitle("5 Pengeluaran Terbesar");
+    sectionTitle(t("pdf_report.top_5_expenses"));
 
     const topRows = topExpenses.map((t, i) => [
       String(i + 1),
@@ -264,7 +263,7 @@ export function generateMonthlyReportPdf(
       margin: { left: MARGIN, right: MARGIN },
       tableWidth: CONTENT_W,
       theme: "grid",
-      head: [["No", "Merchant", "Tanggal", "Kategori", "Jumlah"]],
+      head: [[t("pdf_report.no"), t("pdf_report.merchant"), t("pdf_report.date"), t("pdf_report.category"), t("pdf_report.amount")]],
       body: topRows,
       headStyles: {
         fillColor: primaryColor,
@@ -290,16 +289,16 @@ export function generateMonthlyReportPdf(
      ═══════════════════════════════════════════════════════════════ */
 
   if (transactions.length > 0) {
-    sectionTitle("Rincian Transaksi");
+    sectionTitle(t("pdf_report.transaction_detail"));
 
     const sorted = [...transactions].sort((a, b) => b.timestamp - a.timestamp);
-    const detailRows = sorted.map((t) => [
-      fmtDate(t.timestamp),
-      t.type === "income" ? "Pemasukan" : "Pengeluaran",
-      t.category,
-      t.merchant,
-      fmtRp(t.amount),
-      t.payment_method,
+    const detailRows = sorted.map((tx) => [
+      fmtDate(tx.timestamp),
+      tx.type === "income" ? t("pdf_report.income_type") : t("pdf_report.expense_type"),
+      tx.category,
+      tx.merchant,
+      fmtRp(tx.amount),
+      tx.payment_method,
     ]);
 
     autoTable(doc, {
@@ -307,7 +306,7 @@ export function generateMonthlyReportPdf(
       margin: { left: MARGIN, right: MARGIN },
       tableWidth: CONTENT_W,
       theme: "grid",
-      head: [["Tanggal", "Tipe", "Kategori", "Merchant", "Jumlah", "Pembayaran"]],
+      head: [[t("pdf_report.date"), t("pdf_report.type"), t("pdf_report.category"), t("pdf_report.merchant"), t("pdf_report.amount"), t("pdf_report.payment")]],
       body: detailRows,
       headStyles: {
         fillColor: primaryColor,
@@ -326,7 +325,7 @@ export function generateMonthlyReportPdf(
       },
       didParseCell(data) {
         if (data.section === "body" && data.column.index === 1) {
-          if (data.cell.text[0] === "Pemasukan") {
+          if (data.cell.text[0] === t("pdf_report.income_type")) {
             data.cell.styles.textColor = successColor;
           } else {
             data.cell.styles.textColor = dangerColor;
@@ -335,9 +334,9 @@ export function generateMonthlyReportPdf(
         if (data.section === "body" && data.column.index === 4) {
           // Find original transaction to color amount
           const rowIdx = data.row.index;
-          const t = sorted[rowIdx];
-          if (t) {
-            data.cell.styles.textColor = t.type === "income" ? successColor : dangerColor;
+          const tx = sorted[rowIdx];
+          if (tx) {
+            data.cell.styles.textColor = tx.type === "income" ? successColor : dangerColor;
           }
         }
       },
@@ -358,15 +357,15 @@ export function generateMonthlyReportPdf(
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...grayColor);
   doc.text(
-    `— Akhir Laporan — ${monthName} ${year} —`,
+    t("pdf_report.report_footer", { month: monthName, year }),
     PAGE_W / 2,
     y,
     { align: "center" }
   );
   y += 4;
-  doc.text("Dihasilkan oleh FinSpace", PAGE_W / 2, y, { align: "center" });
+  doc.text(t("pdf_report.generated_by"), PAGE_W / 2, y, { align: "center" });
 
   /* ─── Save ─── */
 
-  doc.save(`FinSpace_Laporan_${monthName}_${year}.pdf`);
+  doc.save(`FinSpace_Report_${monthName}_${year}.pdf`);
 }

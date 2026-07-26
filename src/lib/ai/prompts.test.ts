@@ -44,7 +44,22 @@ describe("SYSTEM_PROMPT", () => {
     expect(SYSTEM_PROMPT).toContain("other");
   });
 
-  it("buildSystemPrompt returns the prompt", () => {
-    expect(buildSystemPrompt()).toBe(SYSTEM_PROMPT);
+  it("buildSystemPrompt returns the prompt with default Indonesian instruction", () => {
+    const result = buildSystemPrompt();
+    expect(result).toContain(SYSTEM_PROMPT);
+    expect(result).toContain("Kamu WAJIB merespon dalam Bahasa Indonesia");
+  });
+
+  it("buildSystemPrompt appends English instruction when language is 'en'", () => {
+    const result = buildSystemPrompt(undefined, "en");
+    expect(result).toContain(SYSTEM_PROMPT);
+    expect(result).toContain("You MUST respond in English");
+  });
+
+  it("buildSystemPrompt includes pocket section and language instruction when pockets given", () => {
+    const result = buildSystemPrompt(["BCA", "Tunai"], "en");
+    expect(result).toContain("BCA");
+    expect(result).toContain("Tunai");
+    expect(result).toContain("You MUST respond in English");
   });
 });

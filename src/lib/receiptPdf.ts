@@ -1,6 +1,8 @@
 import { jsPDF } from "jspdf";
 import type { Transaction } from "@/lib/db";
 
+type TranslateFn = (key: string, vars?: Record<string, string>) => string;
+
 const MM_WIDTH = 58;
 const MARGIN_X = 4; // mm from each edge
 const USABLE_WIDTH = MM_WIDTH - MARGIN_X * 2; // ~50mm
@@ -28,7 +30,7 @@ function drawDashedLine(doc: jsPDF, y: number): void {
   doc.setLineDashPattern([], 0);
 }
 
-export function generateReceiptPdf(transaction: Transaction): void {
+export function generateReceiptPdf(transaction: Transaction, t: TranslateFn): void {
   // Pre-calculate total height so we can create the page at the correct size.
   // jsPDF positions text relative to page height at render time; trimming
   // after the fact clips the MediaBox but leaves content in the original coords.
@@ -51,7 +53,7 @@ export function generateReceiptPdf(transaction: Transaction): void {
   doc.setFontSize(8);
   doc.setFont("courier", "normal");
   doc.setTextColor(128, 128, 128);
-  doc.text("Struk Transaksi", MM_WIDTH / 2, y, { align: "center" });
+  doc.text(t("pdf_receipt.receipt_title"), MM_WIDTH / 2, y, { align: "center" });
   doc.setTextColor(0, 0, 0);
   y += 6;
 
@@ -61,12 +63,12 @@ export function generateReceiptPdf(transaction: Transaction): void {
 
   // ── Fields ──
   const fields: [string, string][] = [
-    ["Merchant", transaction.merchant],
-    ["Tanggal", formatDate(transaction.timestamp)],
-    ["Jam", formatTime(transaction.timestamp)],
-    ["Kategori", transaction.category],
-    ["Metode", transaction.payment_method],
-    ["ID", transaction.id.slice(0, 12)],
+    [t("pdf_receipt.merchant"), transaction.merchant],
+    [t("pdf_receipt.date"), formatDate(transaction.timestamp)],
+    [t("pdf_receipt.time"), formatTime(transaction.timestamp)],
+    [t("pdf_receipt.category"), transaction.category],
+    [t("pdf_receipt.method"), transaction.payment_method],
+    [t("pdf_receipt.id"), transaction.id.slice(0, 12)],
   ];
 
   doc.setFontSize(9);
@@ -88,7 +90,7 @@ export function generateReceiptPdf(transaction: Transaction): void {
   // ── Total ──
   doc.setFontSize(11);
   doc.setFont("courier", "bold");
-  doc.text("Total:", MARGIN_X, y);
+  doc.text(t("pdf_receipt.total") + ":", MARGIN_X, y);
   doc.text(formatRp(transaction.amount), MM_WIDTH - MARGIN_X, y, { align: "right" });
   y += 6;
 
@@ -100,7 +102,7 @@ export function generateReceiptPdf(transaction: Transaction): void {
   doc.setFontSize(8);
   doc.setFont("courier", "normal");
   doc.setTextColor(128, 128, 128);
-  doc.text("Terima kasih!", MM_WIDTH / 2, y, { align: "center" });
+  doc.text(t("pdf_receipt.thank_you"), MM_WIDTH / 2, y, { align: "center" });
   y += 4;
   doc.text("FinSpace App v1.0", MM_WIDTH / 2, y, { align: "center" });
   y += 6;
