@@ -162,8 +162,12 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
   - [x] Server Components — add `"use client"` where needed
   - [x] `translations.ts` — extend with ~60+ new keys across all namespaces
   - [x] `LanguageProvider.tsx` — add fallback `t()` for test compatibility
+  - [x] Round 2: Add ~80+ missing translation keys (insights, receipt, print, pdf_report, pockets, ai, financial)
+  - [x] Round 3: Translate hardcoded Indonesian strings in TransactionHistory, receiptPdf, TransactionList, dashboard/month headers
+  - [x] Finny AI: Thread language preference from client through API to system prompt builders (`buildSystemPrompt`, `buildScanPrompt`)
+  - [x] Localize API route error messages and hook fallback messages
   - [x] TypeScript compiles clean (`npx tsc --noEmit`)
-  - [x] All 114 tests pass (`npx vitest run`)
+  - [x] All 116 tests pass (`npx vitest run`)
 
 ## Phase 10: Deployment & Final Acceptance Testing
 - [ ] Build a robust suite of validation test scenarios for simulated offline state.
