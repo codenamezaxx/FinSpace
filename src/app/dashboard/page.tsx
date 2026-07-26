@@ -8,7 +8,6 @@ import {
   ArrowDownIcon,
   Plus,
   Wallet,
-  DollarSign,
   Wrench,
   Banknote,
 } from "lucide-react";
@@ -34,6 +33,7 @@ import type { HealthStatus } from "@/lib/financialRatios";
 import type { NetWorthResult, AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
 import { usePockets } from "@/hooks/usePockets";
 import { useCloudAuth } from "@/hooks/useCloudAuth";
+import { useLanguage } from "@/lib/i18n";
 
 /* ─── Dynamic import — Recharts is heavy, only load when needed ─── */
 const MonthlyChart = dynamic(
@@ -55,12 +55,12 @@ const MonthlyChart = dynamic(
 
 /* ─── Helpers ─── */
 
-function getGreeting(): string {
+function getGreeting(t: (key: string) => string): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Selamat Pagi";
-  if (hour < 15) return "Selamat Siang";
-  if (hour < 18) return "Selamat Sore";
-  return "Selamat Malam";
+  if (hour < 12) return t("topbar.greeting_morning");
+  if (hour < 15) return t("topbar.greeting_afternoon");
+  if (hour < 18) return t("topbar.greeting_evening");
+  return t("topbar.greeting_night");
 }
 
 /* ─── Skeletons ─── */
@@ -123,6 +123,7 @@ function TransactionSkeleton() {
 /* ─── Page ─── */
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   const { user } = useCloudAuth();
   const { openAddTransaction } = useTransactionModal();
   const { openAssetLiabilityModal } = useAssetLiabilityModal();
@@ -132,12 +133,12 @@ export default function DashboardPage() {
     now.getMonth(),
     1
   ).getTime();
-  // Transaksi bulan ini untuk pemasukan/pengeluaran
+  // Monthly transactions for income/expense
   const { transactions, loading } = useTransactions({
     startTime: startOfMonth,
   });
 
-  // Semua transaksi (all-time) untuk total saldo kumulatif
+  // All transactions for cumulative balance
   const { transactions: allTransactions } = useTransactions();
 
   /* ── All transactions for 12-month chart ── */
@@ -179,7 +180,6 @@ export default function DashboardPage() {
     savingsStatus,
     debtStatus,
   } = useMemo(() => {
-    // Pemasukan/pengeluaran bulan ini
     const incomeTotal = transactions
       .filter((t) => t.type === "income")
       .reduce((sum, t) => sum + t.amount, 0);
@@ -188,7 +188,6 @@ export default function DashboardPage() {
       .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
 
-    // Total saldo kumulatif dari semua transaksi (all-time)
     const allTimeIncome = allTransactions
       .filter((t) => t.type === "income")
       .reduce((sum, t) => sum + t.amount, 0);
@@ -197,7 +196,6 @@ export default function DashboardPage() {
       .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
 
-    // Cicilan dihitung dari kewajiban utang, bukan pembayaran aktual (PRD §3 Modul C)
     const debtPayments = totalMonthlyDebtObligation(debtsList);
 
     const ratios = calculateAllRatios(
@@ -257,10 +255,10 @@ export default function DashboardPage() {
       <div className="hidden lg:flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary lg:text-3xl">
-            {getGreeting()}, {user?.name ?? "Pengguna"}!
+            {getGreeting(t)}, {user?.name ?? t("profile.user")}!
           </h1>
           <p className="mt-2 text-sm text-text-muted">
-            Berikut adalah ringkasan keuangan Anda
+            {t("dashboard.summary")}
           </p>
         </div>
         <p className="hidden text-right text-sm text-text-muted font-mono lg:block">
@@ -284,7 +282,7 @@ export default function DashboardPage() {
               }}
             >
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Total Saldo
+                {t("dashboard.total_balance")}
               </p>
               <div className="mt-3 flex items-baseline gap-3">
                 <p className="text-3xl font-bold text-text-primary">
@@ -302,18 +300,18 @@ export default function DashboardPage() {
                   ) : (
                     <ArrowDownIcon className="h-3.5 w-3.5" />
                   )}
-                  {isPositive ? "Positif" : "Negatif"}
+                  {isPositive ? t("dashboard.positive") : t("dashboard.negative")}
                 </div>
               </div>
               <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
                 <div>
-                  <p className="font-mono text-xs text-text-muted">Pemasukan</p>
+                  <p className="font-mono text-xs text-text-muted">{t("dashboard.income")}</p>
                   <p className="mt-1 font-mono text-lg font-semibold text-success">
                     {formatCurrency(income)}
                   </p>
                 </div>
                 <div>
-                  <p className="font-mono text-xs text-text-muted">Pengeluaran</p>
+                  <p className="font-mono text-xs text-text-muted">{t("dashboard.expense")}</p>
                   <p className="mt-1 font-mono text-lg font-semibold text-danger">
                     {formatCurrency(expenses)}
                   </p>
@@ -350,7 +348,7 @@ export default function DashboardPage() {
           }}
         >
           <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-            Total Saldo
+            {t("dashboard.total_balance")}
            </p>
            <div className="mt-3 flex items-baseline gap-3">
              <p className="text-3xl font-bold text-text-primary">
@@ -368,18 +366,18 @@ export default function DashboardPage() {
                ) : (
                  <ArrowDownIcon className="h-3.5 w-3.5" />
                )}
-               {isPositive ? "Positif" : "Negatif"}
+               {isPositive ? t("dashboard.positive") : t("dashboard.negative")}
              </div>
            </div>
            <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
              <div>
-               <p className="font-mono text-xs text-text-muted">Pemasukan</p>
+               <p className="font-mono text-xs text-text-muted">{t("dashboard.income")}</p>
                <p className="mt-1 font-mono text-lg font-semibold text-success">
                  {formatCurrency(income)}
                </p>
              </div>
              <div>
-               <p className="font-mono text-xs text-text-muted">Pengeluaran</p>
+               <p className="font-mono text-xs text-text-muted">{t("dashboard.expense")}</p>
               <p className="mt-1 font-mono text-lg font-semibold text-danger">
                 {formatCurrency(expenses)}
               </p>
@@ -412,7 +410,7 @@ export default function DashboardPage() {
               className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-4 text-sm font-bold text-white cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
             >
               <Plus className="h-5 w-5" />
-              Transaksi Baru
+              {t("dashboard.new_transaction")}
             </button>
             <button
               type="button"
@@ -420,7 +418,7 @@ export default function DashboardPage() {
               className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3 text-sm font-semibold text-primary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-accent-secondary/15"
             >
               <Banknote className="h-5 w-5" />
-              Tambah Aset / Liabilitas
+              {t("dashboard.add_asset_liability")}
             </button>
           </div>
 
@@ -429,27 +427,27 @@ export default function DashboardPage() {
               href="/budget"
               className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
-              <Wallet className="h-5 w-5 text-accent-secondary" />
+              <Wallet className="h-5 w-5 text-primary" />
               <span className="text-[11px] font-semibold text-text-secondary">
-                Anggaran
+                {t("nav.budget")}
               </span>
             </Link>
             <Link
               href="/wealth"
               className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
-              <DollarSign className="h-5 w-5 text-success" />
+              <Banknote className="h-5 w-5 text-success" />
               <span className="text-[11px] font-semibold text-text-secondary">
-                Kekayaan
+                {t("nav.wealth")}
               </span>
             </Link>
             <Link
               href="/tools"
               className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
-              <Wrench className="h-5 w-5 text-text-secondary" />
+              <Wrench className="h-5 w-5 text-accent-secondary" />
               <span className="text-[11px] font-semibold text-text-secondary">
-                Alat
+                {t("nav.tools")}
               </span>
             </Link>
           </div>

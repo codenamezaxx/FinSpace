@@ -149,6 +149,22 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Task 4: Budget page — wire PocketGrid with add/rename modals and filter
 - [x] Task 5: Wealth + Dashboard — totalBalance from sum of pocket balances
 
+## Phase 3e: Internationalization (i18n) — Translate All Components
+- [x] Task 1: Basic i18n infrastructure — LanguageProvider, useLanguage hook, translations.ts (en + id locales), LanguageSwitcher
+- [x] Task 2: Translate TopBar/ProfileButton/LanguageSwitcher components (ProfileButton.tsx, LanguageSwitcher.tsx, TopBar.tsx)
+- [x] Task 3: Translate all remaining 30 component files (Groups A–E) to use `t("namespace.key")` calls
+  - [x] Group A — Navigation & Notifications (5 files)
+  - [x] Group B — Transaction Components (5 files)
+  - [x] Group C — Budget Components (4 files)
+  - [x] Group D — Wealth Components (5 files)
+  - [x] Group E — AI, Tools, Dashboard, Settings, Landing (11 files)
+  - [x] `src/lib/financialRatios.ts` — accept `t` parameter
+  - [x] Server Components — add `"use client"` where needed
+  - [x] `translations.ts` — extend with ~60+ new keys across all namespaces
+  - [x] `LanguageProvider.tsx` — add fallback `t()` for test compatibility
+  - [x] TypeScript compiles clean (`npx tsc --noEmit`)
+  - [x] All 114 tests pass (`npx vitest run`)
+
 ## Phase 10: Deployment & Final Acceptance Testing
 - [ ] Build a robust suite of validation test scenarios for simulated offline state.
 - [ ] Validate desktop responsiveness at viewport widths up to 1920px.

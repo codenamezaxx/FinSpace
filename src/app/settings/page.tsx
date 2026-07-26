@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useCloudAuth } from "@/hooks/useCloudAuth";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { db } from "@/lib/db";
+import { useLanguage } from "@/lib/i18n";
 
 interface SyncLogEntry {
   time: string;
@@ -13,6 +14,7 @@ interface SyncLogEntry {
 }
 
 export default function SettingsPage() {
+  const { t } = useLanguage();
   const { user, isLoggedIn, isLoading, login, logout } = useCloudAuth();
   const sync = useSyncStatus();
   const [syncLog, setSyncLog] = useState<SyncLogEntry[]>([]);
@@ -26,16 +28,16 @@ export default function SettingsPage() {
       const time = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
       const label =
         sync.phase === "pushing" || sync.phase === "pulling"
-          ? "Menyinkronkan..."
+          ? t("settings.syncing")
           : sync.phase === "error"
-            ? "Gagal sinkron"
+            ? t("settings.sync_failed")
             : sync.phase === "completed"
-              ? "Tersinkronisasi"
+              ? t("settings.synced")
               : sync.phase;
       setSyncLog((prev) => [{ time, phase: label }, ...prev].slice(0, 20));
       prevPhase.current = sync.phase;
     }
-  }, [sync.phase]);
+  }, [sync.phase, t]);
 
   // ── Force sync ──
   const forceSync = useCallback(async () => {
@@ -45,11 +47,11 @@ export default function SettingsPage() {
     } catch {
       const now = new Date();
       const time = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      setSyncLog((prev) => [{ time, phase: "Gagal sinkron" }, ...prev].slice(0, 20));
+      setSyncLog((prev) => [{ time, phase: t("settings.sync_failed") }, ...prev].slice(0, 20));
     } finally {
       setSyncing(false);
     }
-  }, []);
+  }, [t]);
 
   // ── Progress bar ──
   const progressPercent = sync.progress != null ? Math.round(sync.progress * 100) : null;
@@ -67,12 +69,12 @@ export default function SettingsPage() {
 
   const statusLabel =
     syncDisabled
-      ? "Sinkronisasi nonaktif"
+      ? t("settings.sync_disabled")
       : sync.status === "syncing"
-        ? "Menyinkronkan..."
+        ? t("settings.syncing")
         : sync.status === "offline"
-          ? "Offline"
-          : "Tersinkronisasi";
+          ? t("profile.offline")
+          : t("settings.synced");
 
   return (
     <div className="mx-auto px-4 py-2">
@@ -82,22 +84,22 @@ export default function SettingsPage() {
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text-primary"
       >
         <ArrowLeft className="h-4 w-4" />
-        Kembali
+        {t("settings.back")}
       </Link>
 
-      <h1 className="mb-1 text-2xl font-bold text-text-primary">Pengaturan</h1>
+      <h1 className="mb-1 text-2xl font-bold text-text-primary">{t("settings.title")}</h1>
       <p className="mb-8 text-sm text-text-muted">
-        Kelola sinkronisasi cloud dan akun Anda
+        {t("settings.manage_sync")}
       </p>
 
       {/* ── Sync status card ── */}
       <div className="mb-4 rounded-2xl border border-border bg-surface p-5">
         <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-text-primary">
           <Cloud className="h-5 w-5 text-primary" />
-          Sinkronisasi Cloud
+          {t("settings.cloud_sync_description")}
         </h2>
 
-        {/* Status indikator */}
+        {/* Status indicator */}
         <div className="mb-4 flex items-center gap-2">
           <span className={`h-2.5 w-2.5 rounded-full ${statusColor}`} />
           <span className="text-sm font-medium text-text-primary">{statusLabel}</span>
@@ -117,18 +119,18 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Akun info */}
+        {/* Account info */}
         {isLoggedIn && user && (
           <div className="mb-4 rounded-xl bg-surface-alt p-3">
-            <p className="text-xs text-text-muted">Masuk sebagai</p>
+            <p className="text-xs text-text-muted">{t("settings.logged_in_as")}</p>
             <p className="text-sm font-medium text-text-primary">{user.name}</p>
             <p className="text-xs text-text-muted font-mono">{user.email}</p>
           </div>
         )}
         {!isLoggedIn && !isLoading && (
           <div className="mb-4 rounded-xl bg-surface-alt p-3">
-            <p className="text-xs text-text-muted">Belum masuk</p>
-            <p className="text-sm text-text-muted">Data akan tersinkronisasi setelah masuk dengan Google</p>
+            <p className="text-xs text-text-muted">{t("settings.not_logged_in")}</p>
+            <p className="text-sm text-text-muted">{t("settings.sync_info")}</p>
           </div>
         )}
         {isLoading && (
@@ -143,7 +145,7 @@ export default function SettingsPage() {
             className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-            {isSyncing ? "Menyinkronkan..." : syncDisabled ? "Masuk untuk sinkron" : "Sinkronkan Sekarang"}
+            {isSyncing ? t("settings.syncing") : syncDisabled ? t("settings.login_to_sync") : t("settings.sync_now")}
           </button>
 
           {isLoggedIn ? (
@@ -152,7 +154,7 @@ export default function SettingsPage() {
               className="flex items-center gap-1.5 rounded-xl border border-danger/30 px-4 py-2 text-sm font-medium text-danger transition-all duration-200 hover:bg-danger/10"
             >
               <LogOut className="h-4 w-4" />
-              Keluar
+              {t("settings.sign_out")}
             </button>
           ) : (
             <button
@@ -160,7 +162,7 @@ export default function SettingsPage() {
               disabled={isLoading}
               className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-sm font-medium text-text-primary transition-all duration-200 hover:bg-surface-alt disabled:opacity-50"
             >
-              Masuk dengan Google
+              {t("settings.sign_in_google")}
             </button>
           )}
         </div>
@@ -170,12 +172,12 @@ export default function SettingsPage() {
       <div className="mb-4 rounded-2xl border border-border bg-surface p-5">
         <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-text-primary">
           <RefreshCw className="h-5 w-5 text-primary" />
-          Riwayat Sinkronisasi
+          {t("settings.sync_history")}
         </h2>
 
         {syncLog.length === 0 ? (
           <p className="text-sm text-text-muted">
-            Belum ada aktivitas sinkronisasi di sesi ini.
+            {t("settings.no_sync_activity")}
           </p>
         ) : (
           <div className="space-y-1">
@@ -186,11 +188,11 @@ export default function SettingsPage() {
                 </span>
                 <span
                   className={`font-mono text-xs ${
-                    entry.phase === "Tersinkronisasi"
+                    entry.phase === t("settings.synced")
                       ? "text-success"
-                      : entry.phase === "Gagal sinkron"
+                      : entry.phase === t("settings.sync_failed")
                         ? "text-danger"
-                        : entry.phase === "Menyinkronkan..."
+                        : entry.phase === t("settings.syncing")
                           ? "text-primary"
                           : "text-text-muted"
                   }`}
@@ -207,13 +209,11 @@ export default function SettingsPage() {
       <div className="rounded-2xl border border-border bg-surface p-5">
         <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-text-primary">
           <Info className="h-5 w-5 text-primary" />
-          Informasi
+          {t("settings.about")}
         </h2>
         <div className="space-y-2 text-xs text-text-muted">
           <p>
-            Data Anda disimpan secara lokal di perangkat ini dan disinkronkan secara
-            otomatis ke cloud saat Anda masuk. Sinkronisasi berjalan di latar belakang
-            tanpa mengganggu aktivitas Anda.
+            {t("settings.info_text")}
           </p>
         </div>
       </div>

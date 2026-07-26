@@ -8,6 +8,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/netWorth";
+import { useLanguage } from "@/lib/i18n";
 
 interface NetWorthCardProps {
   totalBalance: number;
@@ -27,11 +28,13 @@ export function NetWorthCard({
   totalLiabilities,
   totalDebts,
   netWorth,
-  title = "Kekayaan Bersih",
+  title: titleProp,
   className = "",
   style,
   collapsible = false,
 }: NetWorthCardProps) {
+  const { t } = useLanguage();
+  const title = titleProp ?? t("wealth.net_worth");
   const isPositive = netWorth >= 0;
   const [showDetail, setShowDetail] = useState(false);
 
@@ -60,7 +63,7 @@ export function NetWorthCard({
           ) : (
             <ArrowDownIcon className="h-3.5 w-3.5" />
           )}
-          {isPositive ? "Positif" : "Negatif"}
+          {isPositive ? t("dashboard.positive") : t("dashboard.negative")}
         </div>
       </div>
 
@@ -73,7 +76,7 @@ export function NetWorthCard({
             className="mt-4 flex w-full items-center justify-between rounded-lg border border-border bg-surface-alt px-4 py-2.5 text-left transition-colors hover:bg-surface"
           >
             <p className="font-mono text-xs font-medium text-text-secondary">
-              Detail Kekayaan Bersih
+              {t("wealth.net_worth_detail")}
             </p>
             <ChevronDown
               className={`h-4 w-4 text-text-muted transition-transform duration-200 ${
@@ -90,25 +93,25 @@ export function NetWorthCard({
             <div className="overflow-hidden">
               <div className="space-y-2 border-t border-border pt-4">
                 <BreakdownRow
-                  label="Saldo Tercatat"
+                  label={t("wealth.recorded_balance")}
                   value={totalBalance}
                   color="text-success"
                 >
                   <Banknote className="h-3.5 w-3.5 text-text-muted" />
                 </BreakdownRow>
                 <BreakdownRow
-                  label="Total Aset"
+                  label={t("wealth.total_assets")}
                   value={totalAssets}
                   color="text-success"
                 />
                 <BreakdownRow
-                  label="Total Liabilitas"
+                  label={t("wealth.total_liabilities")}
                   value={totalLiabilities}
                   color="text-danger"
                   negative
                 />
                 <BreakdownRow
-                  label="Total Utang"
+                  label={t("wealth.total_debts")}
                   value={totalDebts}
                   color="text-danger"
                   negative
@@ -116,7 +119,7 @@ export function NetWorthCard({
                 <div className="border-t border-border pt-2">
                   <div className="flex items-center justify-between">
                     <p className="font-mono text-xs font-bold text-text-primary">
-                      Kekayaan Bersih
+                      {t("wealth.net_worth")}
                     </p>
                     <p
                       className={`font-mono text-base font-bold ${
@@ -136,25 +139,25 @@ export function NetWorthCard({
           {/* Full breakdown (wealth page) */}
           <div className="mt-5 space-y-2 border-t border-border pt-4">
             <BreakdownRow
-              label="Saldo Tercatat"
+              label={t("wealth.recorded_balance")}
               value={totalBalance}
               color="text-success"
             >
               <Banknote className="h-3.5 w-3.5 text-text-muted" />
             </BreakdownRow>
             <BreakdownRow
-              label="Total Aset"
+              label={t("wealth.total_assets")}
               value={totalAssets}
               color="text-success"
             />
             <BreakdownRow
-              label="Total Liabilitas"
+              label={t("wealth.total_liabilities")}
               value={totalLiabilities}
               color="text-danger"
               negative
             />
             <BreakdownRow
-              label="Total Utang"
+              label={t("wealth.total_debts")}
               value={totalDebts}
               color="text-danger"
               negative

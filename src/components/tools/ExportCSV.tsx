@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { Download, FileDown, FileText } from "lucide-react";
 import { useTransactions } from "@/hooks/useTransactions";
 import { generateMonthlyReportPdf } from "@/lib/monthlyReportPdf";
+import { useLanguage } from "@/lib/i18n";
 
 const INDONESIAN_MONTHS = [
   "Januari",
@@ -46,6 +47,7 @@ function csvCell(v: string | number): string {
 /* ─── component ─── */
 
 export function ExportCSV() {
+  const { t } = useLanguage();
   const [selectedMonth, setSelectedMonth] = useState(CURRENT_MONTH);
   const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
 
@@ -65,17 +67,24 @@ export function ExportCSV() {
   /* ── CSV Download ── */
 
   const handleDownloadCsv = () => {
-    const header = ["Tanggal", "Tipe", "Kategori", "Merchant", "Jumlah", "Metode Pembayaran"];
+    const header = [
+      t("transaction.date"),
+      t("transaction.type"),
+      t("transaction.category"),
+      t("transaction.merchant"),
+      t("transaction.amount"),
+      t("transaction.payment_method"),
+    ];
     const rows = [...transactions]
       .sort((a, b) => b.timestamp - a.timestamp)
-      .map((t) =>
+      .map((tx) =>
         [
-          fmtDate(t.timestamp),
-          t.type === "income" ? "Pemasukan" : "Pengeluaran",
-          t.category,
-          t.merchant,
-          t.amount,
-          t.payment_method,
+          fmtDate(tx.timestamp),
+          tx.type === "income" ? t("transaction.income") : t("transaction.expense"),
+          tx.category,
+          tx.merchant,
+          tx.amount,
+          tx.payment_method,
         ]
           .map((c) => csvCell(c))
           .join(",")
@@ -104,17 +113,17 @@ export function ExportCSV() {
   return (
     <div className="glass rounded-2xl p-5">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-        Ekspor Data
+        {t("tools.export_csv")}
       </h2>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        {/* Bulan */}
+        {/* Month */}
         <div>
           <label
             htmlFor="export-bulan"
             className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted"
           >
-            Bulan
+            {t("tools.monthly_saving")}
           </label>
           <select
             id="export-bulan"
@@ -130,13 +139,13 @@ export function ExportCSV() {
           </select>
         </div>
 
-        {/* Tahun */}
+        {/* Year */}
         <div>
           <label
             htmlFor="export-tahun"
             className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted"
           >
-            Tahun
+            {t("settings.version")}
           </label>
           <select
             id="export-tahun"
@@ -156,7 +165,7 @@ export function ExportCSV() {
       {/* Info */}
       {transactions.length > 0 && (
         <p className="mt-3 font-mono text-xs text-text-muted">
-          {transactions.length.toLocaleString("id-ID")} transaksi ditemukan
+          {transactions.length.toLocaleString("id-ID")} {t("search.transactions").toLowerCase()} {t("tools.monthly_report").toLowerCase()}
         </p>
       )}
 
@@ -167,7 +176,7 @@ export function ExportCSV() {
             <FileDown className="h-5 w-5 text-text-muted" />
           </div>
           <p className="mt-3 text-sm text-text-muted">
-            Belum ada transaksi di periode ini
+            {t("tools.monthly_report")}
           </p>
         </div>
       )}
@@ -180,14 +189,14 @@ export function ExportCSV() {
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface-alt px-5 py-3 font-mono text-sm font-bold text-text-primary transition-all duration-200 hover:bg-border"
           >
             <Download className="h-4 w-4 text-text-muted" />
-            Unduh CSV
+            {t("tools.export_csv")}
           </button>
           <button
             onClick={handleDownloadPdf}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-mono text-sm font-bold text-white transition-all duration-200 hover:bg-primary-hover"
           >
             <FileText className="h-4 w-4" />
-            Unduh PDF Laporan
+            {t("tools.report_title")}
           </button>
         </div>
       )}

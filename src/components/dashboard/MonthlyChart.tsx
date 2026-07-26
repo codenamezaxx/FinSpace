@@ -19,6 +19,7 @@ import {
 } from "@/lib/monthlyChart";
 import type { Transaction } from "@/lib/db";
 import type { AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
+import { useLanguage } from "@/lib/i18n";
 
 interface MonthlyChartProps {
   transactions: Transaction[];
@@ -60,32 +61,14 @@ function ChartTooltip({
 
 type ChartView = "income" | "netWorth";
 
-const VIEW_CONFIG: Record<
-  ChartView,
-  { label: string; color: string; gradientId: string; icon: typeof TrendingUp }
-> = {
-  income: {
-    label: "Pendapatan",
-    color: "var(--color-primary)",
-    gradientId: "incomeGrad",
-    icon: TrendingUp,
-  },
-  netWorth: {
-    label: "Kekayaan Bersih",
-    color: "var(--color-accent-secondary)",
-    gradientId: "netWorthGrad",
-    icon: Gauge,
-  },
-};
-
 export function MonthlyChart({
   transactions,
   assets,
   liabilities,
   debts = [],
 }: MonthlyChartProps) {
+  const { t } = useLanguage();
   const [view, setView] = useState<ChartView>("income");
-  const cfg = VIEW_CONFIG[view];
 
   const incomeData = useMemo(
     () => computeMonthlyIncome(transactions),
@@ -99,37 +82,36 @@ export function MonthlyChart({
   const chartData: MonthlyDataPoint[] =
     view === "income" ? incomeData : netWorthData;
 
-  const Icon = cfg.icon;
-
   return (
     <div className="glass rounded-2xl p-5">
       {/* ── Header ── */}
       <div className="mb-4 flex items-center gap-2.5">
-        <Icon className="h-5 w-5" style={{ color: cfg.color }} />
+        {view === "income" ? (
+          <TrendingUp className="h-5 w-5" style={{ color: "var(--color-primary)" }} />
+        ) : (
+          <Gauge className="h-5 w-5" style={{ color: "var(--color-accent-secondary)" }} />
+        )}
         <h2 className="text-sm font-semibold text-text-primary">
-          Tren Keuangan
+          {t("dashboard.cash_flow")}
         </h2>
       </div>
 
       {/* ── Toggle tabs ── */}
       <div className="mb-5 flex rounded-xl border border-border bg-surface-alt p-1">
-        {(["income", "netWorth"] as const).map((v) => {
-          const c = VIEW_CONFIG[v];
-          return (
-            <button
-              key={v}
-              type="button"
-              onClick={() => setView(v)}
-              className={`flex-1 rounded-lg py-3 text-xs font-medium transition-all duration-200 ${
-                view === v
-                  ? "bg-primary text-white shadow-md shadow-primary/25"
-                  : "text-text-muted hover:text-text-secondary"
-              }`}
-            >
-              {c.label}
-            </button>
-          );
-        })}
+        {(["income", "netWorth"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setView(v)}
+            className={`flex-1 rounded-lg py-3 text-xs font-medium transition-all duration-200 ${
+              view === v
+                ? "bg-primary text-white shadow-md shadow-primary/25"
+                : "text-text-muted hover:text-text-secondary"
+            }`}
+          >
+            {v === "income" ? t("dashboard.income") : t("dashboard.balance")}
+          </button>
+        ))}
       </div>
 
       {/* ── Chart area ── */}
@@ -140,9 +122,20 @@ export function MonthlyChart({
             margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
           >
             <defs>
-              <linearGradient id={cfg.gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={cfg.color} stopOpacity={0.3} />
-                <stop offset="95%" stopColor={cfg.color} stopOpacity={0} />
+              <linearGradient
+                id={view === "income" ? "incomeGrad" : "netWorthGrad"}
+                x1="0" y1="0" x2="0" y2="1"
+              >
+                <stop
+                  offset="5%"
+                  stopColor={view === "income" ? "var(--color-primary)" : "var(--color-accent-secondary)"}
+                  stopOpacity={0.3}
+                />
+                <stop
+                  offset="95%"
+                  stopColor={view === "income" ? "var(--color-primary)" : "var(--color-accent-secondary)"}
+                  stopOpacity={0}
+                />
               </linearGradient>
             </defs>
 
@@ -182,12 +175,12 @@ export function MonthlyChart({
             <Area
               type="monotone"
               dataKey="value"
-              stroke={cfg.color}
+              stroke={view === "income" ? "var(--color-primary)" : "var(--color-accent-secondary)"}
               strokeWidth={2.5}
-              fill={`url(#${cfg.gradientId})`}
+              fill={`url(#${view === "income" ? "incomeGrad" : "netWorthGrad"})`}
               dot={{
-                fill: cfg.color,
-                stroke: cfg.color,
+                fill: view === "income" ? "var(--color-primary)" : "var(--color-accent-secondary)",
+                stroke: view === "income" ? "var(--color-primary)" : "var(--color-accent-secondary)",
                 strokeWidth: 2,
                 r: 3,
               }}

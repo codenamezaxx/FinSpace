@@ -32,8 +32,10 @@ import {
 import { usePockets } from "@/hooks/usePockets";
 import type { AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
 import type { HealthStatus } from "@/lib/financialRatios";
+import { useLanguage } from "@/lib/i18n";
 
 export default function WealthPage() {
+  const { t } = useLanguage();
   const { openAssetLiabilityModal } = useAssetLiabilityModal();
   const now = new Date();
   const startOfMonth = new Date(
@@ -83,7 +85,6 @@ export default function WealthPage() {
       .filter((tx) => tx.type === "expense")
       .reduce((sum, tx) => sum + tx.amount, 0);
 
-    // Cicilan dihitung dari kewajiban utang, bukan pembayaran aktual (PRD §3 Modul C)
     const debtPayments = totalMonthlyDebtObligation(debts);
 
     return { income, expenses, debtPayments };
@@ -206,9 +207,9 @@ export default function WealthPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Kekayaan</h1>
+          <h1 className="text-2xl font-bold text-text-primary">{t("wealth.title")}</h1>
           <p className="mt-2 text-sm text-text-muted">
-            Pantau kekayaan bersih dan kesehatan keuangan
+            {t("wealth.financial_health")}
           </p>
         </div>
         <button
@@ -222,7 +223,7 @@ export default function WealthPage() {
           className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" />
-          Tambah Item
+          {t("wealth.add_item")}
         </button>
       </div>
 
@@ -239,27 +240,27 @@ export default function WealthPage() {
       <div>
         <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-text-primary">
           <Gauge className="h-5 w-5 text-accent-secondary" />
-          Rasio Kesehatan Keuangan
+          {t("wealth.financial_health_ratios")}
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <RatioCard
-            title="Rasio Likuiditas"
+            title={t("financial.liquidity_ratio")}
             value={`${ratios.liquidityRatio}x`}
-            description="Bulan pengeluaran tertutupi"
+            description={t("wealth.liquidity_ratio_desc")}
             status={getLiquidityStatus(ratios.liquidityRatio)}
             icon={<Wallet className="h-4 w-4" />}
           />
           <RatioCard
-            title="Rasio Tabungan"
+            title={t("financial.savings_rate")}
             value={`${ratios.savingsRate}%`}
-            description="Pendapatan ditabung per bulan"
+            description={t("wealth.savings_rate_desc")}
             status={getSavingsRateStatus(ratios.savingsRate)}
             icon={<PiggyBank className="h-4 w-4" />}
           />
           <RatioCard
-            title="Rasio Utang"
+            title={t("financial.debt_to_income")}
             value={`${ratios.debtToIncome}%`}
-            description="Pendapatan untuk utang"
+            description={t("wealth.debt_ratio_desc")}
             status={getDebtToIncomeStatus(ratios.debtToIncome)}
             icon={<TrendingDown className="h-4 w-4" />}
           />
@@ -269,11 +270,11 @@ export default function WealthPage() {
       {/* Speedometer */}
       <div className="glass flex flex-col items-center rounded-2xl p-6">
         <h2 className="mb-2 font-mono text-lg font-semibold text-text-primary">
-          Skor Kesehatan Keseluruhan
+          {t("wealth.health_score")}
         </h2>
         <Speedometer
           value={healthScore}
-          label="Kesehatan Keuangan"
+          label={t("wealth.financial_health")}
           status={overallStatus}
         />
       </div>
@@ -283,17 +284,17 @@ export default function WealthPage() {
         {/* Assets */}
         <div>
           <h3 className="mb-3 font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Aset
+            {t("wealth.total_assets")}
           </h3>
           <div className="space-y-2">
-            {/* Auto: Saldo Tercatat */}
+            {/* Auto: Recorded Balance */}
             <div className="glass flex items-center justify-between rounded-xl border-l-4 border-l-primary p-3">
               <div>
                 <p className="text-sm font-medium text-text-primary">
-                  Saldo Tercatat
+                  {t("wealth.recorded_balance")}
                 </p>
                 <p className="font-mono text-xs text-text-muted">
-                  Otomatis dari transaksi
+                  {t("wealth.auto_from_transactions")}
                 </p>
               </div>
               <span className="font-mono text-sm font-semibold text-success">
@@ -302,7 +303,7 @@ export default function WealthPage() {
             </div>
             {assets.length === 0 ? (
               <p className="font-mono text-sm italic text-text-secondary/70">
-                Belum ada aset. Ketuk &quot;Tambah Item&quot; untuk memulai.
+                {t("wealth.no_assets_yet")}
               </p>
             ) : (
               assets.map((asset) => (
@@ -339,11 +340,11 @@ export default function WealthPage() {
         {/* Liabilities */}
         <div>
           <h3 className="mb-3 font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Liabilitas
+            {t("wealth.total_liabilities")}
           </h3>
           {liabilities.length === 0 ? (
             <p className="font-mono text-sm italic text-text-secondary/70">
-              Belum ada liabilitas. Ketuk &quot;Tambah Item&quot; untuk memulai.
+              {t("wealth.no_liabilities_yet")}
             </p>
           ) : (
             <div className="space-y-2">
@@ -378,7 +379,7 @@ export default function WealthPage() {
       <div>
         <div className="mb-3 flex items-center justify-between">
           <h3 className="font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Utang
+            {t("wealth.total_debts")}
           </h3>
           <button
             type="button"
@@ -386,7 +387,7 @@ export default function WealthPage() {
             className="flex items-center gap-2 rounded-lg bg-primary/10 px-5 py-3 text-sm font-semibold text-primary shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
           >
             <Plus className="h-3.5 w-3.5" />
-            Tambah Utang
+            {t("wealth.add_debt")}
           </button>
         </div>
         <DebtList
@@ -417,27 +418,27 @@ export default function WealthPage() {
         isOpen={!!assetToDelete}
         onClose={() => setAssetToDelete(null)}
         onConfirm={handleConfirmDeleteAsset}
-        title="Hapus Aset?"
-        message={`Aset "${assetToDelete?.name}" akan dihapus secara permanen dari daftar aset Anda.`}
-        confirmLabel="Hapus"
+        title={t("confirm.delete_title")}
+        message={t("confirm.delete_message", { item: t("wealth.title") })}
+        confirmLabel={t("confirm.confirm")}
         isLoading={deleting}
       />
       <ConfirmModal
         isOpen={!!liabilityToDelete}
         onClose={() => setLiabilityToDelete(null)}
         onConfirm={handleConfirmDeleteLiability}
-        title="Hapus Liabilitas?"
-        message={`Liabilitas "${liabilityToDelete?.name}" akan dihapus secara permanen dari daftar liabilitas Anda.`}
-        confirmLabel="Hapus"
+        title={t("confirm.delete_title")}
+        message={t("confirm.delete_message", { item: t("wealth.total_liabilities") })}
+        confirmLabel={t("confirm.confirm")}
         isLoading={deleting}
       />
       <ConfirmModal
         isOpen={!!debtToDelete}
         onClose={() => setDebtToDelete(null)}
         onConfirm={handleConfirmDeleteDebt}
-        title="Hapus Utang?"
-        message={`Utang "${debtToDelete?.name}" akan dihapus secara permanen dari daftar utang Anda.`}
-        confirmLabel="Hapus"
+        title={t("confirm.delete_title")}
+        message={t("confirm.delete_message", { item: t("wealth.total_debts") })}
+        confirmLabel={t("confirm.confirm")}
         isLoading={deleting}
       />
     </div>

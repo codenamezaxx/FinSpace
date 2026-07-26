@@ -15,13 +15,7 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import { useTransactionModal } from "@/lib/transaction-modal-context";
-
-const navItems = [
-  { href: "/dashboard", label: "Dasbor", icon: LayoutDashboard },
-  { href: "/budget", label: "Anggaran", icon: Wallet },
-  { href: "/wealth", label: "Kekayaan", icon: TrendingUp },
-  { href: "/tools", label: "Alat", icon: Wrench },
-];
+import { useLanguage } from "@/lib/i18n";
 
 interface NavigationBarProps {
   isCollapsed?: boolean;
@@ -32,6 +26,14 @@ interface NavigationBarProps {
 export function NavigationBar({ isCollapsed = false, onToggle, onScan }: NavigationBarProps) {
   const pathname = usePathname();
   const { openAddTransaction } = useTransactionModal();
+  const { t } = useLanguage();
+
+  const navItems = [
+    { href: "/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
+    { href: "/budget", label: t("nav.budget"), icon: Wallet },
+    { href: "/wealth", label: t("nav.wealth"), icon: TrendingUp },
+    { href: "/tools", label: t("nav.tools"), icon: Wrench },
+  ];
 
   return (
     <>
@@ -46,7 +48,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
                 <button
                   onClick={onScan}
                   className="flex items-center justify-center w-full max-w-14 h-14 -mt-5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-primary/40 active:scale-95"
-                  aria-label="Scan struk"
+                  aria-label={t("nav.scan_receipt")}
                 >
                   <Camera className="w-6 h-6" />
                 </button>
@@ -107,7 +109,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
                 ? "mx-auto h-10 w-10"
                 : "w-full gap-2 px-5 py-3"
             }`}
-            title={isCollapsed ? "Tambah Transaksi" : undefined}
+            title={isCollapsed ? t("nav.add_transaction") : undefined}
           >
             <Plus className="h-4 w-4 shrink-0" />
             <span
@@ -115,7 +117,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
                 isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
               }`}
             >
-              Tambah Transaksi
+              {t("nav.add_transaction")}
             </span>
           </button>
         </div>
@@ -167,7 +169,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
                   ? "mx-auto h-9 w-9 justify-center"
                   : "w-full gap-3 px-3 py-2"
               }`}
-              aria-label={isCollapsed ? "Perluas sidebar" : "Ciutkan sidebar"}
+              aria-label={isCollapsed ? t("nav.expand_sidebar") : t("nav.collapse_sidebar")}
             >
               {isCollapsed ? (
                 <PanelLeftOpen className="h-4 w-4 shrink-0 text-text-muted" />
@@ -175,7 +177,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
                 <>
                   <PanelLeftClose className="h-4 w-4 shrink-0 text-text-muted" />
                   <span className="text-xs font-medium text-text-muted">
-                    Ciutkan
+                    {t("nav.collapse")}
                   </span>
                 </>
               )}
@@ -197,7 +199,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
                   ? "bg-primary/10 text-primary"
                   : "text-text-muted"
               }`}
-              title={isCollapsed ? "Pengaturan" : undefined}
+              title={isCollapsed ? t("nav.settings") : undefined}
             >
               <Settings className="h-4 w-4 shrink-0" />
               <span
@@ -205,7 +207,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
                   isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
                 }`}
               >
-                Pengaturan
+                {t("nav.settings")}
               </span>
             </Link>
           </div>

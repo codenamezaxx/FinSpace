@@ -1,34 +1,39 @@
+"use client";
+
 import Link from "next/link";
 import { LayoutDashboard, Wallet, TrendingUp, Wrench } from "lucide-react";
-
-const features = [
-  {
-    icon: LayoutDashboard,
-    name: "Dasbor",
-    description: "Ikhtisar keuangan real-time dengan wawasan cerdas dan metrik utama sekilas.",
-    href: "/dashboard",
-  },
-  {
-    icon: Wallet,
-    name: "Anggaran",
-    description: "Tetapkan batas pengeluaran, lacak kategori, dan kendalikan anggaran bulanan Anda.",
-    href: "/budget",
-  },
-  {
-    icon: TrendingUp,
-    name: "Kekayaan",
-    description: "Pantau kekayaan bersih, aset, dan kewajiban untuk mengembangkan kesehatan finansial Anda.",
-    href: "/wealth",
-  },
-  {
-    icon: Wrench,
-    name: "Alat",
-    description: "Kalkulator, perencana, dan utilitas untuk membuat keputusan keuangan yang lebih cerdas.",
-    href: "/tools",
-  },
-] as const;
+import { useLanguage } from "@/lib/i18n";
 
 export default function HomePage() {
+  const { t } = useLanguage();
+
+  const features = [
+    {
+      icon: LayoutDashboard,
+      name: t("landing.feature_dashboard"),
+      description: t("landing.desc_dashboard"),
+      href: "/dashboard",
+    },
+    {
+      icon: Wallet,
+      name: t("landing.feature_budget"),
+      description: t("landing.desc_budget"),
+      href: "/budget",
+    },
+    {
+      icon: TrendingUp,
+      name: t("landing.feature_wealth"),
+      description: t("landing.desc_wealth"),
+      href: "/wealth",
+    },
+    {
+      icon: Wrench,
+      name: t("landing.feature_tools"),
+      description: t("landing.desc_tools"),
+      href: "/tools",
+    },
+  ] as const;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
@@ -55,7 +60,7 @@ export default function HomePage() {
 
           {/* Tagline */}
           <p className="mx-auto mt-4 max-w-md text-lg text-text-muted">
-            Personal Finance Manager
+            {t("landing.tagline")}
           </p>
 
           {/* CTA */}
@@ -63,7 +68,7 @@ export default function HomePage() {
             href="/dashboard"
             className="mt-10 inline-flex h-12 items-center rounded-xl bg-primary px-8 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
           >
-            Mulai
+            {t("landing.get_started")}
           </Link>
         </div>
       </section>

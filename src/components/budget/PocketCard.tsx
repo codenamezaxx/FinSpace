@@ -2,6 +2,7 @@
 
 import { Wallet, CreditCard, Landmark, MoreHorizontal, Pencil, Trash2, ArrowRightLeft } from "lucide-react";
 import type { Pocket } from "@/lib/pocket";
+import { useLanguage } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/netWorth";
 import { useState, useRef, useEffect } from "react";
 
@@ -22,6 +23,7 @@ const CATEGORY_CONFIG: Record<Pocket["category"], { icon: typeof Wallet; tint: s
 };
 
 export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onDelete, onTransfer }: PocketCardProps) {
+  const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const config = CATEGORY_CONFIG[pocket.category];
@@ -64,7 +66,7 @@ export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onD
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-text-secondary hover:bg-surface-alt hover:text-text-primary transition-colors"
             >
               <Pencil className="h-3 w-3" />
-              Ganti Nama
+              {t("common.edit")}
             </button>
             <button
               type="button"
@@ -72,7 +74,7 @@ export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onD
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-text-secondary hover:bg-surface-alt hover:text-text-primary transition-colors"
             >
               <ArrowRightLeft className="h-3 w-3" />
-              Pindah Saldo
+              {t("budget.transfer")}
             </button>
             <button
               type="button"
@@ -80,7 +82,7 @@ export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onD
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-danger hover:bg-danger/10 transition-colors"
             >
               <Trash2 className="h-3 w-3" />
-              Hapus
+              {t("common.delete")}
             </button>
           </div>
         )}

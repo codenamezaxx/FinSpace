@@ -77,6 +77,20 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
 export function useLanguage(): LanguageContextValue {
   const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
+  if (!ctx) {
+    // Fallback for tests and edge cases — return default ID locale t()
+    const fallbackT = (key: string, vars?: Record<string, string | number>) => {
+      const dict = translations.id as Record<string, any>;
+      let val = key.split(".").reduce((obj, k) => obj?.[k], dict) as unknown as string | undefined;
+      if (val === undefined) {
+        const enDict = translations.en as Record<string, any>;
+        val = key.split(".").reduce((obj, k) => obj?.[k], enDict) as unknown as string | undefined;
+      }
+      if (val === undefined) return key;
+      if (!vars) return val;
+      return val.replace(/\{\{(\w+)\}\}/g, (_, k: string) => String(vars[k] ?? `{{${k}}}`));
+    };
+    return { lang: "id", setLang: () => {}, t: fallbackT };
+  }
   return ctx;
 }

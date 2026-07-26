@@ -3,6 +3,7 @@
 import { useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 import { TransactionList } from "@/components/shared/TransactionList";
 import { BudgetRing } from "@/components/budget/BudgetRing";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -20,6 +21,7 @@ import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import { TransferModal } from "@/components/budget/TransferModal";
 
 function BudgetPageInner() {
+  const { t } = useLanguage();
   const { openAddTransaction } = useTransactionModal();
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
@@ -88,10 +90,10 @@ function BudgetPageInner() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">
-            Anggaran &amp; Arus Kas
+            {t("budget.title")}
           </h1>
           <p className="text-sm text-text-muted">
-            Pendapatan bulanan:{" "}
+            {t("budget.this_month")}:{" "}
             <span className="font-mono font-semibold text-success">
               {formatCurrency(monthlyIncome)}
             </span>
@@ -102,7 +104,7 @@ function BudgetPageInner() {
           className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" />
-          Tambah Transaksi
+          {t("nav.add_transaction")}
         </button>
       </div>
 
@@ -112,12 +114,12 @@ function BudgetPageInner() {
         <div className="glass rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={needsStatus.percentage}
-            label="Kebutuhan (50%)"
-            sublabel={`Terpakai ${formatCurrency(spending.needs)}`}
+            label={`${t("budget.needs")} (50%)`}
+            sublabel={`${t("budget.spent")} ${formatCurrency(spending.needs)}`}
             remaining={
               needsStatus.isOverBudget
-                ? `Lebih ${formatCurrency(Math.abs(needsStatus.remaining))}`
-                : `${formatCurrency(needsStatus.remaining)} tersisa`
+                ? t("budget.over_by", { amount: formatCurrency(Math.abs(needsStatus.remaining)) })
+                : `${formatCurrency(needsStatus.remaining)} ${t("budget.remaining")}`
             }
             isOverBudget={needsStatus.isOverBudget}
           />
@@ -127,12 +129,12 @@ function BudgetPageInner() {
         <div className="glass rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={wantsStatus.percentage}
-            label="Keinginan (30%)"
-            sublabel={`Terpakai ${formatCurrency(spending.wants)}`}
+            label={`${t("budget.wants")} (30%)`}
+            sublabel={`${t("budget.spent")} ${formatCurrency(spending.wants)}`}
             remaining={
               wantsStatus.isOverBudget
-                ? `Lebih ${formatCurrency(Math.abs(wantsStatus.remaining))}`
-                : `${formatCurrency(wantsStatus.remaining)} tersisa`
+                ? t("budget.over_by", { amount: formatCurrency(Math.abs(wantsStatus.remaining)) })
+                : `${formatCurrency(wantsStatus.remaining)} ${t("budget.remaining")}`
             }
             isOverBudget={wantsStatus.isOverBudget}
           />
@@ -142,12 +144,12 @@ function BudgetPageInner() {
         <div className="glass rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={savingsStatus.percentage}
-            label="Tabungan (20%)"
-            sublabel={`Tersimpan ${formatCurrency(totalSaved)}`}
+            label={`${t("budget.savings")} (20%)`}
+            sublabel={`${t("budget.saved")} ${formatCurrency(totalSaved)}`}
             remaining={
               totalSaved >= allocation.savings
-                ? `${formatCurrency(totalSaved - allocation.savings)} surplus`
-                : `${formatCurrency(Math.max(0, allocation.savings - totalSaved))} menuju target`
+                ? t("budget.surplus", { amount: formatCurrency(totalSaved - allocation.savings) })
+                : t("budget.toward_target", { amount: formatCurrency(Math.max(0, allocation.savings - totalSaved)) })
             }
             isOverBudget={totalSaved < allocation.savings}
           />
@@ -171,7 +173,7 @@ function BudgetPageInner() {
       {/* Transaction List */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-primary">
-          Transaksi Terbaru
+          {t("budget.recent_transactions")}
         </h2>
         <TransactionList pocketFilter={pocketFilter} pockets={pockets} searchQuery={searchQuery} />
       </div>
@@ -196,24 +198,24 @@ function BudgetPageInner() {
             });
           }
         }}
-        title="Tambah Kantong"
+        title={t("budget.add_pocket")}
       />
       <PocketFormModal
         isOpen={!!editingPocket}
         onClose={() => setEditingPocket(null)}
         onSave={(name) => { if (editingPocket) renamePocket(editingPocket.id, name); }}
         initialName={editingPocket?.name}
-        title="Ganti Nama Kantong"
+        title={t("budget.rename_pocket")}
       />
 
       {/* Delete Pocket Confirmation */}
       <ResponsiveModal
         isOpen={!!pocketToDelete}
         onClose={() => setPocketToDelete(null)}
-        title="Hapus Kantong"
+        title={t("budget.delete_pocket_title")}
       >
         <p className="text-sm text-text-secondary mb-4">
-          Hapus kantong &ldquo;{pocketToDelete?.name}&rdquo;? Transaksi yang ada di kantong ini tidak akan dihapus.
+          {t("budget.delete_pocket_message", { name: pocketToDelete?.name ?? "" })}
         </p>
         <div className="flex justify-end gap-3">
           <button
@@ -221,7 +223,7 @@ function BudgetPageInner() {
             onClick={() => setPocketToDelete(null)}
             className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-alt transition-colors"
           >
-            Batal
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -233,7 +235,7 @@ function BudgetPageInner() {
             }}
             className="rounded-lg bg-danger px-4 py-2 text-sm font-semibold text-white hover:bg-danger/90 transition-colors"
           >
-            Hapus
+            {t("common.delete")}
           </button>
         </div>
       </ResponsiveModal>

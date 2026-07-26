@@ -2,6 +2,7 @@
 
 import { ArrowDownUp, Eye, Search } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
+import { useLanguage } from "@/lib/i18n";
 import { TransactionCard } from "./TransactionCard";
 import { TransactionDetailModal } from "./TransactionDetailModal";
 import { TransactionEditModal } from "./TransactionEditModal";
@@ -42,6 +43,7 @@ export function TransactionList({
   pockets = [],
   searchQuery,
 }: TransactionListProps) {
+  const { t } = useLanguage();
   const { transactions, loading, deleteTransaction, updateTransaction } =
     useTransactions();
   const [search, setSearch] = useState("");
@@ -145,7 +147,7 @@ export function TransactionList({
     return (
       <div className="flex flex-col items-center gap-2 py-12 text-text-muted">
         <Search className="h-8 w-8" />
-        <p className="text-sm">Tidak ada transaksi</p>
+        <p className="text-sm">{t("search.no_results")}</p>
       </div>
     );
   }
@@ -158,28 +160,28 @@ export function TransactionList({
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
-            placeholder="Cari transaksi..."
+            placeholder={t("common.search")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-lg border border-border bg-surface py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
         <div className="flex gap-2">
-          {(["all", "income", "expense"] as const).map((t) => (
+          {(["all", "income", "expense"] as const).map((filterType) => (
             <button
-              key={t}
-              onClick={() => setTypeFilter(t)}
+              key={filterType}
+              onClick={() => setTypeFilter(filterType)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                typeFilter === t
+                typeFilter === filterType
                   ? "bg-primary text-white"
                   : "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
               }`}
             >
-              {t === "all"
-                ? "Semua"
-                : t === "income"
-                  ? "Pemasukan"
-                  : "Pengeluaran"}
+              {filterType === "all"
+                ? t("common.all")
+                : filterType === "income"
+                  ? t("transaction.income")
+                  : t("transaction.expense")}
             </button>
           ))}
           <button
@@ -190,7 +192,7 @@ export function TransactionList({
                 : "bg-primary/10 text-primary"
             }`}
           >
-            {hideTransfers ? "Tampilkan Transfer" : "Sembunyikan Transfer"}
+            {hideTransfers ? t("transaction.show_transfers") : t("transaction.hide_transfers")}
           </button>
         </div>
       </div>
@@ -212,34 +214,34 @@ export function TransactionList({
           <thead>
             <tr className="border-b border-border bg-surface-alt">
               <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">
-                Tipe
+                {t("transaction.type")}
               </th>
               <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">
-                Merchant
+                {t("transaction.merchant")}
               </th>
               <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">
-                Kategori
+                {t("transaction.category")}
               </th>
               <th
                 className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted cursor-pointer hover:text-text-secondary"
                 onClick={() => toggleSort("amount")}
               >
                 <span className="inline-flex items-center gap-1">
-                  Jumlah
+                  {t("transaction.amount")}
                   {sortField === "amount" && (
                     <ArrowDownUp className="h-3 w-3" />
                   )}
                 </span>
               </th>
               <th className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted">
-                Kantong
+                {t("transaction.pocket")}
               </th>
               <th
                 className="px-4 py-3 text-xs font-mono font-medium uppercase tracking-wider text-text-muted cursor-pointer hover:text-text-secondary"
                 onClick={() => toggleSort("timestamp")}
               >
                 <span className="inline-flex items-center gap-1">
-                  Tanggal
+                  {t("transaction.date")}
                   {sortField === "timestamp" && (
                     <ArrowDownUp className="h-3 w-3" />
                   )}
@@ -249,52 +251,52 @@ export function TransactionList({
             </tr>
           </thead>
           <tbody>
-            {filtered.map((t) => (
+            {filtered.map((tx) => (
               <tr
-                key={t.id}
-                onClick={() => setDetailTx(t)}
+                key={tx.id}
+                onClick={() => setDetailTx(tx)}
                 className="border-b border-border/50 last:border-0 hover:bg-surface-alt/50 transition-colors cursor-pointer"
               >
                 <td className="px-4 py-3">
                   <span
                     className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                      t.type === "expense"
+                      tx.type === "expense"
                         ? "bg-danger/10 text-danger"
                         : "bg-success/10 text-success"
                     }`}
                   >
-                    {t.type === "expense" ? "Pengeluaran" : "Pemasukan"}
+                    {tx.type === "expense" ? t("transaction.expense") : t("transaction.income")}
                   </span>
                 </td>
                 <td className="px-4 py-3 font-medium text-text-primary">
-                  {t.merchant}
+                  {tx.merchant}
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
-                  {t.category}
+                  {tx.category}
                 </td>
                 <td
                   className={`px-4 py-3 font-mono font-semibold ${
-                    t.type === "expense" ? "text-danger" : "text-success"
+                    tx.type === "expense" ? "text-danger" : "text-success"
                   }`}
                 >
-                  {t.type === "expense" ? "-" : "+"}
-                  {formatAmount(t.amount)}
+                  {tx.type === "expense" ? "-" : "+"}
+                  {formatAmount(tx.amount)}
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
-                  {pockets.find((p) => p.id === t.pocketId)?.name ??
-                    t.payment_method}
+                  {pockets.find((p) => p.id === tx.pocketId)?.name ??
+                    tx.payment_method}
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
-                  {formatDate(t.timestamp)}
+                  {formatDate(tx.timestamp)}
                 </td>
                 <td className="px-4 py-3">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setDetailTx(t);
+                      setDetailTx(tx);
                     }}
                     className="text-text-muted hover:text-primary transition-colors"
-                    aria-label="Lihat detail transaksi"
+                    aria-label={t("transaction.detail_title")}
                   >
                     <Eye className="h-4 w-4" />
                   </button>
@@ -327,9 +329,9 @@ export function TransactionList({
         isOpen={!!deleteTx}
         onClose={() => setDeleteTx(null)}
         onConfirm={handleConfirmDelete}
-        title="Hapus Transaksi?"
-        message={`Transaksi "${deleteTx?.merchant}" akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.`}
-        confirmLabel="Hapus"
+        title={t("confirm.delete_title")}
+        message={t("confirm.delete_message", { item: `Transaksi "${deleteTx?.merchant}"` })}
+        confirmLabel={t("confirm.confirm")}
         confirmVariant="danger"
         isLoading={deleting}
       />

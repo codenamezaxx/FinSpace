@@ -3,6 +3,7 @@
 import { useState, useMemo, type FC } from "react";
 import { Check, X } from "lucide-react";
 import type { PocketInfo } from "@/hooks/useFinnyChat";
+import { useLanguage } from "@/lib/i18n";
 
 const EXPENSE_CATEGORIES = [
   "Makanan & Minuman", "Transportasi", "Tagihan", "Kesehatan",
@@ -17,11 +18,21 @@ const PAYMENT_METHODS = [
 ];
 
 const ASSET_TYPES = [
-  { value: "liquid", label: "Liquid (Tabungan/Kas)" },
-  { value: "investment", label: "Investasi (Saham/Emas/Reksadana)" },
-  { value: "property", label: "Properti (Rumah/Tanah)" },
-  { value: "other", label: "Lainnya (Kendaraan/dll)" },
+  { value: "liquid", labelKey: "wealth.liquid" },
+  { value: "investment", labelKey: "wealth.investment" },
+  { value: "property", labelKey: "wealth.property" },
+  { value: "other", labelKey: "wealth.other" },
 ];
+
+const CATEGORY_LABEL_MAP: Record<string, string> = {
+  "Makanan & Minuman": "transaction.food",
+  Transportasi: "transaction.transport",
+  Belanja: "transaction.shopping",
+  Hiburan: "transaction.entertainment",
+  Tagihan: "transaction.bills",
+  Kesehatan: "transaction.health",
+  Pendidikan: "transaction.education",
+};
 
 interface TransactionPreviewProps {
   action: string;
@@ -31,31 +42,16 @@ interface TransactionPreviewProps {
   onCancel: () => void;
 }
 
-const actionLabels: Record<string, string> = {
-  transaction: "Transaksi",
-  asset: "Aset",
-  liability: "Liabilitas",
-  debt: "Utang",
-  create_pocket: "Kantong Baru",
-};
-
-const actionIcons: Record<string, string> = {
-  transaction: "💸",
-  asset: "📈",
-  liability: "📝",
-  debt: "💰",
-  create_pocket: "👛",
-};
-
 const POCKET_CATEGORIES = [
-  { value: "ewallet", label: "E-Wallet" },
-  { value: "rekening", label: "Rekening Bank" },
-  { value: "tunai", label: "Tunai / Kas" },
+  { value: "ewallet", labelKey: "transaction.ewallet" },
+  { value: "rekening", labelKey: "transaction.bank_account" },
+  { value: "tunai", labelKey: "transaction.cash" },
 ];
 
 const TransactionPreview: FC<TransactionPreviewProps> = ({
   action, data, pockets, onSave, onCancel,
 }) => {
+  const { t } = useLanguage();
   const [editData, setEditData] = useState<Record<string, unknown>>(data ?? {});
 
   const categories = useMemo(() => {
@@ -68,16 +64,36 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
   const groupedPockets = useMemo(() => {
     if (!pockets || pockets.length === 0) return [];
     const cats = ["tunai", "ewallet", "rekening"] as const;
-    const labels: Record<string, string> = { tunai: "Tunai", ewallet: "E-Wallet", rekening: "Rekening" };
+    const labels: Record<string, string> = {
+      tunai: t("transaction.cash"),
+      ewallet: t("transaction.ewallet"),
+      rekening: t("transaction.bank_account"),
+    };
     return cats
       .filter((cat) => pockets.some((p) => p.category === cat))
       .map((cat) => ({
         label: labels[cat],
         pockets: pockets.filter((p) => p.category === cat),
       }));
-  }, [pockets]);
+  }, [pockets, t]);
 
   if (!data) return null;
+
+  const actionLabels: Record<string, string> = {
+    transaction: t("transaction.title_add"),
+    asset: t("wealth.add_asset"),
+    liability: t("wealth.add_liability"),
+    debt: t("wealth.add_debt"),
+    create_pocket: t("budget.add_pocket"),
+  };
+
+  const actionIcons: Record<string, string> = {
+    transaction: "💸",
+    asset: "📈",
+    liability: "📝",
+    debt: "💰",
+    create_pocket: "👛",
+  };
 
   const label = actionLabels[action] ?? action;
   const icon = actionIcons[action] ?? "💬";
@@ -98,7 +114,7 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
       <div className="space-y-2.5">
         {/* amount — always shown */}
         <FieldRow
-          label="Jumlah"
+          label={t("transaction.amount")}
           value={
             editData.amount
               ? `Rp${Number(editData.amount).toLocaleString("id-ID")}`
@@ -106,50 +122,55 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
           }
           onChange={(v) => updateField("amount", Number(v.replace(/[^0-9]/g, "")))}
           type="currency"
+          tFunc={t}
         />
 
         {/* transaction-specific fields */}
         {action === "transaction" && (
           <>
             <FieldRow
-              label="Tipe"
-              value={editData.type === "income" ? "Pemasukan" : "Pengeluaran"}
-              onChange={(v) => updateField("type", v === "Pemasukan" ? "income" : "expense")}
+              label={t("transaction.type")}
+              value={editData.type === "income" ? t("transaction.income") : t("transaction.expense")}
+              onChange={(v) => updateField("type", v === t("transaction.income") ? "income" : "expense")}
               type="select"
-              options={["Pengeluaran", "Pemasukan"]}
+              options={[t("transaction.expense"), t("transaction.income")]}
+              tFunc={t}
             />
             <FieldRow
-              label="Merchant"
+              label={t("transaction.merchant")}
               value={(editData.merchant as string) ?? ""}
               onChange={(v) => updateField("merchant", v)}
               type="text"
+              tFunc={t}
             />
             <FieldRow
-              label="Kategori"
+              label={t("transaction.category")}
               value={(editData.category as string) ?? ""}
               onChange={(v) => updateField("category", v)}
               type="select"
               options={categories}
+              tFunc={t}
             />
             <FieldRow
-              label="Pembayaran"
+              label={t("transaction.payment_method")}
               value={(editData.payment_method as string) ?? ""}
               onChange={(v) => updateField("payment_method", v)}
               type="select"
               options={PAYMENT_METHODS}
+              tFunc={t}
             />
             {/* Pocket selector */}
             {pockets && pockets.length > 0 && (
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs text-text-muted shrink-0 w-20">
-                  Kantong
+                  {t("transaction.pocket")}
                 </span>
                 <select
                   value={(editData.pocket_name as string) ?? ""}
                   onChange={(e) => updateField("pocket_name", e.target.value)}
                   className="flex-1 bg-surface-alt text-text-primary text-xs rounded-lg px-2.5 py-1.5 border border-border outline-none focus:ring-1 focus:ring-primary/50"
                 >
-                  <option value="">Pilih kantong...</option>
+                  <option value="">{t("transaction.select_pocket")}</option>
                   {groupedPockets.map((group) => (
                     <optgroup key={group.label} label={group.label}>
                       {group.pockets.map((p) => (
@@ -169,18 +190,20 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
         {action === "asset" && (
           <>
             <FieldRow
-              label="Nama Aset"
+              label={t("wealth.asset_name")}
               value={(editData.name as string) ?? ""}
               onChange={(v) => updateField("name", v)}
               type="text"
+              tFunc={t}
             />
             <FieldRow
-              label="Jenis Aset"
+              label={t("wealth.asset_type")}
               value={(editData.asset_type as string) ?? ""}
               onChange={(v) => updateField("asset_type", v)}
               type="select"
               options={ASSET_TYPES.map((a) => a.value)}
-              optionLabels={ASSET_TYPES.map((a) => a.label)}
+              optionLabels={ASSET_TYPES.map((a) => t(a.labelKey))}
+              tFunc={t}
             />
           </>
         )}
@@ -188,10 +211,11 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
         {/* liability-specific fields */}
         {action === "liability" && (
           <FieldRow
-            label="Nama Liabilitas"
+            label={t("wealth.liability_name")}
             value={(editData.name as string) ?? ""}
             onChange={(v) => updateField("name", v)}
             type="text"
+            tFunc={t}
           />
         )}
 
@@ -199,13 +223,14 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
         {action === "debt" && (
           <>
             <FieldRow
-              label="Nama Utang"
+              label={t("wealth.debt_name")}
               value={(editData.name as string) ?? ""}
               onChange={(v) => updateField("name", v)}
               type="text"
+              tFunc={t}
             />
             <FieldRow
-              label="Terbayar"
+              label={t("wealth.debt_paid")}
               value={
                 editData.paidAmount
                   ? `Rp${Number(editData.paidAmount).toLocaleString("id-ID")}`
@@ -213,18 +238,21 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
               }
               onChange={(v) => updateField("paidAmount", Number(v.replace(/[^0-9]/g, "")))}
               type="currency"
+              tFunc={t}
             />
             <FieldRow
-              label="Jatuh Tempo"
+              label={t("wealth.due_date")}
               value={(editData.dueDate as string) ?? ""}
               onChange={(v) => updateField("dueDate", v)}
               type="text"
+              tFunc={t}
             />
             <FieldRow
-              label="Bunga (%/tahun)"
+              label={t("wealth.interest_rate")}
               value={editData.interestRate != null ? String(editData.interestRate) : ""}
               onChange={(v) => updateField("interestRate", v ? Number(v) : null)}
               type="text"
+              tFunc={t}
             />
           </>
         )}
@@ -233,13 +261,14 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
         {action === "create_pocket" && (
           <>
             <FieldRow
-              label="Nama Kantong"
+              label={t("budget.pocket_name")}
               value={(editData.name as string) ?? ""}
               onChange={(v) => updateField("name", v)}
               type="text"
+              tFunc={t}
             />
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-text-muted shrink-0 w-20">Kategori</span>
+              <span className="text-xs text-text-muted shrink-0 w-20">{t("transaction.category")}</span>
               <select
                 value={(editData.category as string) ?? "ewallet"}
                 onChange={(e) => updateField("category", e.target.value)}
@@ -247,13 +276,13 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
               >
                 {POCKET_CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>
-                    {c.label}
+                    {t(c.labelKey)}
                   </option>
                 ))}
               </select>
             </div>
             <FieldRow
-              label="Saldo Awal"
+              label={t("budget.initial_balance_optional")}
               value={
                 editData.initial_balance
                   ? `Rp${Number(editData.initial_balance).toLocaleString("id-ID")}`
@@ -261,6 +290,7 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
               }
               onChange={(v) => updateField("initial_balance", Number(v.replace(/[^0-9]/g, "")))}
               type="currency"
+              tFunc={t}
             />
           </>
         )}
@@ -273,14 +303,14 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
           className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-surface-alt text-text-secondary text-sm font-medium hover:bg-border transition-colors"
         >
           <X className="w-4 h-4" />
-          Batal
+          {t("ai.cancel")}
         </button>
         <button
           onClick={() => onSave(action, editData)}
           className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90 transition-opacity"
         >
           <Check className="w-4 h-4" />
-          Simpan
+          {t("ai.save")}
         </button>
       </div>
     </div>
@@ -296,9 +326,10 @@ interface FieldRowProps {
   type: "text" | "select" | "currency";
   options?: string[];
   optionLabels?: string[];
+  tFunc: (key: string) => string;
 }
 
-const FieldRow: FC<FieldRowProps> = ({ label, value, onChange, type, options, optionLabels }) => {
+const FieldRow: FC<FieldRowProps> = ({ label, value, onChange, type, options, optionLabels, tFunc }) => {
   return (
     <div className="flex items-center justify-between gap-2">
       <span className="text-xs text-text-muted shrink-0 w-20">{label}</span>
@@ -308,7 +339,7 @@ const FieldRow: FC<FieldRowProps> = ({ label, value, onChange, type, options, op
           onChange={(e) => onChange(e.target.value)}
           className="flex-1 bg-surface-alt text-text-primary text-xs rounded-lg px-2.5 py-1.5 border border-border outline-none focus:ring-1 focus:ring-primary/50"
         >
-          <option value="">Pilih {label.toLowerCase()}...</option>
+          <option value="">{tFunc("common.search")} {label.toLowerCase()}...</option>
           {options.map((opt, i) => (
             <option key={opt} value={opt}>
               {optionLabels?.[i] ?? opt}
@@ -321,7 +352,7 @@ const FieldRow: FC<FieldRowProps> = ({ label, value, onChange, type, options, op
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="flex-1 bg-surface-alt text-text-primary text-xs rounded-lg px-2.5 py-1.5 border border-border outline-none focus:ring-1 focus:ring-primary/50 text-right"
-          placeholder={`Masukkan ${label.toLowerCase()}...`}
+          placeholder={`${tFunc("common.search")} ${label.toLowerCase()}...`}
         />
       )}
     </div>

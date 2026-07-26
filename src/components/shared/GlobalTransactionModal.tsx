@@ -5,6 +5,7 @@ import { ResponsiveModal } from "./ResponsiveModal";
 import { useTransactionModal } from "@/lib/transaction-modal-context";
 import { useTransactions } from "@/hooks/useTransactions";
 import { usePockets } from "@/hooks/usePockets";
+import { useLanguage } from "@/lib/i18n";
 import { formatInputValue, parseInputValue } from "@/lib/netWorth";
 import { notifyTransaction, checkOverspending } from "@/lib/notificationTriggers";
 import { db, type Transaction } from "@/lib/db";
@@ -19,10 +20,21 @@ const EXPENSE_CATEGORIES = [
   "Pendidikan",
 ];
 
+const CATEGORY_LABEL_MAP: Record<string, string> = {
+  "Makanan & Minuman": "transaction.food",
+  Transportasi: "transaction.transport",
+  Belanja: "transaction.shopping",
+  Hiburan: "transaction.entertainment",
+  Tagihan: "transaction.bills",
+  Kesehatan: "transaction.health",
+  Pendidikan: "transaction.education",
+};
+
 export function GlobalTransactionModal() {
   const { isOpen, closeAddTransaction, initialTab } = useTransactionModal();
   const { addTransaction } = useTransactions();
   const { pockets } = usePockets();
+  const { t } = useLanguage();
 
   const [tab, setTab] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
@@ -50,14 +62,14 @@ export function GlobalTransactionModal() {
 
     const numAmount = Number(amount);
     if (!amount || isNaN(numAmount) || numAmount <= 0) {
-      setError("Masukkan jumlah yang valid.");
+      setError(t("transaction.valid_amount"));
       return;
     }
     if (!merchant.trim()) {
       setError(
         tab === "income"
-          ? "Masukkan asal pemasukkan."
-          : "Masukkan tujuan pengeluaran."
+          ? t("transaction.valid_income_source")
+          : t("transaction.valid_merchant")
       );
       return;
     }
@@ -97,7 +109,7 @@ export function GlobalTransactionModal() {
 
       closeAddTransaction();
     } catch {
-      setError("Gagal menyimpan transaksi.");
+      setError(t("transaction.save_failed"));
     } finally {
       setSubmitting(false);
     }
@@ -107,25 +119,25 @@ export function GlobalTransactionModal() {
     <ResponsiveModal
       isOpen={isOpen}
       onClose={closeAddTransaction}
-      title="Tambah Transaksi"
+      title={t("transaction.title_add")}
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* ── Tab Toggle ── */}
         <div className="flex rounded-xl border border-border bg-surface-alt p-1">
-          {(["expense", "income"] as const).map((t) => (
+          {(["expense", "income"] as const).map((tabType) => (
             <button
-              key={t}
+              key={tabType}
               type="button"
-              onClick={() => setTab(t)}
+              onClick={() => setTab(tabType)}
               className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-all duration-200 ${
-                tab === t
-                  ? t === "expense"
+                tab === tabType
+                  ? tabType === "expense"
                     ? "bg-primary text-white shadow-md shadow-primary/25"
                     : "bg-success text-white shadow-md shadow-success/25"
                   : "text-text-muted hover:text-text-secondary hover:bg-surface"
               }`}
             >
-              {t === "expense" ? "Pengeluaran" : "Pemasukkan"}
+              {tabType === "expense" ? t("transaction.expense") : t("transaction.income")}
             </button>
           ))}
         </div>
@@ -133,7 +145,7 @@ export function GlobalTransactionModal() {
         {/* ── Amount ── */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-            Jumlah (Rp)
+            {t("transaction.amount")}
           </label>
           <input
             type="text"
@@ -148,14 +160,14 @@ export function GlobalTransactionModal() {
         {/* ── Merchant / Source (label changes per tab) ── */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-            {tab === "income" ? "Asal Pemasukkan" : "Tujuan Pengeluaran"}
+            {tab === "income" ? t("transaction.income_source") : t("transaction.merchant")}
           </label>
           <input
             type="text"
             placeholder={
               tab === "income"
-                ? "Contoh: Gaji, Freelance"
-                : "Nama toko atau merchant"
+                ? t("transaction.income_source")
+                : t("transaction.merchant")
             }
             value={merchant}
             onChange={(e) => setMerchant(e.target.value)}
@@ -167,7 +179,7 @@ export function GlobalTransactionModal() {
         {tab === "expense" && (
           <div>
             <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-              Jenis Pengeluaran
+              {t("transaction.category")}
             </label>
             <select
               value={category}
@@ -176,7 +188,7 @@ export function GlobalTransactionModal() {
             >
               {EXPENSE_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
-                  {c}
+                  {t(CATEGORY_LABEL_MAP[c] ?? c)}
                 </option>
               ))}
             </select>
@@ -185,14 +197,14 @@ export function GlobalTransactionModal() {
 
         {/* ── Pilih Kantong ── */}
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-text-secondary">Kantong</label>
+          <label className="mb-1.5 block text-sm font-medium text-text-secondary">{t("transaction.pocket")}</label>
           <select
             value={selectedPocketId}
             onChange={(e) => setSelectedPocketId(e.target.value)}
             className="w-full appearance-none rounded-lg border border-border bg-surface-alt px-4 py-3 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors"
           >
             {(["tunai", "ewallet", "rekening"] as const).map((cat) => (
-              <optgroup key={cat} label={cat === "tunai" ? "Tunai" : cat === "ewallet" ? "E-Wallet" : "Rekening"}>
+              <optgroup key={cat} label={cat === "tunai" ? t("transaction.cash") : cat === "ewallet" ? t("transaction.ewallet") : t("transaction.bank_account")}>
                 {pockets.filter((p) => p.category === cat).map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
@@ -210,7 +222,7 @@ export function GlobalTransactionModal() {
           disabled={submitting}
           className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {submitting ? "Menyimpan..." : "Simpan Transaksi"}
+          {submitting ? t("transaction.saving") : t("transaction.save")}
         </button>
       </form>
     </ResponsiveModal>

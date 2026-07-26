@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowRightLeft } from "lucide-react";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
+import { useLanguage } from "@/lib/i18n";
 import type { Pocket } from "@/lib/pocket";
 import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
 
@@ -23,6 +24,7 @@ export function TransferModal({
   preSelectedFrom,
   onTransfer,
 }: TransferModalProps) {
+  const { t } = useLanguage();
   const [fromId, setFromId] = useState(preSelectedFrom ?? "");
   const [toId, setToId] = useState("");
   const [amount, setAmount] = useState("");
@@ -49,33 +51,33 @@ export function TransferModal({
   const handleSubmit = async () => {
     setError("");
 
-    if (!fromId || !toId) { setError("Pilih kantong sumber dan tujuan."); return; }
-    if (fromId === toId) { setError("Kantong sumber dan tujuan harus berbeda."); return; }
-    if (numericAmount <= 0) { setError("Jumlah transfer harus lebih dari 0."); return; }
+    if (!fromId || !toId) { setError(t("transfer.select_pockets")); return; }
+    if (fromId === toId) { setError(t("transfer.different_pockets")); return; }
+    if (numericAmount <= 0) { setError(t("transfer.amount_positive")); return; }
 
     setLoading(true);
     try {
       await onTransfer(fromId, toId, numericAmount);
       handleClose();
     } catch {
-      setError("Gagal melakukan transfer. Coba lagi.");
+      setError(t("common.error"));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ResponsiveModal isOpen={isOpen} onClose={handleClose} title="Pindah Saldo">
+    <ResponsiveModal isOpen={isOpen} onClose={handleClose} title={t("budget.transfer")}>
       <div className="space-y-4">
         {/* Source pocket */}
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-text-secondary">Dari Kantong</label>
+          <label className="mb-1.5 block text-xs font-medium text-text-secondary">{t("budget.transfer_from")}</label>
           <select
             value={fromId}
             onChange={(e) => { setFromId(e.target.value); if (toId === e.target.value) setToId(""); }}
             className="w-full rounded-lg border border-border bg-surface p-2.5 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           >
-            <option value="">Pilih kantong sumber</option>
+            <option value="">{t("budget.transfer_from")}</option>
             {pockets.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name} — {formatCurrency(balances[p.id] ?? 0)}
@@ -91,13 +93,13 @@ export function TransferModal({
 
         {/* Destination pocket */}
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-text-secondary">Ke Kantong</label>
+          <label className="mb-1.5 block text-xs font-medium text-text-secondary">{t("budget.transfer_to")}</label>
           <select
             value={toId}
             onChange={(e) => setToId(e.target.value)}
             className="w-full rounded-lg border border-border bg-surface p-2.5 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           >
-            <option value="">Pilih kantong tujuan</option>
+            <option value="">{t("budget.transfer_to")}</option>
             {availableDestinations.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name} — {formatCurrency(balances[p.id] ?? 0)}
@@ -108,7 +110,7 @@ export function TransferModal({
 
         {/* Amount */}
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-text-secondary">Jumlah</label>
+          <label className="mb-1.5 block text-xs font-medium text-text-secondary">{t("transaction.amount")}</label>
           <input
             type="text"
             inputMode="numeric"
@@ -120,7 +122,7 @@ export function TransferModal({
           />
           {numericAmount > sourceBalance && (
             <p className="mt-1 text-xs text-warning">
-              Saldo kantong sumber hanya {formatCurrency(sourceBalance)}
+              {t("budget.remaining")} {formatCurrency(sourceBalance)}
             </p>
           )}
         </div>
@@ -137,7 +139,7 @@ export function TransferModal({
             onClick={handleClose}
             className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-alt transition-colors"
           >
-            Batal
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -145,7 +147,7 @@ export function TransferModal({
             disabled={loading}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {loading ? "Memproses..." : "Transfer"}
+            {loading ? t("common.loading") : t("budget.transfer")}
           </button>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { AlertTriangle } from "lucide-react";
 import { ResponsiveModal } from "./ResponsiveModal";
+import { useLanguage } from "@/lib/i18n";
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -20,10 +21,11 @@ export function ConfirmModal({
   onConfirm,
   title,
   message,
-  confirmLabel = "Hapus",
+  confirmLabel,
   confirmVariant = "danger",
   isLoading = false,
 }: ConfirmModalProps) {
+  const { t } = useLanguage();
   return (
     <ResponsiveModal isOpen={isOpen} onClose={onClose} title="">
       <div className="flex flex-col items-center gap-4 text-center">
@@ -46,7 +48,7 @@ export function ConfirmModal({
             disabled={isLoading}
             className="flex-1 rounded-lg border border-border px-4 py-3 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-alt disabled:opacity-50"
           >
-            Batal
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -58,7 +60,7 @@ export function ConfirmModal({
                 : "bg-primary hover:bg-primary-hover"
             }`}
           >
-            {isLoading ? "Memproses..." : confirmLabel}
+            {isLoading ? t("common.loading") : (confirmLabel ?? t("confirm.confirm"))}
           </button>
         </div>
       </div>

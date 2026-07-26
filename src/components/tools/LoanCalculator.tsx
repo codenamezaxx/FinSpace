@@ -3,10 +3,12 @@
 import { useMemo, useState } from "react";
 import { Calculator } from "lucide-react";
 import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
+import { useLanguage } from "@/lib/i18n";
 
 const TENOR_OPTIONS = [6, 12, 24, 36, 48, 60];
 
 export function LoanCalculator() {
+  const { t } = useLanguage();
   const [jumlah, setJumlah] = useState("");
   const [bunga, setBunga] = useState("");
   const [tenor, setTenor] = useState("");
@@ -43,16 +45,16 @@ export function LoanCalculator() {
       <div className="mb-4 flex items-center gap-2">
         <Calculator className="h-4 w-4 text-accent-secondary" />
         <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-          Kalkulator Pinjaman
+          {t("tools.loan_calculator")}
         </p>
       </div>
 
       {/* Form Fields */}
       <div className="space-y-4">
-        {/* Jumlah Pinjaman */}
+        {/* Loan Amount */}
         <div>
           <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-secondary">
-            Jumlah Pinjaman
+            {t("tools.loan_amount")}
           </label>
           <input
             type="text"
@@ -64,10 +66,10 @@ export function LoanCalculator() {
           />
         </div>
 
-        {/* Bunga per Tahun */}
+        {/* Interest Rate */}
         <div>
           <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-secondary">
-            Bunga per Tahun
+            {t("tools.interest")}
           </label>
           <input
             type="text"
@@ -82,7 +84,7 @@ export function LoanCalculator() {
         {/* Tenor */}
         <div>
           <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-secondary">
-            Tenor
+            {t("tools.tenor")}
           </label>
           <select
             value={tenor}
@@ -90,11 +92,11 @@ export function LoanCalculator() {
             className={inputClass + " appearance-none"}
           >
             <option value="" disabled>
-              Pilih tenor
+              {t("tools.tenor")}
             </option>
-            {TENOR_OPTIONS.map((t) => (
-              <option key={t} value={t}>
-                {t} Bulan
+            {TENOR_OPTIONS.map((tenorOpt) => (
+              <option key={tenorOpt} value={tenorOpt}>
+                {tenorOpt} {t("tools.monthly_saving")}
               </option>
             ))}
           </select>
@@ -105,10 +107,10 @@ export function LoanCalculator() {
       <div className="mt-6">
         {result ? (
           <div className="space-y-3 rounded-xl border border-border bg-surface-alt/50 p-4">
-            {/* Cicilan per Bulan */}
+            {/* Monthly Payment */}
             <div>
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Cicilan per Bulan
+                {t("tools.monthly_payment")}
               </p>
               <p className="font-mono text-2xl font-bold text-primary">
                 {formatCurrency(Math.round(result.payment))}
@@ -117,20 +119,20 @@ export function LoanCalculator() {
 
             <div className="h-px bg-border" />
 
-            {/* Total Bunga */}
+            {/* Total Interest */}
             <div className="flex items-center justify-between">
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Total Bunga
+                {t("tools.total_interest")}
               </p>
               <p className="font-mono text-sm text-text-secondary">
                 {formatCurrency(Math.round(result.totalInterest))}
               </p>
             </div>
 
-            {/* Total Pembayaran */}
+            {/* Total Payment */}
             <div className="flex items-center justify-between">
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Total Pembayaran
+                {t("tools.total_payment")}
               </p>
               <p className="font-mono text-sm text-text-secondary">
                 {formatCurrency(Math.round(result.totalPayment))}
@@ -140,8 +142,7 @@ export function LoanCalculator() {
         ) : (
           <div className="rounded-xl border border-dashed border-border p-4 text-center">
             <p className="font-mono text-xs text-text-muted">
-              Masukkan jumlah pinjaman dan pilih tenor untuk melihat simulasi
-              cicilan
+              {t("tools.loan_empty")}
             </p>
           </div>
         )}

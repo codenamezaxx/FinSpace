@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ResponsiveModal } from "./ResponsiveModal";
 import { usePockets } from "@/hooks/usePockets";
+import { useLanguage } from "@/lib/i18n";
 import { formatInputValue, parseInputValue } from "@/lib/netWorth";
 import type { Transaction } from "@/lib/db";
 
@@ -24,12 +25,24 @@ interface TransactionEditModalProps {
   onSave: (id: string, data: Partial<Omit<Transaction, "id">>) => void;
 }
 
+const CATEGORY_LABEL_MAP: Record<string, string> = {
+  "Makanan & Minuman": "transaction.food",
+  Transportasi: "transaction.transport",
+  Belanja: "transaction.shopping",
+  Hiburan: "transaction.entertainment",
+  Tagihan: "transaction.bills",
+  Kesehatan: "transaction.health",
+  Pendidikan: "transaction.education",
+  Lainnya: "wealth.other",
+};
+
 export function TransactionEditModal({
   isOpen,
   onClose,
   transaction,
   onSave,
 }: TransactionEditModalProps) {
+  const { t } = useLanguage();
   const { pockets } = usePockets();
 
   const [tab, setTab] = useState<"income" | "expense">("expense");
@@ -65,14 +78,14 @@ export function TransactionEditModal({
 
     const numAmount = Number(amount);
     if (!amount || isNaN(numAmount) || numAmount <= 0) {
-      setError("Masukkan jumlah yang valid.");
+      setError(t("transaction.valid_amount"));
       return;
     }
     if (!merchant.trim()) {
       setError(
         tab === "income"
-          ? "Masukkan asal pemasukkan."
-          : "Masukkan tujuan pengeluaran."
+          ? t("transaction.valid_income_source")
+          : t("transaction.valid_merchant")
       );
       return;
     }
@@ -90,31 +103,31 @@ export function TransactionEditModal({
       });
       onClose();
     } catch {
-      setError("Gagal menyimpan perubahan.");
+      setError(t("transaction.save_failed"));
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <ResponsiveModal isOpen={isOpen} onClose={onClose} title="Edit Transaksi">
+    <ResponsiveModal isOpen={isOpen} onClose={onClose} title={t("transaction.title_edit")}>
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Tab Toggle */}
         <div className="flex rounded-xl border border-border bg-surface-alt p-1">
-          {(["expense", "income"] as const).map((t) => (
+          {(["expense", "income"] as const).map((tabType) => (
             <button
-              key={t}
+              key={tabType}
               type="button"
-              onClick={() => setTab(t)}
+              onClick={() => setTab(tabType)}
               className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-all duration-200 ${
-                tab === t
-                  ? t === "expense"
+                tab === tabType
+                  ? tabType === "expense"
                     ? "bg-primary text-white shadow-md shadow-primary/25"
                     : "bg-success text-white shadow-md shadow-success/25"
                   : "text-text-muted hover:text-text-secondary hover:bg-surface"
               }`}
             >
-              {t === "expense" ? "Pengeluaran" : "Pemasukkan"}
+              {tabType === "expense" ? t("transaction.expense") : t("transaction.income")}
             </button>
           ))}
         </div>
@@ -122,7 +135,7 @@ export function TransactionEditModal({
         {/* Amount */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-            Jumlah (Rp)
+            {t("transaction.amount")}
           </label>
           <input
             type="text"
@@ -137,14 +150,14 @@ export function TransactionEditModal({
         {/* Merchant */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-            {tab === "income" ? "Asal Pemasukkan" : "Tujuan Pengeluaran"}
+            {tab === "income" ? t("transaction.income_source") : t("transaction.merchant")}
           </label>
           <input
             type="text"
             placeholder={
               tab === "income"
-                ? "Contoh: Gaji, Freelance"
-                : "Nama toko atau merchant"
+                ? t("transaction.income_source")
+                : t("transaction.merchant")
             }
             value={merchant}
             onChange={(e) => setMerchant(e.target.value)}
@@ -156,7 +169,7 @@ export function TransactionEditModal({
         {tab === "expense" && (
           <div>
             <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-              Jenis Pengeluaran
+              {t("transaction.category")}
             </label>
             <select
               value={category}
@@ -165,7 +178,7 @@ export function TransactionEditModal({
             >
               {EXPENSE_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
-                  {c}
+                  {t(CATEGORY_LABEL_MAP[c] ?? c)}
                 </option>
               ))}
             </select>
@@ -175,7 +188,7 @@ export function TransactionEditModal({
         {/* Pocket */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-            Kantong
+            {t("transaction.pocket")}
           </label>
           <select
             value={selectedPocketId}
@@ -187,10 +200,10 @@ export function TransactionEditModal({
                 key={cat}
                 label={
                   cat === "tunai"
-                    ? "Tunai"
+                    ? t("transaction.cash")
                     : cat === "ewallet"
-                      ? "E-Wallet"
-                      : "Rekening"
+                      ? t("transaction.ewallet")
+                      : t("transaction.bank_account")
                 }
               >
                 {pockets
@@ -214,7 +227,7 @@ export function TransactionEditModal({
           disabled={submitting}
           className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {submitting ? "Menyimpan..." : "Simpan Perubahan"}
+          {submitting ? t("transaction.saving") : t("common.save")}
         </button>
       </form>
     </ResponsiveModal>

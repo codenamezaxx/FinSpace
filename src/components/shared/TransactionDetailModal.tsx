@@ -3,6 +3,7 @@
 import { Pencil, Trash2, ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { ResponsiveModal } from "./ResponsiveModal";
 import { usePockets } from "@/hooks/usePockets";
+import { useLanguage } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/netWorth";
 import type { Transaction } from "@/lib/db";
 
@@ -29,6 +30,7 @@ export function TransactionDetailModal({
   onEdit,
   onDelete,
 }: TransactionDetailModalProps) {
+  const { t } = useLanguage();
   const { pockets } = usePockets();
   if (!transaction) return null;
 
@@ -36,7 +38,7 @@ export function TransactionDetailModal({
   const pocket = pockets.find((p) => p.id === transaction.pocketId);
 
   return (
-    <ResponsiveModal isOpen={isOpen} onClose={onClose} title="Detail Transaksi">
+    <ResponsiveModal isOpen={isOpen} onClose={onClose} title={t("transaction.detail_title")}>
       <div className="space-y-5">
         {/* Header: Type Badge */}
         <div className="flex justify-center">
@@ -52,7 +54,7 @@ export function TransactionDetailModal({
             ) : (
               <ArrowUpRight className="h-3.5 w-3.5" />
             )}
-            {isExpense ? "Pengeluaran" : "Pemasukan"}
+            {isExpense ? t("transaction.expense") : t("transaction.income")}
           </span>
         </div>
 
@@ -78,19 +80,19 @@ export function TransactionDetailModal({
         {/* Details Grid */}
         <div className="space-y-3 rounded-xl bg-surface-alt p-4">
           <DetailRow
-            label="Kategori"
+            label={t("transaction.category")}
             value={transaction.category}
           />
           <DetailRow
-            label="Kantong / Metode Pembayaran"
+            label={t("transaction.payment_method")}
             value={pocket?.name ?? transaction.payment_method}
           />
           <DetailRow
-            label="Tanggal"
+            label={t("transaction.date")}
             value={formatDateFull(transaction.timestamp)}
           />
           <DetailRow
-            label="ID Transaksi"
+            label={t("transaction.transaction_id")}
             value={transaction.id}
             mono
             muted
@@ -108,7 +110,7 @@ export function TransactionDetailModal({
             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover active:scale-[0.97]"
           >
             <Pencil className="h-4 w-4" />
-            Edit
+            {t("common.edit")}
           </button>
           <button
             type="button"
@@ -119,7 +121,7 @@ export function TransactionDetailModal({
             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-danger px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-danger/90 active:scale-[0.97]"
           >
             <Trash2 className="h-4 w-4" />
-            Hapus
+            {t("common.delete")}
           </button>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import { Plus, Banknote, CreditCard } from "lucide-react";
 import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
 import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
+import { useLanguage } from "@/lib/i18n";
 
 type ItemType = "asset" | "liability";
 
@@ -25,6 +26,7 @@ export function AssetLiabilityForm({
   onPurchase,
   currentBalance,
 }: AssetLiabilityFormProps) {
+  const { t } = useLanguage();
   const [type, setType] = useState<ItemType>("asset");
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
@@ -45,9 +47,9 @@ export function AssetLiabilityForm({
 
   function validate() {
     const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = "Nama harus diisi";
+    if (!name.trim()) errs.name = t("wealth.name_required");
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0)
-      errs.amount = "Masukkan jumlah yang valid";
+      errs.amount = t("wealth.valid_amount");
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -92,7 +94,7 @@ export function AssetLiabilityForm({
     <ResponsiveModal
       isOpen={isOpen}
       onClose={onClose}
-      title={type === "asset" ? "Tambah Aset" : "Tambah Liabilitas"}
+      title={type === "asset" ? t("wealth.add_asset") : t("wealth.add_liability")}
     >
       <div className="space-y-4">
         {/* Type toggle */}
@@ -126,13 +128,13 @@ export function AssetLiabilityForm({
         {/* Name */}
         <div>
           <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-            Nama
+            {t("wealth.asset_name")}
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="cth: Rekening Tabungan"
+            placeholder={t("wealth.name_placeholder")}
             className={inputClasses}
           />
           {errors.name && (
@@ -143,7 +145,7 @@ export function AssetLiabilityForm({
         {/* Amount */}
         <div>
           <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-            Jumlah (IDR)
+            {t("wealth.amount_label")}
           </label>
           <input
             type="text"
@@ -164,7 +166,7 @@ export function AssetLiabilityForm({
         {type === "asset" && (
           <div>
             <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-              Tipe Aset
+              {t("wealth.asset_type")}
             </label>
             <select
               value={assetType}
@@ -173,20 +175,20 @@ export function AssetLiabilityForm({
               }
               className={inputClasses}
             >
-              <option value="liquid">Likuid (Tunai, Bank)</option>
-              <option value="investment">Investasi (Saham, Reksadana)</option>
-              <option value="property">Properti (Rumah, Tanah)</option>
-              <option value="other">Lainnya</option>
+              <option value="liquid">{t("wealth.liquid")}</option>
+              <option value="investment">{t("wealth.investment")}</option>
+              <option value="property">{t("wealth.property")}</option>
+              <option value="other">{t("wealth.other")}</option>
             </select>
           </div>
         )}
 
-        {/* Beli dari Saldo */}
+        {/* Buy from Balance */}
         <div className="space-y-3 rounded-xl border border-border bg-surface-alt p-3">
           {currentBalance !== undefined && (
             <div className="flex items-center justify-between">
               <p className="font-mono text-xs text-text-muted">
-                Saldo saat ini
+                {t("wealth.current_balance")}
               </p>
               <p className="font-mono text-sm font-semibold text-text-primary">
                 {formatCurrency(currentBalance)}
@@ -201,7 +203,7 @@ export function AssetLiabilityForm({
               className="h-4 w-4 rounded border-border accent-primary"
             />
             <span className="text-sm text-text-primary">
-              Beli menggunakan saldo tercatat
+              {t("wealth.buy_from_balance")}
             </span>
           </label>
         </div>
@@ -213,7 +215,7 @@ export function AssetLiabilityForm({
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-mono text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
         >
           <Plus className="h-4 w-4" />
-          Tambah {type === "asset" ? "Aset" : "Liabilitas"}
+          {t("wealth.add_record")}
         </button>
       </div>
     </ResponsiveModal>

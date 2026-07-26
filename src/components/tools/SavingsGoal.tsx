@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 import { PiggyBank } from "lucide-react";
 import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
+import { useLanguage } from "@/lib/i18n";
 
 export function SavingsGoal() {
+  const { t } = useLanguage();
   const [target, setTarget] = useState("");
   const [waktu, setWaktu] = useState("");
   const [saldoAwal, setSaldoAwal] = useState("");
@@ -25,14 +27,14 @@ export function SavingsGoal() {
       <div className="mb-5 flex items-center gap-2">
         <PiggyBank className="h-4 w-4 text-accent" />
         <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-          Kalkulator Tabungan
+          {t("tools.savings_goal")}
         </p>
       </div>
 
       <div className="space-y-4">
         <div>
           <label className="mb-1.5 block font-mono text-xs text-text-secondary">
-            Target Jumlah
+            {t("tools.goal_amount")}
           </label>
           <input
             type="text"
@@ -46,7 +48,7 @@ export function SavingsGoal() {
 
         <div>
           <label className="mb-1.5 block font-mono text-xs text-text-secondary">
-            Waktu
+            {t("tools.target_date")}
           </label>
           <input
             type="text"
@@ -60,7 +62,7 @@ export function SavingsGoal() {
 
         <div>
           <label className="mb-1.5 block font-mono text-xs text-text-secondary">
-            Saldo Awal <span className="text-text-muted">(opsional)</span>
+            {t("budget.initial_balance_optional")}
           </label>
           <input
             type="text"
@@ -77,18 +79,18 @@ export function SavingsGoal() {
         {showResult ? (
           <div className="text-center">
             <p className="font-mono text-xs text-text-muted">
-              Tabungan per Bulan
+              {t("tools.monthly_saving")}
             </p>
             <p className="mt-1 font-mono text-2xl font-bold text-accent">
               {formatCurrency(Math.round(monthly))}
             </p>
             <p className="mt-1 text-xs text-text-muted">
-              selama {waktuNum} bulan
+              {t("tools.target_date")} {waktuNum} {t("tools.remaining")}
             </p>
           </div>
         ) : (
           <p className="text-center text-xs text-text-muted">
-            Masukkan target jumlah dan waktu untuk melihat estimasi tabungan
+            {t("tools.goal_amount")} {t("tools.target_date")}
           </p>
         )}
       </div>

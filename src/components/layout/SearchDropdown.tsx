@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Clock, Banknote, CreditCard, TrendingDown, Wrench } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 import type { SearchResults, TransactionResult, AssetResult, LiabilityResult, DebtResult, ToolResult } from "@/hooks/useSearch";
 
 interface SearchDropdownProps {
@@ -61,6 +62,7 @@ type FlatItem =
 
 export function SearchDropdown({ query, results, loading, onClose, onNavigate }: SearchDropdownProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [recentSearches, setRecentSearches] = useState<string[]>(getRecent);
@@ -252,20 +254,20 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
       {showResults && totalResults === 0 && (
         <div className="flex items-center gap-3 px-4 py-6 text-sm text-text-muted">
           <Search className="h-4 w-4 shrink-0" />
-          <span>Tidak ditemukan hasil untuk &ldquo;{query}&rdquo;</span>
+          <span>{t("search.no_results")} &ldquo;{query}&rdquo;</span>
         </div>
       )}
 
       {showRecent && (
         <>
           <div className="flex items-center justify-between px-4 py-3 text-xs font-semibold uppercase tracking-wider text-text-muted">
-            <span>Pencarian Terakhir</span>
+            <span>{t("search.recent_searches")}</span>
             <button
               type="button"
               onClick={() => { clearRecent(); setRecentSearches([]); }}
               className="text-xs text-text-muted hover:text-text-primary transition-colors"
             >
-              Hapus riwayat
+              {t("common.delete")}
             </button>
           </div>
           {recentSearches.map((q) => (
@@ -287,7 +289,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
           {results!.transactions.length > 0 && (
             <>
               <p className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Transaksi
+                {t("search.transactions")}
               </p>
               {results!.transactions.map((tx) => {
                 const flatIdx = idxMap.get("transaction:" + tx.id) ?? -1;
@@ -322,7 +324,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
           {results!.assets.length > 0 && (
             <>
               <p className="px-4 py-1.5 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Aset
+                {t("search.assets")}
               </p>
               {results!.assets.map((a) => {
                 const flatIdx = idxMap.get("asset:" + a.id) ?? -1;
@@ -353,7 +355,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
           {results!.liabilities.length > 0 && (
             <>
               <p className="px-4 py-1.5 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Liabilitas
+                {t("search.liabilities")}
               </p>
               {results!.liabilities.map((l) => {
                 const flatIdx = idxMap.get("liability:" + l.id) ?? -1;
@@ -384,7 +386,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
           {results!.debts.length > 0 && (
             <>
               <p className="px-4 py-1.5 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Utang
+                {t("search.debts")}
               </p>
               {results!.debts.map((d) => {
                 const flatIdx = idxMap.get("debt:" + d.id) ?? -1;
@@ -415,7 +417,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
           {results!.tools.length > 0 && (
             <>
               <p className="px-4 py-1.5 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Alat
+                {t("tools.title")}
               </p>
               {results!.tools.map((t) => {
                 const flatIdx = idxMap.get("tool:" + t.id) ?? -1;

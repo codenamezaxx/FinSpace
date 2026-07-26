@@ -6,6 +6,7 @@ import { SendHorizonal } from "lucide-react";
 import type { DebtEntry } from "@/lib/netWorth";
 import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
 import { remainingAmount } from "@/lib/debtUtils";
+import { useLanguage } from "@/lib/i18n";
 
 interface PayDebtModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export function PayDebtModal({
   onClose,
   onPay,
 }: PayDebtModalProps) {
+  const { t } = useLanguage();
   const [amount, setAmount] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -32,9 +34,9 @@ export function PayDebtModal({
     const errs: Record<string, string> = {};
     const val = Number(amount);
     if (!amount || isNaN(val) || val <= 0)
-      errs.amount = "Masukkan nominal yang valid";
+      errs.amount = t("wealth.valid_amount");
     else if (val > remaining)
-      errs.amount = `Maksimal ${formatCurrency(remaining)}`;
+      errs.amount = `${t("wealth.max_label")} ${formatCurrency(remaining)}`;
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -52,7 +54,7 @@ export function PayDebtModal({
     <div className="rounded-xl border border-border bg-surface-alt p-3">
       <p className="text-sm text-text-primary">{currentDebt.name}</p>
       <p className="mt-1 font-mono text-sm text-text-muted">
-        Sisa: {formatCurrency(remaining)}
+        {t("wealth.remaining_label")}: {formatCurrency(remaining)}
       </p>
     </div>
   );
@@ -61,13 +63,13 @@ export function PayDebtModal({
     "w-full rounded-lg border border-border bg-surface-alt px-3 py-2.5 font-mono text-sm text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-colors";
 
   return (
-    <ResponsiveModal isOpen={isOpen} onClose={onClose} title="Bayar Cicilan">
+    <ResponsiveModal isOpen={isOpen} onClose={onClose} title={t("wealth.pay_debt_confirm")}>
       <div className="space-y-4">
         {debtContent}
 
         <div>
           <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-            Nominal Pembayaran (IDR)
+            {t("wealth.pay_amount_label")}
           </label>
           <input
             type="text"
@@ -81,7 +83,7 @@ export function PayDebtModal({
             <p className="mt-1 font-mono text-xs text-danger">{errors.amount}</p>
           )}
           <p className="mt-1 font-mono text-[11px] text-text-muted">
-            Maks: {formatCurrency(remaining)}
+            {t("wealth.max_label")}: {formatCurrency(remaining)}
           </p>
         </div>
 
@@ -91,7 +93,7 @@ export function PayDebtModal({
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-mono text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25"
         >
           <SendHorizonal className="h-4 w-4" />
-          Bayar Cicilan
+          {t("wealth.pay_debt_confirm")}
         </button>
       </div>
     </ResponsiveModal>

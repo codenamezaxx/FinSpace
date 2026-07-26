@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import type { ReactNode } from "react";
+import { useLanguage } from "@/lib/i18n";
 
 interface MobileCardSwitcherProps {
   views: [ReactNode, ReactNode];
@@ -12,8 +13,10 @@ interface MobileCardSwitcherProps {
 export function MobileCardSwitcher({
   views,
   initialIndex = 0,
-  labels = ["Saldo", "Kekayaan Bersih"],
+  labels: labelsProp,
 }: MobileCardSwitcherProps) {
+  const { t } = useLanguage();
+  const labels = labelsProp ?? [t("dashboard.balance"), t("wealth.net_worth")];
   const [active, setActive] = useState(initialIndex);
   const carouselRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
