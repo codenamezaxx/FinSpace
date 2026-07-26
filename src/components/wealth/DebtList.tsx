@@ -5,6 +5,7 @@ import type { DebtEntry } from "@/lib/netWorth";
 import { formatCurrency } from "@/lib/netWorth";
 import { calcInstallment, remainingAmount } from "@/lib/debtUtils";
 import type { InstallmentResult } from "@/lib/debtUtils";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 interface DebtListProps {
   debts: DebtEntry[];
@@ -13,10 +14,12 @@ interface DebtListProps {
 }
 
 export function DebtList({ debts, onPay, onDelete }: DebtListProps) {
+  const { t, lang } = useLanguage();
+
   if (debts.length === 0) {
     return (
       <p className="font-mono text-sm italic text-text-secondary/70">
-        Belum ada utang. Ketuk &quot;Tambah Utang&quot; untuk memulai.
+        {t("debt.empty_hint")}
       </p>
     );
   }
@@ -39,6 +42,8 @@ export function DebtList({ debts, onPay, onDelete }: DebtListProps) {
             installment={installment}
             onPay={() => onPay(debt)}
             onDelete={() => onDelete(debt.id)}
+            t={t}
+            lang={lang}
           />
         );
       })}
@@ -53,6 +58,8 @@ function DebtItem({
   installment,
   onPay,
   onDelete,
+  t,
+  lang,
 }: {
   debt: DebtEntry;
   remaining: number;
@@ -60,19 +67,22 @@ function DebtItem({
   installment: InstallmentResult;
   onPay: () => void;
   onDelete: () => void;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+  lang: string;
 }) {
+  const locale = lang === "id" ? "id-ID" : "en-US";
   let infoText = "";
   if (installment.overdue) {
-    infoText = "Terlambat";
+    infoText = t("debt.overdue");
   } else if (installment.period === "bulan") {
-    infoText = `Cicil ${formatCurrency(installment.amount)}/bln (${installment.count} bulan lagi)`;
+    infoText = t("debt.installment_monthly", { amount: formatCurrency(installment.amount), count: installment.count });
   } else {
-    infoText = `Cicil ${formatCurrency(installment.amount)}/minggu (${installment.count} minggu lagi)`;
+    infoText = t("debt.installment_weekly", { amount: formatCurrency(installment.amount), count: installment.count });
   }
 
   const interestInfo =
     installment.interestTotal != null && installment.interestTotal > 0
-      ? `Bunga ${formatCurrency(installment.interestTotal)}`
+      ? t("debt.interest", { amount: formatCurrency(installment.interestTotal) })
       : null;
 
   return (
@@ -118,10 +128,12 @@ function DebtItem({
       {/* Due date + pay button */}
       <div className="mt-2 flex items-center justify-between">
         <p className="font-mono text-[11px] text-text-muted">
-          Jatuh tempo: {new Date(debt.dueDate).toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
+          {t("debt.due_date", {
+            date: new Date(debt.dueDate).toLocaleDateString(locale, {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            }),
           })}
         </p>
         <button
@@ -131,7 +143,7 @@ function DebtItem({
           className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 font-mono text-xs font-medium text-primary transition-all duration-200 hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <HandCoins className="h-3.5 w-3.5" />
-          Bayar
+          {t("debt.pay")}
         </button>
       </div>
     </div>
