@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { LogOut, Settings, Cloud, CloudOff, User, Sun, Moon } from "lucide-react";
+import { LogOut, Settings, Cloud, CloudOff, User, Sun, Moon, Info } from "lucide-react";
 import { useCloudAuth } from "@/hooks/useCloudAuth";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { useTheme } from "@/lib/theme-context";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { AboutFeedbackModal } from "@/components/shared/AboutFeedbackModal";
 import Link from "next/link";
 
 export function ProfileButton() {
@@ -15,6 +16,7 @@ export function ProfileButton() {
   const { t } = useLanguage();
   const sync = useSyncStatus();
   const [open, setOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -194,7 +196,14 @@ export function ProfileButton() {
               <LanguageSwitcher />
             </div>
 
-            {/* ── BOTTOM: Settings + Logout ── */}
+            {/* ── BOTTOM: About + Settings + Logout ── */}
+            <button
+              onClick={() => { setOpen(false); setAboutOpen(true); }}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-surface hover:text-text-primary"
+            >
+              <Info className="h-4 w-4" />
+              {t("about.title")}
+            </button>
             <Link
               href="/settings"
               onClick={() => setOpen(false)}
@@ -215,6 +224,12 @@ export function ProfileButton() {
           </div>
         </>
       )}
+
+      {/* About & Feedback Modal */}
+      <AboutFeedbackModal
+        isOpen={aboutOpen}
+        onClose={() => setAboutOpen(false)}
+      />
     </div>
   );
 }
