@@ -4,35 +4,13 @@ import { useState, useMemo, type FC } from "react";
 import { Check, X } from "lucide-react";
 import type { PocketInfo } from "@/hooks/useFinnyChat";
 import { useLanguage } from "@/lib/i18n";
-
-const EXPENSE_CATEGORIES = [
-  "Makanan & Minuman", "Transportasi", "Tagihan", "Kesehatan",
-  "Pendidikan", "Belanja", "Hiburan",
-];
-
-const INCOME_CATEGORIES = ["Gaji", "Freelance", "Investasi"];
-
-const PAYMENT_METHODS = [
-  "Cash", "Transfer Bank", "QRIS", "Kartu Kredit",
-  "Kartu Debit", "E-Wallet", "Lainnya",
-];
-
-const ASSET_TYPES = [
-  { value: "liquid", labelKey: "wealth.liquid" },
-  { value: "investment", labelKey: "wealth.investment" },
-  { value: "property", labelKey: "wealth.property" },
-  { value: "other", labelKey: "wealth.other" },
-];
-
-const CATEGORY_LABEL_MAP: Record<string, string> = {
-  "Makanan & Minuman": "transaction.food",
-  Transportasi: "transaction.transport",
-  Belanja: "transaction.shopping",
-  Hiburan: "transaction.entertainment",
-  Tagihan: "transaction.bills",
-  Kesehatan: "transaction.health",
-  Pendidikan: "transaction.education",
-};
+import {
+  EXPENSE_CATEGORIES,
+  INCOME_CATEGORIES,
+  PAYMENT_METHODS,
+  ASSET_TYPES,
+  CATEGORY_LABEL_MAP,
+} from "@/lib/constants";
 
 interface TransactionPreviewProps {
   action: string;
@@ -148,7 +126,7 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
               value={(editData.category as string) ?? ""}
               onChange={(v) => updateField("category", v)}
               type="select"
-              options={categories}
+              options={categories as string[]}
               tFunc={t}
             />
             <FieldRow
@@ -156,7 +134,7 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
               value={(editData.payment_method as string) ?? ""}
               onChange={(v) => updateField("payment_method", v)}
               type="select"
-              options={PAYMENT_METHODS}
+              options={PAYMENT_METHODS as unknown as string[]}
               tFunc={t}
             />
             {/* Pocket selector */}

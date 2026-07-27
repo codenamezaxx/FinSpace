@@ -9,26 +9,7 @@ import { useLanguage } from "@/lib/i18n";
 import { formatInputValue, parseInputValue } from "@/lib/netWorth";
 import { notifyTransaction, checkOverspending } from "@/lib/notificationTriggers";
 import { db, type Transaction } from "@/lib/db";
-
-const EXPENSE_CATEGORIES = [
-  "Makanan & Minuman",
-  "Transportasi",
-  "Belanja",
-  "Hiburan",
-  "Tagihan",
-  "Kesehatan",
-  "Pendidikan",
-];
-
-const CATEGORY_LABEL_MAP: Record<string, string> = {
-  "Makanan & Minuman": "transaction.food",
-  Transportasi: "transaction.transport",
-  Belanja: "transaction.shopping",
-  Hiburan: "transaction.entertainment",
-  Tagihan: "transaction.bills",
-  Kesehatan: "transaction.health",
-  Pendidikan: "transaction.education",
-};
+import { EXPENSE_CATEGORIES, CATEGORY_LABEL_MAP } from "@/lib/constants";
 
 export function GlobalTransactionModal() {
   const { isOpen, closeAddTransaction, initialTab } = useTransactionModal();
@@ -39,7 +20,7 @@ export function GlobalTransactionModal() {
   const [tab, setTab] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
   const [merchant, setMerchant] = useState("");
-  const [category, setCategory] = useState(EXPENSE_CATEGORIES[0]);
+  const [category, setCategory] = useState<string>(EXPENSE_CATEGORIES[0]);
   const [selectedPocketId, setSelectedPocketId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");

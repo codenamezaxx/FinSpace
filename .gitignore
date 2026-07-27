@@ -46,6 +46,8 @@ next-env.d.ts
 #agents
 .codegraph
 .superpowers
+.claudian
+.obsidian
 docs
 
 # Serwist

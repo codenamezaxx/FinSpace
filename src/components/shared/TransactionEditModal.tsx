@@ -6,17 +6,7 @@ import { usePockets } from "@/hooks/usePockets";
 import { useLanguage } from "@/lib/i18n";
 import { formatInputValue, parseInputValue } from "@/lib/netWorth";
 import type { Transaction } from "@/lib/db";
-
-const EXPENSE_CATEGORIES = [
-  "Makanan & Minuman",
-  "Transportasi",
-  "Belanja",
-  "Hiburan",
-  "Tagihan",
-  "Kesehatan",
-  "Pendidikan",
-  "Lainnya",
-];
+import { EXPENSE_CATEGORIES, CATEGORY_LABEL_MAP } from "@/lib/constants";
 
 interface TransactionEditModalProps {
   isOpen: boolean;
@@ -24,17 +14,6 @@ interface TransactionEditModalProps {
   transaction: Transaction | null;
   onSave: (id: string, data: Partial<Omit<Transaction, "id">>) => void;
 }
-
-const CATEGORY_LABEL_MAP: Record<string, string> = {
-  "Makanan & Minuman": "transaction.food",
-  Transportasi: "transaction.transport",
-  Belanja: "transaction.shopping",
-  Hiburan: "transaction.entertainment",
-  Tagihan: "transaction.bills",
-  Kesehatan: "transaction.health",
-  Pendidikan: "transaction.education",
-  Lainnya: "wealth.other",
-};
 
 export function TransactionEditModal({
   isOpen,
@@ -48,7 +27,7 @@ export function TransactionEditModal({
   const [tab, setTab] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
   const [merchant, setMerchant] = useState("");
-  const [category, setCategory] = useState(EXPENSE_CATEGORIES[0]);
+  const [category, setCategory] = useState<string>(EXPENSE_CATEGORIES[0]);
   const [selectedPocketId, setSelectedPocketId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -60,7 +39,7 @@ export function TransactionEditModal({
       setAmount(String(transaction.amount));
       setMerchant(transaction.merchant);
       setCategory(
-        EXPENSE_CATEGORIES.includes(transaction.category)
+        (EXPENSE_CATEGORIES as readonly string[]).includes(transaction.category)
           ? transaction.category
           : transaction.type === "income"
             ? "Lainnya"

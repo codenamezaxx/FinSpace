@@ -1,31 +1,6 @@
 import { db } from "@/lib/db";
 import type { Transaction } from "@/lib/db";
-
-const categories = [
-  "Makanan & Minuman",
-  "Transportasi",
-  "Belanja",
-  "Hiburan",
-  "Tagihan",
-  "Kesehatan",
-  "Pendidikan",
-  "Gaji",
-  "Freelance",
-  "Investasi",
-];
-
-const merchants = [
-  "Bakso Pak Joko",
-  "Gojek",
-  "Tokopedia",
-  "Netflix",
-  "PLN",
-  "Apotek Sehat",
-  "Coursera",
-  "Perusahaan XYZ",
-  "Freelance Project",
-  "Reksadana Online",
-];
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, SEED_MERCHANTS } from "@/lib/constants";
 
 function randomId() {
   return crypto.randomUUID();
@@ -35,7 +10,7 @@ function randomAmount(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function randomItem<T>(arr: T[]): T {
+function randomItem<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
@@ -54,9 +29,9 @@ function generateSampleTransactions(): Transaction[] {
         : randomAmount(1000000, 10000000),
       type: isExpense ? "expense" : "income",
       category: isExpense
-        ? randomItem(categories.slice(0, 7))
-        : randomItem(categories.slice(7)),
-      merchant: randomItem(merchants),
+        ? randomItem(EXPENSE_CATEGORIES)
+        : randomItem(INCOME_CATEGORIES),
+      merchant: randomItem(SEED_MERCHANTS),
       payment_method: randomItem(["Cash", "Transfer Bank", "Kartu Kredit", "E-Wallet"]),
       timestamp,
     });
