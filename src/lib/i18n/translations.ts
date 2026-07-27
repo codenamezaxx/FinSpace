@@ -295,6 +295,15 @@ export const translations = {
       cloud_sync_description: "Cloud Sync",
       info_text: "Your data is stored locally on this device and automatically synced to the cloud when you log in. Syncing runs in the background without interrupting your activity.",
     },
+    about: {
+      title: "About & Feedback",
+      description:
+        "FinSpace is a personal finance manager that helps you track expenses, manage budgets, and grow your wealth with AI-powered insights.",
+      version: "Version",
+      feedback: "Feedback",
+      email_developer: "Email Developer",
+      report_issue: "Report Issue",
+    },
     landing: {
       title: "Take Control of Your Finances",
       subtitle: "Track expenses, manage budgets, and grow your wealth with AI-powered insights.",
@@ -779,6 +788,15 @@ export const translations = {
       sign_out: "Keluar",
       cloud_sync_description: "Sinkronisasi Cloud",
       info_text: "Data Anda disimpan secara lokal di perangkat ini dan disinkronkan secara otomatis ke cloud saat Anda masuk. Sinkronisasi berjalan di latar belakang tanpa mengganggu aktivitas Anda.",
+    },
+    about: {
+      title: "Tentang & Umpan Balik",
+      description:
+        "FinSpace adalah pengelola keuangan pribadi yang membantu Anda melacak pengeluaran, mengelola anggaran, dan mengembangkan kekayaan dengan wawasan berbasis AI.",
+      version: "Versi",
+      feedback: "Umpan Balik",
+      email_developer: "Email Developer",
+      report_issue: "Laporkan Issue",
     },
     landing: {
       title: "Kendalikan Keuangan Anda",
