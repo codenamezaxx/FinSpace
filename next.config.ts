@@ -1,6 +1,9 @@
 import { withSerwist } from "@serwist/turbopack";
 
 const nextConfig = {
+  turbopack: {
+    root: process.cwd(),
+  },
   async headers() {
     return [
       {
