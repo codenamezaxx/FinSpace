@@ -1,10 +1,11 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Camera,
+  Info,
   LayoutDashboard,
   Wallet,
   TrendingUp,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { useTransactionModal } from "@/lib/transaction-modal-context";
 import { useLanguage } from "@/lib/i18n";
+import { AboutFeedbackModal } from "@/components/shared/AboutFeedbackModal";
 
 interface NavigationBarProps {
   isCollapsed?: boolean;
@@ -27,6 +29,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
   const pathname = usePathname();
   const { openAddTransaction } = useTransactionModal();
   const { t } = useLanguage();
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   const navItems = [
     { href: "/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
@@ -211,7 +214,36 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
               </span>
             </Link>
           </div>
+
+          {/* About & Feedback */}
+          <div className="px-3 pb-4">
+            <button
+              type="button"
+              onClick={() => setAboutOpen(true)}
+              className={`flex items-center rounded-lg transition-colors hover:bg-surface ${
+                isCollapsed
+                  ? "mx-auto h-9 w-9 justify-center"
+                  : "w-full gap-3 px-3 py-2"
+              } text-text-muted hover:text-text-secondary`}
+              title={isCollapsed ? t("about.title") : undefined}
+            >
+              <Info className="h-4 w-4 shrink-0" />
+              <span
+                className={`overflow-hidden text-xs transition-all duration-300 ${
+                  isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                }`}
+              >
+                {t("about.title")}
+              </span>
+            </button>
+          </div>
         </div>
+
+      {/* About & Feedback Modal */}
+      <AboutFeedbackModal
+        isOpen={aboutOpen}
+        onClose={() => setAboutOpen(false)}
+      />
       </aside>
     </>
   );
