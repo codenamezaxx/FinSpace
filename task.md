@@ -110,27 +110,27 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
   - [x] Implement sync manager to push queue items when network switches back online.
 
 ## Phase 7: Product Testing
-- [ ] Install testing framework (Vitest or Jest) and React Testing Library.
-- [ ] Write unit tests for financial formulas (Net Worth, Liquidity Ratio, Savings Rate, Debt-to-Income).
-- [ ] Write component tests for core UI components (loading, empty, error, edge-case states).
-- [ ] Write integration tests for IndexedDB read/write → UI feedback cycle.
+- [x] Install testing framework (Vitest or Jest) and React Testing Library.
+- [x] Write unit tests for financial formulas (Net Worth, Liquidity Ratio, Savings Rate, Debt-to-Income).
+- [x] Write component tests for core UI components (loading, empty, error, edge-case states).
+- [x] Write integration tests for IndexedDB read/write → UI feedback cycle.
 - [ ] Write E2E tests for full user flow using Playwright (add transaction → dashboard → Net Worth update).
 - [ ] Verify all tests pass in CI pipeline.
 
 ## Phase 8: Security & Compliance
 - [ ] Validate and sanitize all user input fields (amount, merchant, category) before IndexedDB write.
-- [ ] Configure Content Security Policy (CSP) headers in `next.config.ts`.
+- [x] Configure Content Security Policy (CSP) headers in `next.config.ts`.
 - [ ] Implement encryption for sensitive PII fields using `crypto.subtle`.
-- [ ] Web Bluetooth: ensure device request only triggers on explicit button click.
+- [x] Web Bluetooth: ensure device request only triggers on explicit button click.
 - [ ] Run `npm audit` and resolve any critical vulnerabilities.
 
 ## Phase 9: Scalability & Maintainability
-- [ ] Organize `src/components/` by domain (`budget/`, `wealth/`, `ai/`, `shared/`).
-- [ ] Extract all custom hooks into `src/hooks/` (IndexedDB, network status, form logic).
+- [x] Organize `src/components/` by domain (`budget/`, `wealth/`, `ai/`, `shared/`).
+- [x] Extract all custom hooks into `src/hooks/` (IndexedDB, network status, form logic).
 - [ ] Move constants, categories, budget rules, and insight messages to `src/lib/constants.ts`.
-- [ ] Audit codebase for `any` types and replace with explicit TypeScript types.
+- [x] Audit codebase for `any` types and replace with explicit TypeScript types.
 - [ ] Split any file exceeding 200 lines into smaller modules.
-- [ ] Verify no circular imports exist in the dependency graph.
+- [x] Verify no circular imports exist in the dependency graph.
 
 ## Phase 3c: Net Worth Revision — Debt Tracking + Balance Integration
 - [x] Task 1: Data layer — DebtEntry, new NetWorthResult, calculateNetWorth (balance + debts), debtUtils (installment), tests

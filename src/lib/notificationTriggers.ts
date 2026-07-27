@@ -17,7 +17,7 @@ export async function notifyTransaction(transaction: Transaction): Promise<void>
     id,
     type: "transaction",
     title: "Pengeluaran Baru",
-    message: `${amount} — ${transaction.merchant || (transaction as any).description || "Transaksi"}`,
+    message: `${amount} — ${transaction.merchant || "Transaksi"}`,
     read: 0,
     createdAt: Date.now(),
     relatedId: transaction.id,
