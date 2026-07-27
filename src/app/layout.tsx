@@ -124,14 +124,14 @@ export default function RootLayout({
           [data-theme="dark"] .hover\\:text-text-secondary:hover { color: #94A3B8 !important; }
           [data-theme="dark"] .hover\\:text-text-primary:hover { color: #FFFFFF !important; }
         `}</style>
-      </head>
-      <body className="min-h-full bg-background text-text-secondary">
         <script
           id="theme-init"
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem("finspace-theme");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")}catch(e){}})()`,
           }}
         />
+      </head>
+      <body className="min-h-full bg-background text-text-secondary">
         <LanguageProvider>
           <ThemeProvider>
             <ClientSerwistProvider>
