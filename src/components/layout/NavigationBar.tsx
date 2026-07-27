@@ -220,7 +220,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
             <button
               type="button"
               onClick={() => setAboutOpen(true)}
-              className={`flex items-center rounded-lg transition-colors hover:bg-surface ${
+              className={`flex items-center rounded-lg transition-colors hover:bg-surface cursor-pointer ${
                 isCollapsed
                   ? "mx-auto h-9 w-9 justify-center"
                   : "w-full gap-3 px-3 py-2"
