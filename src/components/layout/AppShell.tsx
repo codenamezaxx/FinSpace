@@ -16,12 +16,14 @@ import { GlobalTransactionModal } from "@/components/shared/GlobalTransactionMod
 import { notifyTransaction, checkOverspending, checkCreditReminders } from "@/lib/notificationTriggers";
 import { db, migrateWealthFromLocalStorage, deduplicateWealthData } from "@/lib/db";
 import type { Transaction } from "@/lib/db";
+import { MobileMenuContent } from "./MobileMenuContent";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [scanImageDataUrl, setScanImageDataUrl] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { scanImage, result, isLoading, error, reset } = useFinnyScan();
   const { pockets: pocketEnts } = usePockets();
@@ -168,7 +170,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         onToggle={() => setIsSidebarCollapsed((prev) => !prev)}
         onScan={handleScanClick}
       />
-      <TopBar isSidebarCollapsed={isSidebarCollapsed} />
+      <TopBar isSidebarCollapsed={isSidebarCollapsed} isMenuOpen={isMobileMenuOpen} onMenuToggle={() => setIsMobileMenuOpen(p => !p)} />
       <main
         className={`relative z-10 flex-1 pt-16 pb-20 transition-all duration-300 lg:pb-0 ${
           isSidebarCollapsed ? "lg:ml-[72px]" : "lg:ml-64"
@@ -178,6 +180,28 @@ export function AppShell({ children }: { children: ReactNode }) {
           {children}
         </div>
       </main>
+
+      {/* Mobile Navigation Drawer */}
+      <div
+        className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-500 ${
+          isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+        {/* Drawer panel */}
+        <aside
+          className={`absolute left-0 top-0 h-full w-72 max-w-[80vw] bg-surface-alt border-r border-border shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+            isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <MobileMenuContent isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+        </aside>
+      </div>
+
       <div className="fixed bottom-24 right-6 z-50 lg:bottom-12 lg:right-12">
         <FinnyTrigger onClick={() => setIsChatOpen(true)} />
       </div>

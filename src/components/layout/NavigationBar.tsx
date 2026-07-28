@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -31,17 +31,50 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
   const { t } = useLanguage();
   const [aboutOpen, setAboutOpen] = useState(false);
 
-  const navItems = [
+  const navItems = useMemo(() => [
     { href: "/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
     { href: "/budget", label: t("nav.budget"), icon: Wallet },
     { href: "/wealth", label: t("nav.wealth"), icon: TrendingUp },
     { href: "/tools", label: t("nav.tools"), icon: Wrench },
-  ];
+  ], [t]);
+
+  // ─── Mobile indicator logic ───
+  const navRef = useRef<HTMLDivElement>(null);
+  const linkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const [indicatorStyle, setIndicatorStyle] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
+
+  const updateIndicator = useCallback(() => {
+    const activeIdx = navItems.findIndex((item) => pathname.startsWith(item.href));
+    const link = linkRefs.current[activeIdx];
+    const nav = navRef.current;
+    if (!link || !nav) return;
+    const navRect = nav.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    setIndicatorStyle({
+      left: linkRect.left - navRect.left + linkRect.width / 2 - 14,
+      width: 28,
+    });
+  }, [navItems, pathname]);
+
+  useEffect(() => {
+    updateIndicator();
+    window.addEventListener("resize", updateIndicator);
+    return () => window.removeEventListener("resize", updateIndicator);
+  }, [pathname]);
 
   return (
     <>
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border bg-surface/60 backdrop-blur-xl px-2 py-2 lg:hidden">
+      <nav
+        ref={navRef}
+        className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border bg-surface/60 backdrop-blur-xl px-2 py-2 lg:hidden"
+      >
+        {/* Sliding active indicator */}
+        <div
+          className="absolute bottom-1 h-[1.5px] rounded-full bg-primary transition-all duration-300 ease-out"
+          style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
+        />
+
         {navItems.map((item, i) => {
           const isActive = pathname.startsWith(item.href);
           const Icon = item.icon;
@@ -50,19 +83,24 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
               {i === 2 && onScan && (
                 <button
                   onClick={onScan}
-                  className="flex items-center justify-center w-full max-w-14 h-14 -mt-5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-primary/40 active:scale-95"
+                  className="flex items-center justify-center w-full max-w-14 h-14 -mt-5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/40 active:scale-95 hover:-mt-6"
                   aria-label={t("nav.scan_receipt")}
                 >
                   <Camera className="w-6 h-6" />
                 </button>
               )}
               <Link
+                ref={(el) => { linkRefs.current[i] = el; }}
                 href={item.href}
-                className={`flex flex-col items-center w-full gap-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                className={`flex flex-col items-center w-full gap-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors duration-200 ${
                   isActive ? "bg-primary/10 text-primary" : "text-text-muted hover:text-text-secondary"
                 }`}
               >
-                <Icon className={`h-5 w-5 ${isActive ? "text-primary" : ""}`} />
+                <Icon
+                  className={`h-5 w-5 transition-all duration-300 ${
+                    isActive ? "text-primary scale-110" : "scale-95"
+                  }`}
+                />
                 <span>{item.label}</span>
               </Link>
             </Fragment>
@@ -89,9 +127,10 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
             className="h-9 w-9 shrink-0"
           />
           <div
-            className={`flex flex-col overflow-hidden transition-all duration-300 ${
+            className={`flex flex-col overflow-hidden transition-all duration-300 cursor-pointer ${
               isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
             }`}
+            onClick={() => window.location.href = "/"}
           >
             <span className="whitespace-nowrap text-xl font-bold px-2 text-text-primary">
               FinSpace

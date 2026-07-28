@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const [syncLog, setSyncLog] = useState<SyncLogEntry[]>([]);
   const prevPhase = useRef("__initial__");
   const [syncing, setSyncing] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // ── Sync history: track phase transitions ──
   useEffect(() => {
@@ -38,6 +39,9 @@ export default function SettingsPage() {
       prevPhase.current = sync.phase;
     }
   }, [sync.phase, t]);
+
+  // ── Hydration guard: SSR renders placeholder, client fills real value ──
+  useEffect(() => { setMounted(true); }, []);
 
   // ── Force sync ──
   const forceSync = useCallback(async () => {
@@ -99,10 +103,12 @@ export default function SettingsPage() {
           {t("settings.cloud_sync_description")}
         </h2>
 
-        {/* Status indicator */}
+        {/* Status indicator — SSR matches client placeholder to avoid hydration mismatch */}
         <div className="mb-4 flex items-center gap-2">
-          <span className={`h-2.5 w-2.5 rounded-full ${statusColor}`} />
-          <span className="text-sm font-medium text-text-primary">{statusLabel}</span>
+          <span className={`h-2.5 w-2.5 rounded-full ${mounted ? statusColor : "bg-text-muted"}`} />
+          <span className="text-sm font-medium text-text-primary">
+            {mounted ? statusLabel : t("settings.sync_disabled")}
+          </span>
           {isSyncing && <RefreshCw className="ml-1 h-3.5 w-3.5 animate-spin text-primary" />}
         </div>
 

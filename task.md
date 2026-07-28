@@ -169,6 +169,16 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
   - [x] TypeScript compiles clean (`npx tsc --noEmit`)
   - [x] All 116 tests pass (`npx vitest run`)
 
+## Phase 3f: Error Fixes & Polish
+- [x] Fix Settings page hydration mismatch: add `mounted` guard around sync status indicator
+- [ ] Fix React 19 dev-only `<script>` warning in layout (harmless in production, dev-only)
+- [x] Landing page: macOS-style title bar (traffic light dots) on preview dashboard
+- [x] Landing page: replace bar chart with SVG line chart (income/expense curves)
+- [x] Landing page: modernize chart — gradient area fill, no grid, no dots, clean curves
+- [x] Landing page: add Back to Top button above footer
+- [x] Landing page: improve footer — GitHub link, tech note, v1.0 badge, desktop divider, premium copyright bar
+- [x] Mobile nav: smooth tab switching animation — sliding indicator, icon scale (active scale-110 / inactive scale-95), FAB hover lift
+
 ## Phase 10: Deployment & Final Acceptance Testing
 - [ ] Build a robust suite of validation test scenarios for simulated offline state.
 - [ ] Validate desktop responsiveness at viewport widths up to 1920px.

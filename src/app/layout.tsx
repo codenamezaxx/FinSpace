@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
 import { ClientSerwistProvider } from "@/components/layout/ClientSerwistProvider";
 import { LanguageProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme-context";
@@ -123,8 +124,9 @@ export default function RootLayout({
           [data-theme="dark"] .hover\\:text-text-secondary:hover { color: #94A3B8 !important; }
           [data-theme="dark"] .hover\\:text-text-primary:hover { color: #FFFFFF !important; }
         `}</style>
-        <script
+        <Script
           id="theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem("finspace-theme");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")}catch(e){}})()`,
           }}

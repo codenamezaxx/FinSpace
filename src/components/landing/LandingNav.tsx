@@ -28,13 +28,15 @@ export default function LandingNav() {
 
   return (
     <nav
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "glass md:backdrop-blur-md shadow-lg"
-          : "bg-transparent"
-      }`}
+      className="fixed inset-x-0 top-0 z-50"
     >
-      <div className="mx-auto flex flex-row h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+      <div className={`
+        mx-auto flex flex-row h-16 max-w-300 items-center rounded-xl justify-between md:mt-4 px-4 sm:px-6 transition-all duration-300 ${
+          scrolled
+            ? "bg-surface-alt/50 backdrop-blur-md shadow-lg"
+            : "bg-transparent"
+        }
+      `}>
         {/* Left: Logo */}
         <Link href="/" className="flex items-center gap-2.5">
           <Image
@@ -47,7 +49,7 @@ export default function LandingNav() {
         </Link>
 
         {/* Center: Desktop Nav Links */}
-        <div className="hidden items-center gap-8 ml-28 md:flex">
+        <div className="hidden items-center gap-8 ml-20 md:flex">
           {navLinks.map((link) => (
             <a
               key={link.href}

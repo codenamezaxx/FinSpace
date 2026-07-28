@@ -14,8 +14,10 @@ import {
   ArrowRight,
   Receipt,
   ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { LandingSkeleton } from "@/components/landing/LandingSkeleton";
 import { useLanguage } from "@/lib/i18n";
 import { useCloudAuth } from "@/hooks/useCloudAuth";
 import { useRouter } from "next/navigation";
@@ -94,9 +96,10 @@ export default function LandingPage() {
   ] as const;
 
   return (
-    <main className="relative min-h-screen bg-background">
+    <LandingSkeleton isLoading={authLoading}>
+      <main className="relative min-h-screen bg-background">
       {/* ─── Hero ─── */}
-      <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pt-24 pb-20 text-center">
+      <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pt-32 pb-20 text-center">
         <motion.div
           variants={heroContainer}
           initial="hidden"
@@ -140,21 +143,28 @@ export default function LandingPage() {
           {/* Mini Dashboard Preview */}
           <motion.div variants={heroItem} className="mt-16 w-full max-w-4xl">
             <div className="overflow-hidden rounded-2xl border border-border bg-surface-alt shadow-lg">
-              {/* Title bar */}
-              <div className="flex items-center border-b border-border bg-surface px-5 py-3">
-                <span className="text-xs font-medium text-text-primary/80">
+              {/* macOS-style Title bar */}
+              <div className="relative flex items-center border-b border-border bg-surface px-5 py-3">
+                {/* Traffic light dots */}
+                <div className="flex items-center gap-[6px]">
+                  <span className="h-[10px] w-[10px] rounded-full bg-[#EF4444]" />
+                  <span className="h-[10px] w-[10px] rounded-full bg-[#EAB393]" />
+                  <span className="h-[10px] w-[10px] rounded-full bg-[#22C55E]" />
+                </div>
+                {/* Centered title */}
+                <span className="absolute inset-y-0 left-0 flex w-full items-center justify-center text-xs font-medium text-text-primary/80 pointer-events-none">
                   {t("landing.tagline")} · {t("landing.feature_dashboard")}
                 </span>
               </div>
 
               <div className="space-y-4 p-5">
                 {/* Row 1: Balance Card + Net Worth Card */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col md:flex-row gap-4">
                   {/* Balance card — brand gradient */}
-                  <div className="rounded-xl bg-gradient-to-br from-primary to-primary/80 p-5 text-white">
+                  <div className="rounded-xl bg-gradient-to-br from-primary to-primary/80 p-5 text-white w-full">
                     <p className="text-xs font-medium text-white/80">{t("landing.mock_balance")}</p>
                     <p className="mt-1.5 text-2xl font-bold">{t("landing.mock_balance_amount")}</p>
-                    <div className="mt-3 flex items-center gap-2">
+                    <div className="mt-3 flex items-center justify-center gap-2">
                       <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-semibold">
                         {t("landing.mock_balance_change")}
                       </span>
@@ -163,10 +173,10 @@ export default function LandingPage() {
                   </div>
 
                   {/* Net Worth card — accent gradient */}
-                  <div className="rounded-xl bg-gradient-to-br from-accent-secondary to-accent-secondary/80 p-5 text-white">
+                  <div className="rounded-xl bg-gradient-to-br from-accent-secondary to-accent-secondary/80 p-5 text-white w-full">
                     <p className="text-xs font-medium text-white/80">{t("landing.mock_net_worth")}</p>
                     <p className="mt-1.5 text-2xl font-bold">{t("landing.mock_net_worth_amount")}</p>
-                    <div className="mt-3 flex items-center gap-2">
+                    <div className="mt-3 flex items-center justify-center gap-2">
                       <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-semibold">
                         {t("landing.mock_net_worth_change")}
                       </span>
@@ -189,35 +199,71 @@ export default function LandingPage() {
                 </div>
 
                 {/* Row 3: Mini Chart + Insights */}
-                <div className="grid grid-cols-5 gap-4">
+                <div className="flex flex-col md:flex-row gap-4">
                   {/* Chart — 3 cols */}
-                  <div className="col-span-3 rounded-xl border border-border bg-surface-alt/50 p-4">
+                  <div className="col-span-3 w-full rounded-xl border border-border bg-surface-alt/50 p-4">
                     <p className="mb-3 text-xs font-medium text-text-muted">{t("landing.mock_chart_title")}</p>
-                    <div className="flex items-end justify-between gap-1.5">
-                      {([
-                        { day: "mon", income: 32, expense: 18 },
-                        { day: "tue", income: 28, expense: 24 },
-                        { day: "wed", income: 36, expense: 14 },
-                        { day: "thu", income: 22, expense: 30 },
-                        { day: "fri", income: 40, expense: 20 },
-                        { day: "sat", income: 18, expense: 34 },
-                        { day: "sun", income: 12, expense: 16 },
-                      ] as const).map((d) => (
-                        <div key={d.day} className="flex flex-1 flex-col items-center gap-1">
-                          {/* Income bar */}
-                          <div
-                            className="w-full rounded-t-sm bg-primary/60"
-                            style={{ height: `${d.income}px` }}
-                          />
-                          {/* Expense bar */}
-                          <div
-                            className="w-full rounded-t-sm bg-accent-secondary/60"
-                            style={{ height: `${d.expense}px` }}
-                          />
-                          <span className="text-[10px] text-text-muted">{t(`landing.mock_chart_${d.day}`)}</span>
-                        </div>
+                    <svg
+                      viewBox="0 0 290 100"
+                      className="w-full"
+                      preserveAspectRatio="xMidYMid meet"
+                    >
+                      <defs>
+                        <linearGradient id="incomeArea" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.28" />
+                          <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                        </linearGradient>
+                        <linearGradient id="expenseArea" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#723EC3" stopOpacity="0.28" />
+                          <stop offset="100%" stopColor="#723EC3" stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+
+                      {/* Area fills (render first so lines draw on top) */}
+                      <path
+                        d="M 10,22 C 25,24 40,30 55,29 C 70,28 85,15 100,16 C 115,18 130,39 145,38 C 160,37 175,11 190,10 C 205,11 220,43 235,44 C 250,51 265,50 280,53 L 280,82 L 10,82 Z"
+                        fill="url(#incomeArea)"
+                      />
+                      <path
+                        d="M 10,44 C 25,41 40,34 55,35 C 70,36 85,52 100,50 C 115,49 130,28 145,26 C 160,25 175,42 190,41 C 205,40 220,20 235,19 C 250,28 265,38 280,47 L 280,82 L 10,82 Z"
+                        fill="url(#expenseArea)"
+                      />
+
+                      {/* Income line */}
+                      <path
+                        d="M 10,22 C 25,24 40,30 55,29 C 70,28 85,15 100,16 C 115,18 130,39 145,38 C 160,37 175,11 190,10 C 205,11 220,43 235,44 C 250,51 265,50 280,53"
+                        fill="none"
+                        stroke="#3B82F6"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+
+                      {/* Expense line */}
+                      <path
+                        d="M 10,44 C 25,41 40,34 55,35 C 70,36 85,52 100,50 C 115,49 130,28 145,26 C 160,25 175,42 190,41 C 205,40 220,20 235,19 C 250,28 265,38 280,47"
+                        fill="none"
+                        stroke="#723EC3"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+
+                      {/* X-axis labels */}
+                      {[
+                        { x: 10, day: "mon" },
+                        { x: 55, day: "tue" },
+                        { x: 100, day: "wed" },
+                        { x: 145, day: "thu" },
+                        { x: 190, day: "fri" },
+                        { x: 235, day: "sat" },
+                        { x: 280, day: "sun" },
+                      ].map((l) => (
+                        <text key={l.day} x={l.x} y="96" textAnchor="middle" className="fill-text-muted" fontSize="9">
+                          {t(`landing.mock_chart_${l.day}`)}
+                        </text>
                       ))}
-                    </div>
+                    </svg>
                     {/* Legend */}
                     <div className="mt-3 flex items-center gap-4">
                       <div className="flex items-center gap-1.5">
@@ -235,11 +281,11 @@ export default function LandingPage() {
                   <div className="col-span-2 rounded-xl border border-border bg-surface-alt/50 p-4">
                     <p className="mb-3 text-xs font-medium text-text-muted">{t("landing.mock_insight_title")}</p>
                     <div className="space-y-3">
-                      <div className="rounded-lg border border-border bg-surface p-3">
+                      <div className="flex rounded-lg border border-border justify-center bg-surface p-3">
                         <Lightbulb className="mb-1 h-4 w-4 text-accent-secondary" />
                         <p className="text-xs leading-relaxed text-text-secondary">{t("landing.mock_insight_1")}</p>
                       </div>
-                      <div className="rounded-lg border border-border bg-surface p-3">
+                      <div className="flex rounded-lg border border-border justify-center bg-surface p-3">
                         <Lightbulb className="mb-1 h-4 w-4 text-primary" />
                         <p className="text-xs leading-relaxed text-text-secondary">{t("landing.mock_insight_2")}</p>
                       </div>
@@ -493,25 +539,59 @@ export default function LandingPage() {
         </div>
       </motion.section>
 
+      {/* ─── Back to Top ─── */}
+      <div className="relative z-10 flex justify-center pb-4">
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="group inline-flex items-center gap-1.5 rounded-full border border-border  bg-surface-alt px-4 py-2 text-xs font-medium text-text-muted transition-all duration-200 hover:-translate-y-0.5 hover:border-text-muted/30 hover:bg-surface-alt hover:text-text-secondary"
+        >
+          <ChevronUp size={14} className="transition-transform duration-200 group-hover:-translate-y-0.5" />
+          {t("landing.button_back_to_top")}
+        </button>
+      </div>
+
       {/* ─── Footer ─── */}
       <footer className="relative z-10 border-t border-border bg-surface-alt/50 px-6 py-12">
         <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+          <div className="flex flex-col md:flex-row md:justify-between gap-8 md:grid-cols-4">
+            {/* Brand column */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2.5">
                 <Image src="/icons/icon-192x192.svg" alt="FinSpace" width={28} height={28} className="h-7 w-7" />
                 <span className="text-base font-bold text-text-primary">FinSpace</span>
               </div>
               <p className="mt-3 text-sm text-text-muted">{t("landing.footer_tagline")}</p>
+              <div className="mt-4 flex items-center gap-3">
+                <a
+                  href="https://github.com/codenamezaxx/Finspace"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-text-muted transition-colors hover:text-text-primary"
+                  aria-label="GitHub"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-4.5 w-4.5">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                  </svg>
+                </a>
+              </div>
+              <p className="mt-3 text-[11px] text-text-muted/60">Next.js · Dexie · Tailwind</p>
             </div>
+
+            {/* Divider */}
+            <div className="hidden md:block" />
+
+            {/* Features column */}
             <div>
               <h4 className="mb-4 text-sm font-semibold text-text-primary">{t("landing.footer_features")}</h4>
               <ul className="space-y-2 text-sm text-text-muted">
                 <li><a href="#features" className="transition-colors hover:text-text-primary">{t("landing.footer_features")}</a></li>
+                <li><a href="#how-it-works" className="transition-colors hover:text-text-primary">{t("landing.footer_hiw")}</a></li>
                 <li><a href="#benefits" className="transition-colors hover:text-text-primary">{t("landing.footer_benefits")}</a></li>
                 <li><a href="#faq" className="transition-colors hover:text-text-primary">{t("landing.footer_faq")}</a></li>
               </ul>
             </div>
+
+            {/* Contact column */}
             <div>
               <h4 className="mb-4 text-sm font-semibold text-text-primary">{t("landing.footer_contact")}</h4>
               <ul className="space-y-2 text-sm text-text-muted">
@@ -519,11 +599,20 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
-          <div className="mt-10 border-t border-border pt-6 text-center text-xs text-text-muted">
-            {t("landing.footer_copyright")}
+
+          {/* Copyright bar */}
+          <div className="relative mt-10 border-t border-primary/10 pt-6">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+            <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
+              <p className="text-xs text-text-muted">{t("landing.footer_copyright")}</p>
+              <span className="inline-flex items-center rounded-full border border-border bg-surface-alt/80 px-2.5 py-0.5 text-[10px] font-medium text-text-muted">
+                v1.0
+              </span>
+            </div>
           </div>
         </div>
       </footer>
     </main>
+    </LandingSkeleton>
   );
 }
