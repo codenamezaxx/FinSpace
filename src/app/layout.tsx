@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import { AppShell } from "@/components/layout/AppShell";
 import { ClientSerwistProvider } from "@/components/layout/ClientSerwistProvider";
 import { LanguageProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme-context";
@@ -137,7 +136,7 @@ export default function RootLayout({
             <ClientSerwistProvider>
               <AssetLiabilityModalProvider>
                 <NotificationsProvider>
-                  <AppShell>{children}</AppShell>
+                  {children}
                 </NotificationsProvider>
               </AssetLiabilityModalProvider>
             </ClientSerwistProvider>
