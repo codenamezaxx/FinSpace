@@ -74,15 +74,6 @@ export default function LandingPage() {
     }
   }, [authLoading, shouldRedirect, router]);
 
-  // Show a blank loading state while checking auth to avoid flash
-  if (authLoading || shouldRedirect) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </main>
-    );
-  }
-
   const features = [
     { icon: LayoutDashboard, key: "dashboard" },
     { icon: Wallet, key: "budget" },
