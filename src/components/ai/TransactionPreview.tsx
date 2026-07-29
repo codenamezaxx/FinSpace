@@ -129,14 +129,6 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
               options={categories as string[]}
               tFunc={t}
             />
-            <FieldRow
-              label={t("transaction.payment_method")}
-              value={(editData.payment_method as string) ?? ""}
-              onChange={(v) => updateField("payment_method", v)}
-              type="select"
-              options={PAYMENT_METHODS as unknown as string[]}
-              tFunc={t}
-            />
             {/* Pocket selector */}
             {pockets && pockets.length > 0 && (
               <div className="flex items-center justify-between gap-2">

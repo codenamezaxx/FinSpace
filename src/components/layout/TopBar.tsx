@@ -23,39 +23,9 @@ function getGreeting(t: (key: string) => string): string {
 
 interface TopBarProps {
   isSidebarCollapsed?: boolean;
-  isMenuOpen?: boolean;
-  onMenuToggle?: () => void;
 }
 
-function HamburgerButton({ isOpen, onClick }: { isOpen: boolean; onClick?: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="relative flex items-center justify-center rounded-lg p-1.5 text-text-muted transition-all duration-200 hover:bg-surface hover:text-text-primary -ml-1.5 lg:hidden"
-      aria-label="Menu"
-    >
-      <div className="relative h-5 w-5">
-        <span
-          className={`absolute left-0 h-[2px] w-full rounded-full bg-current transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-            isOpen ? "top-1/2 -translate-y-1/2 rotate-45" : "top-0"
-          }`}
-        />
-        <span
-          className={`absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 rounded-full bg-current transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-            isOpen ? "opacity-0 scale-x-0" : ""
-          }`}
-        />
-        <span
-          className={`absolute left-0 h-[2px] w-full rounded-full bg-current transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-            isOpen ? "bottom-1/2 translate-y-1/2 -rotate-45" : "bottom-0"
-          }`}
-        />
-      </div>
-    </button>
-  );
-}
-
-export function TopBar({ isSidebarCollapsed = false, isMenuOpen = false, onMenuToggle }: TopBarProps) {
+export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
   const { user } = useCloudAuth();
   const { t } = useLanguage();
   const {
@@ -131,8 +101,6 @@ export function TopBar({ isSidebarCollapsed = false, isMenuOpen = false, onMenuT
         {/* Mobile: title + icon (hidden when search open) */}
         {!searchOpen && (
           <>
-            {/* Hamburger button */}
-            <HamburgerButton isOpen={isMenuOpen} onClick={onMenuToggle} />
             <div className="flex flex-col items-start lg:hidden">
               <span className="text-base font-bold text-primary">
                 FinSpace
