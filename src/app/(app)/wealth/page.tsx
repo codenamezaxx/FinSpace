@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useLiveQuery, useObservable } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { NetWorthCard } from "@/components/wealth/NetWorthCard";
 import { RatioCard } from "@/components/wealth/RatioCard";
@@ -67,9 +67,17 @@ export default function WealthPage() {
   const [debtToDelete, setDebtToDelete] = useState<DebtEntry | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const assets = useLiveQuery(() => db.assets.toArray(), []) ?? [];
-  const liabilities = useLiveQuery(() => db.liabilities.toArray(), []) ?? [];
-  const debts = useLiveQuery(() => db.debts.toArray(), []) ?? [];
+  // Force re-render when cloud sync completes (fixes stale data after sync)
+  const syncState = useObservable(db.cloud.syncState);
+  const [syncTick, setSyncTick] = useState(0);
+  useEffect(() => {
+    if (syncState?.phase === "pushing" || syncState?.phase === "pulling") return;
+    setSyncTick((n) => n + 1);
+  }, [syncState?.phase]);
+
+  const assets = useLiveQuery(() => db.assets.toArray(), [syncTick]) ?? [];
+  const liabilities = useLiveQuery(() => db.liabilities.toArray(), [syncTick]) ?? [];
+  const debts = useLiveQuery(() => db.debts.toArray(), [syncTick]) ?? [];
 
   const netWorthData = useMemo(
     () => calculateNetWorth(assets, liabilities, pocketTotalBalance, debts),

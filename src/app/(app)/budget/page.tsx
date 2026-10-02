@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState, Suspense } from "react";
+import { useMemo, useState, Suspense, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { TransactionList } from "@/components/shared/TransactionList";
 import { BudgetRing } from "@/components/budget/BudgetRing";
@@ -19,6 +19,7 @@ import { PocketFormModal } from "@/components/budget/PocketFormModal";
 import type { Pocket } from "@/lib/pocket";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import { TransferModal } from "@/components/budget/TransferModal";
+import { BudgetSettingsModal } from "@/components/budget/BudgetSettingsModal";
 
 function BudgetPageInner() {
   const { t } = useLanguage();
@@ -40,8 +41,24 @@ function BudgetPageInner() {
   const [pocketToDelete, setPocketToDelete] = useState<Pocket | null>(null);
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferFrom, setTransferFrom] = useState<Pocket | null>(null);
+  const [showBudgetSettings, setShowBudgetSettings] = useState(false);
+  const [customAllocation, setCustomAllocation] = useState<{ needs: number; wants: number; savings: number } | null>(null);
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") || undefined;
+
+  // Load custom allocation from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("finspace-budget-allocation");
+    if (saved) {
+      try { setCustomAllocation(JSON.parse(saved)); } catch { /* ignore */ }
+    }
+  }, []);
+
+  const handleSaveBudget = useCallback((allocation: { needs: number; wants: number; savings: number }) => {
+    localStorage.setItem("finspace-budget-allocation", JSON.stringify(allocation));
+    setCustomAllocation(allocation);
+    setShowBudgetSettings(false);
+  }, []);
 
   const monthlyIncome = useMemo(() => {
     return transactions
@@ -49,11 +66,20 @@ function BudgetPageInner() {
       .reduce((sum, t) => sum + t.amount, 0);
   }, [transactions]);
 
-  const allocation = useMemo(() => calculateBudgetAllocation(monthlyIncome), [monthlyIncome]);
+  const allocation = useMemo(() => {
+    if (customAllocation) {
+      return {
+        needs: Math.round((monthlyIncome * customAllocation.needs) / 100),
+        wants: Math.round((monthlyIncome * customAllocation.wants) / 100),
+        savings: Math.round((monthlyIncome * customAllocation.savings) / 100),
+      };
+    }
+    return calculateBudgetAllocation(monthlyIncome);
+  }, [monthlyIncome, customAllocation]);
 
   const spending = useMemo(() => {
     const monthlyExpenses = transactions.filter(
-      (t) => t.type === "expense"
+      (tx) => tx.type === "expense" && !tx.transferId
     );
 
     let needs = 0;
@@ -99,13 +125,23 @@ function BudgetPageInner() {
             </span>
           </p>
         </div>
-        <button
-          onClick={() => openAddTransaction()}
-          className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
-        >
-          <Plus className="h-4 w-4" />
-          {t("nav.add_transaction")}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowBudgetSettings(true)}
+            className="flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-3 text-sm font-medium text-text-secondary transition-all duration-200 hover:bg-surface-alt hover:text-text-primary"
+            aria-label={t("budget.settings_title")}
+          >
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("budget.settings_title")}</span>
+          </button>
+          <button
+            onClick={() => openAddTransaction()}
+            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
+          >
+            <Plus className="h-4 w-4" />
+            {t("nav.add_transaction")}
+          </button>
+        </div>
       </div>
 
       {/* 50/30/20 Budget Overview */}
@@ -247,6 +283,14 @@ function BudgetPageInner() {
         balances={balances}
         preSelectedFrom={transferFrom?.id}
         onTransfer={transferBetweenPockets}
+      />
+
+      <BudgetSettingsModal
+        isOpen={showBudgetSettings}
+        onClose={() => setShowBudgetSettings(false)}
+        totalIncome={monthlyIncome}
+        currentAllocation={customAllocation ?? { needs: 50, wants: 30, savings: 20 }}
+        onSave={handleSaveBudget}
       />
     </div>
   );
