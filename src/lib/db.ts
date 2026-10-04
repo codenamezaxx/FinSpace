@@ -26,13 +26,34 @@ export interface AiQueueItem {
 
 export interface Notification {
   id: string;
-  type: "transaction" | "overspending" | "credit_reminder";
+  type: "transaction" | "overspending" | "credit_reminder" | "reminder";
   title: string;
   message: string;
   /** 0 = unread, 1 = read (stored as number for IndexedDB key compatibility) */
   read: number;
   createdAt: number;
   relatedId?: string;
+}
+
+/** A saved Finny conversation session (roomchat). */
+export interface FinnySession {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** A single persisted Finny chat message. */
+export interface FinnyChatRow {
+  id: string;
+  sessionId: string;
+  role: "user" | "assistant";
+  content: string;
+  action?: string;
+  data?: Record<string, unknown>;
+  missingFields?: string[];
+  confidence?: string;
+  createdAt: number;
 }
 
 export class FinSpaceDB extends Dexie {
@@ -43,6 +64,8 @@ export class FinSpaceDB extends Dexie {
   liabilities!: EntityTable<LiabilityEntry, "id">;
   debts!: EntityTable<DebtEntry, "id">;
   notifications!: EntityTable<Notification, "id">;
+  finny_sessions!: EntityTable<FinnySession, "id">;
+  finny_messages!: EntityTable<FinnyChatRow, "id">;
 
   constructor() {
     super("FinSpaceDB", { addons: [dexieCloud] });
@@ -84,6 +107,19 @@ export class FinSpaceDB extends Dexie {
       liabilities: "@id, createdAt",
       debts: "@id, createdAt",
       notifications: "@id, type, read, createdAt",
+    });
+
+    // v6: Finny roomchat — persistent sessions + messages
+    this.version(6).stores({
+      transactions: "@id, type, category, timestamp, pocketId",
+      pockets: "@id, category, sortOrder",
+      ai_queue: "@queue_id, input_type, created_at",
+      assets: "@id, type, createdAt",
+      liabilities: "@id, createdAt",
+      debts: "@id, createdAt",
+      notifications: "@id, type, read, createdAt",
+      finny_sessions: "@id, updatedAt",
+      finny_messages: "@id, sessionId, createdAt",
     });
 
     this.cloud.configure({
@@ -129,6 +165,14 @@ export async function migrateWealthFromLocalStorage(): Promise<void> {
     if (debts.length > 0) await db.debts.bulkPut(debts);
 
     localStorage.setItem(MIGRATED_KEY, "1");
+    // Permanently purge the legacy source keys. Otherwise any device/profile
+    // that re-runs this migration (lost flag, realm wipe, fresh PWA install)
+    // bulkPut()s the same deterministic IDs back — and in Dexie Cloud a put
+    // supersedes the delete tombstone, resurrecting user-deleted assets
+    // ("Investasi", "Dana Darurat") on every device after refresh.
+    localStorage.removeItem("finspace_assets");
+    localStorage.removeItem("finspace_liabilities");
+    localStorage.removeItem("finspace_debts");
     console.log(`[FinSpace] Migrated wealth data: ${assets.length} assets, ${liabilities.length} liabilities, ${debts.length} debts`);
   } catch (err) {
     console.error("[FinSpace] Wealth migration failed:", err);

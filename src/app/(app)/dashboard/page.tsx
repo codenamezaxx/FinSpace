@@ -201,19 +201,19 @@ export default function DashboardPage() {
     debtStatus,
   } = useMemo(() => {
     const incomeTotal = transactions
-      .filter((t) => t.type === "income")
+      .filter((t) => t.type === "income" && !t.transferId)
       .reduce((sum, t) => sum + t.amount, 0);
 
     const expensesTotal = transactions
-      .filter((t) => t.type === "expense")
+      .filter((t) => t.type === "expense" && !t.transferId)
       .reduce((sum, t) => sum + t.amount, 0);
 
     const allTimeIncome = allTransactions
-      .filter((t) => t.type === "income")
+      .filter((t) => t.type === "income" && !t.transferId)
       .reduce((sum, t) => sum + t.amount, 0);
 
     const allTimeExpenses = allTransactions
-      .filter((t) => t.type === "expense")
+      .filter((t) => t.type === "expense" && !t.transferId)
       .reduce((sum, t) => sum + t.amount, 0);
 
     const debtPayments = totalMonthlyDebtObligation(debtsList);
@@ -304,12 +304,12 @@ export default function DashboardPage() {
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
                 {t("dashboard.total_balance")}
               </p>
-              <div className="mt-3 flex items-baseline gap-3">
-                <p className="text-3xl font-bold text-text-primary">
+              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+                <p className="min-w-0 break-words text-2xl font-bold text-text-primary sm:text-3xl">
                   {formatCurrency(Math.abs(balance))}
                 </p>
                 <div
-                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  className={`flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
                     isPositive
                       ? "bg-success/15 text-success"
                       : "bg-danger/15 text-danger"
@@ -323,16 +323,16 @@ export default function DashboardPage() {
                   {isPositive ? t("dashboard.positive") : t("dashboard.negative")}
                 </div>
               </div>
-              <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
+              <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4 [&>div]:min-w-0">
                 <div>
                   <p className="font-mono text-xs text-text-muted">{t("dashboard.income")}</p>
-                  <p className="mt-1 font-mono text-lg font-semibold text-success">
+                  <p className="mt-1 break-words font-mono text-lg font-semibold text-success">
                     {formatCurrency(income)}
                   </p>
                 </div>
                 <div>
                   <p className="font-mono text-xs text-text-muted">{t("dashboard.expense")}</p>
-                  <p className="mt-1 font-mono text-lg font-semibold text-danger">
+                  <p className="mt-1 break-words font-mono text-lg font-semibold text-danger">
                     {formatCurrency(expenses)}
                   </p>
                 </div>
@@ -445,7 +445,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-center gap-3 lg:gap-4">
             <Link
               href="/budget"
-              className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
+              className="flex min-w-0 flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
               <Wallet className="h-5 w-5 text-primary" />
               <span className="text-[11px] font-semibold text-text-secondary">
@@ -454,7 +454,7 @@ export default function DashboardPage() {
             </Link>
             <Link
               href="/wealth"
-              className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
+              className="flex min-w-0 flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
               <Banknote className="h-5 w-5 text-success" />
               <span className="text-[11px] font-semibold text-text-secondary">
@@ -463,7 +463,7 @@ export default function DashboardPage() {
             </Link>
             <Link
               href="/tools"
-              className="flex flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
+              className="flex min-w-0 flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
             >
               <Wrench className="h-5 w-5 text-text-secondary" />
               <span className="text-[11px] font-semibold text-text-secondary">

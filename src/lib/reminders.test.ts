@@ -1,0 +1,67 @@
+import { describe, it, expect, beforeEach } from "vitest";
+import {
+  REMINDER_TIMES,
+  nextOccurrence,
+  firedKeyFor,
+  wasFired,
+  markFired,
+  isRemindersEnabled,
+  setRemindersEnabled,
+} from "./reminders";
+
+describe("reminders", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("has the 12:00, 17:00 and 21:00 slots", () => {
+    expect(REMINDER_TIMES).toEqual([
+      { hour: 12, minute: 0 },
+      { hour: 17, minute: 0 },
+      { hour: 21, minute: 0 },
+    ]);
+  });
+
+  it("nextOccurrence returns today when the slot is still ahead", () => {
+    const now = new Date(2026, 9, 4, 10, 0, 0);
+    const at = nextOccurrence(now, { hour: 12, minute: 0 });
+    expect(at.getFullYear()).toBe(2026);
+    expect(at.getMonth()).toBe(9);
+    expect(at.getDate()).toBe(4);
+    expect(at.getHours()).toBe(12);
+  });
+
+  it("nextOccurrence rolls to tomorrow when the slot already passed", () => {
+    const now = new Date(2026, 9, 4, 13, 0, 0);
+    const at = nextOccurrence(now, { hour: 12, minute: 0 });
+    expect(at.getDate()).toBe(5);
+    expect(at.getHours()).toBe(12);
+  });
+
+  it("nextOccurrence rolls to tomorrow when exactly at the slot time", () => {
+    const now = new Date(2026, 9, 4, 12, 0, 0);
+    const at = nextOccurrence(now, { hour: 12, minute: 0 });
+    expect(at.getDate()).toBe(5);
+  });
+
+  it("fired flags are per day and slot", () => {
+    const day = new Date(2026, 9, 4, 15, 0, 0);
+    const slot = { hour: 12, minute: 0 };
+    expect(wasFired(day, slot)).toBe(false);
+    markFired(day, slot);
+    expect(wasFired(day, slot)).toBe(true);
+    // different day → not fired
+    expect(wasFired(new Date(2026, 9, 5, 9, 0, 0), slot)).toBe(false);
+    // different slot → not fired
+    expect(wasFired(day, { hour: 17, minute: 0 })).toBe(false);
+    expect(firedKeyFor(day, slot)).toContain("20261004:1200");
+  });
+
+  it("is enabled by default and toggles persistently", () => {
+    expect(isRemindersEnabled()).toBe(true);
+    setRemindersEnabled(false);
+    expect(isRemindersEnabled()).toBe(false);
+    setRemindersEnabled(true);
+    expect(isRemindersEnabled()).toBe(true);
+  });
+});

@@ -9,46 +9,130 @@ export interface MonthlyDataPoint {
   value: number;
 }
 
+export type CashFlowRange = "day" | "week" | "month" | "year";
+
+export interface CashFlowDataPoint {
+  label: string;
+  income: number;
+  expense: number;
+}
+
+function startOfDay(d: Date): number {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+function endOfDay(d: Date): number {
+  return new Date(
+    d.getFullYear(),
+    d.getMonth(),
+    d.getDate(),
+    23,
+    59,
+    59,
+    999
+  ).getTime();
+}
+
+/** Monday (00:00) of the week containing `d`. */
+function startOfWeekMonday(d: Date): Date {
+  const copy = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const day = (copy.getDay() + 6) % 7; // Monday = 0
+  copy.setDate(copy.getDate() - day);
+  return copy;
+}
+
 /**
- * Compute income per month for the past 12 months.
+ * Compute income vs expense buckets for a cash-flow chart.
+ * - day: last 14 days (daily buckets)
+ * - week: last 12 weeks (Monday–Sunday buckets)
+ * - month: last 12 months
+ * - year: last 5 years
+ * Pocket transfers are excluded from both series.
  */
-export function computeMonthlyIncome(
-  transactions: Transaction[]
-): MonthlyDataPoint[] {
+export function computeCashFlow(
+  transactions: Transaction[],
+  range: CashFlowRange
+): CashFlowDataPoint[] {
   const now = new Date();
-  const result: MonthlyDataPoint[] = [];
+  const buckets: Array<{ label: string; start: number; end: number }> = [];
 
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthLabel = d.toLocaleDateString("id-ID", { month: "short" });
-    const startOfMonth = new Date(
-      d.getFullYear(),
-      d.getMonth(),
-      1
-    ).getTime();
-    const endOfMonth = new Date(
-      d.getFullYear(),
-      d.getMonth() + 1,
-      0,
-      23,
-      59,
-      59,
-      999
-    ).getTime();
-
-    const income = transactions
-      .filter(
-        (t) =>
-          t.type === "income" &&
-          t.timestamp >= startOfMonth &&
-          t.timestamp <= endOfMonth
-      )
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    result.push({ month: monthLabel, value: income });
+  if (range === "day") {
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() - i
+      );
+      buckets.push({
+        label: d.toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+        }),
+        start: startOfDay(d),
+        end: endOfDay(d),
+      });
+    }
+  } else if (range === "week") {
+    const thisMonday = startOfWeekMonday(now);
+    for (let i = 11; i >= 0; i--) {
+      const start = new Date(
+        thisMonday.getFullYear(),
+        thisMonday.getMonth(),
+        thisMonday.getDate() - i * 7
+      );
+      const end = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate() + 6,
+        23,
+        59,
+        59,
+        999
+      );
+      buckets.push({
+        label: `${start.getDate()}/${start.getMonth() + 1}`,
+        start: start.getTime(),
+        end: end.getTime(),
+      });
+    }
+  } else if (range === "month") {
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      buckets.push({
+        label: d.toLocaleDateString("id-ID", { month: "short" }),
+        start: new Date(d.getFullYear(), d.getMonth(), 1).getTime(),
+        end: new Date(
+          d.getFullYear(),
+          d.getMonth() + 1,
+          0,
+          23,
+          59,
+          59,
+          999
+        ).getTime(),
+      });
+    }
+  } else {
+    for (let i = 4; i >= 0; i--) {
+      const year = now.getFullYear() - i;
+      buckets.push({
+        label: String(year),
+        start: new Date(year, 0, 1).getTime(),
+        end: new Date(year, 11, 31, 23, 59, 59, 999).getTime(),
+      });
+    }
   }
 
-  return result;
+  return buckets.map(({ label, start, end }) => {
+    let income = 0;
+    let expense = 0;
+    for (const t of transactions) {
+      if (t.transferId || t.timestamp < start || t.timestamp > end) continue;
+      if (t.type === "income") income += t.amount;
+      else expense += t.amount;
+    }
+    return { label, income, expense };
+  });
 }
 
 /**

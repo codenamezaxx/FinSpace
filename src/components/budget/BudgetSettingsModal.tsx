@@ -13,6 +13,128 @@ interface BudgetSettingsModalProps {
   onSave: (allocation: { needs: number; wants: number; savings: number }) => void;
 }
 
+type Bucket = "needs" | "wants" | "savings";
+
+const BUCKET_META: Record<Bucket, { labelKey: string; descKey: string; color: string }> = {
+  needs: { labelKey: "budget.needs", descKey: "budget.needs_desc", color: "#3B82F6" },
+  wants: { labelKey: "budget.wants", descKey: "budget.wants_desc", color: "#723EC3" },
+  savings: { labelKey: "budget.savings", descKey: "budget.savings_desc", color: "#22C55E" },
+};
+
+function BudgetSliderRow({
+  bucket,
+  value,
+  amount,
+  totalIncome,
+  onChange,
+  t,
+}: {
+  bucket: Bucket;
+  value: number;
+  amount: number;
+  totalIncome: number;
+  onChange: (v: number) => void;
+  t: (key: string) => string;
+}) {
+  const meta = BUCKET_META[bucket];
+
+  // Draft text while the nominal field is focused (null = show computed amount).
+  // Committed to a percentage on blur / Enter, so typing "1000000"
+  // digit-by-digit doesn't thrash the other sliders mid-typing.
+  const [draft, setDraft] = useState<string | null>(null);
+
+  const commitNominal = () => {
+    if (draft === null) return;
+    const digits = draft.replace(/[^0-9]/g, "");
+    const nominal = digits === "" ? 0 : Number(digits);
+    if (totalIncome > 0) onChange(Math.round((nominal / totalIncome) * 100));
+    setDraft(null);
+  };
+
+  const handleInputChange = (raw: string) => {
+    if (raw === "") {
+      onChange(0);
+      return;
+    }
+    const n = Math.round(Number(raw));
+    if (!Number.isNaN(n)) onChange(Math.max(0, Math.min(100, n)));
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-surface-alt p-4 transition-colors focus-within:border-primary/40">
+      {/* Header: dot + label + amount */}
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            className="h-2.5 w-2.5 shrink-0 rounded-full"
+            style={{ backgroundColor: meta.color }}
+          />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-text-primary">
+              {t(meta.labelKey)}
+            </p>
+            <p className="truncate text-xs text-text-muted">{t(meta.descKey)}</p>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-surface px-2 py-1.5 transition-colors focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/30">
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={value}
+              onChange={(e) => handleInputChange(e.target.value)}
+              aria-label={t(meta.labelKey)}
+              className="w-11 bg-transparent text-center font-mono text-sm font-bold text-text-primary outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            />
+            <span className="font-mono text-xs text-text-muted">%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Nominal amount (editable — commits to % on blur / Enter) */}
+      <div className="mb-2.5 flex justify-end">
+        <div className="flex items-center gap-1 rounded-lg border border-border bg-surface px-2 py-1.5 transition-colors focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/30">
+          <span className="font-mono text-xs text-text-muted">Rp</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={draft ?? amount.toLocaleString("id-ID")}
+            onFocus={(e) => {
+              setDraft(String(amount));
+              requestAnimationFrame(() => e.target.select());
+            }}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commitNominal}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+            }}
+            aria-label={`${t(meta.labelKey)} nominal`}
+            className="w-28 bg-transparent text-right font-mono text-xs text-text-primary outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Slider */}
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        aria-label={t(meta.labelKey)}
+        className="budget-slider w-full"
+        style={
+          {
+            "--slider-color": meta.color,
+            background: `linear-gradient(to right, ${meta.color} 0%, ${meta.color} ${value}%, rgba(148,163,184,0.25) ${value}%, rgba(148,163,184,0.25) 100%)`,
+          } as React.CSSProperties
+        }
+      />
+    </div>
+  );
+}
+
 export function BudgetSettingsModal({
   isOpen,
   onClose,
@@ -35,42 +157,40 @@ export function BudgetSettingsModal({
   }, [isOpen, currentAllocation]);
 
   const total = needs + wants + savings;
+  const isValid = total === 100;
 
   const handleSliderChange = useCallback(
-    (category: "needs" | "wants" | "savings", newValue: number) => {
+    (category: Bucket, newValue: number) => {
       const clamped = Math.max(0, Math.min(100, newValue));
-      const others = category === "needs" ? ["wants", "savings"] : category === "wants" ? ["needs", "savings"] : ["needs", "wants"];
+      const others: Bucket[] =
+        category === "needs"
+          ? ["wants", "savings"]
+          : category === "wants"
+            ? ["needs", "savings"]
+            : ["needs", "wants"];
       const otherTotal = 100 - clamped;
-      const currentOthers = others.reduce((sum, key) => sum + (key === "needs" ? needs : key === "wants" ? wants : savings), 0);
+      const get = (b: Bucket) => (b === "needs" ? needs : b === "wants" ? wants : savings);
+      const set = (b: Bucket, v: number) => {
+        if (b === "needs") setNeeds(v);
+        else if (b === "wants") setWants(v);
+        else setSavings(v);
+      };
 
-      if (category === "needs") setNeeds(clamped);
-      else if (category === "wants") setWants(clamped);
-      else setSavings(clamped);
+      set(category, clamped);
 
-      // Distribute remaining proportionally
+      // Distribute the remainder proportionally across the other two
+      const currentOthers = get(others[0]) + get(others[1]);
       if (currentOthers > 0) {
         const ratio = otherTotal / currentOthers;
-        const newWants = others[0] === "wants" ? Math.round(wants * ratio) : Math.round(needs * ratio);
-        const newSavings = others[1] === "savings" ? Math.round(savings * ratio) : Math.round(needs * ratio);
-        const newNeeds = others[0] === "needs" ? Math.round(needs * ratio) : Math.round(wants * ratio);
-
-        if (others[0] === "wants") setWants(newWants);
-        else if (others[0] === "needs") setNeeds(newNeeds);
-        else setSavings(newSavings);
-
-        if (others[1] === "savings") setSavings(newSavings);
-        else if (others[1] === "needs") setNeeds(newNeeds);
-        else setWants(newWants);
+        let first = Math.round(get(others[0]) * ratio);
+        first = Math.max(0, Math.min(otherTotal, first));
+        set(others[0], first);
+        set(others[1], otherTotal - first);
       } else {
-        // Equal split if others are 0
+        // Equal split when the others are both zero
         const half = Math.round(otherTotal / 2);
-        if (others[0] === "wants") setWants(half);
-        else if (others[0] === "needs") setNeeds(half);
-        else setSavings(half);
-
-        if (others[1] === "savings") setSavings(otherTotal - half);
-        else if (others[1] === "needs") setNeeds(otherTotal - half);
-        else setWants(otherTotal - half);
+        set(others[0], half);
+        set(others[1], otherTotal - half);
       }
     },
     [needs, wants, savings]
@@ -86,123 +206,106 @@ export function BudgetSettingsModal({
     onSave({ needs, wants, savings });
   }, [needs, wants, savings, onSave]);
 
-  const needsAmount = Math.round((totalIncome * needs) / 100);
-  const wantsAmount = Math.round((totalIncome * wants) / 100);
-  const savingsAmount = Math.round((totalIncome * savings) / 100);
+  const values: Record<Bucket, number> = { needs, wants, savings };
 
   return (
     <ResponsiveModal isOpen={isOpen} onClose={onClose} title={t("budget.settings_title")}>
-      <div className="space-y-6">
+      <style>{`
+        .budget-slider {
+          -webkit-appearance: none;
+          appearance: none;
+          height: 6px;
+          border-radius: 9999px;
+          outline: none;
+          cursor: pointer;
+        }
+        .budget-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          border-radius: 9999px;
+          background: var(--slider-color);
+          border: 3px solid #fff;
+          box-shadow: 0 1px 5px rgba(0,0,0,0.45);
+          cursor: grab;
+          transition: transform 0.15s ease;
+        }
+        .budget-slider::-webkit-slider-thumb:hover {
+          transform: scale(1.15);
+        }
+        .budget-slider::-webkit-slider-thumb:active {
+          cursor: grabbing;
+          transform: scale(1.05);
+        }
+        .budget-slider::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          border-radius: 9999px;
+          background: var(--slider-color);
+          border: 3px solid #fff;
+          box-shadow: 0 1px 5px rgba(0,0,0,0.45);
+          cursor: grab;
+        }
+        .budget-slider::-moz-range-track {
+          height: 6px;
+          border-radius: 9999px;
+          background: transparent;
+        }
+        .budget-slider::-moz-range-progress {
+          background: var(--slider-color);
+          height: 6px;
+          border-radius: 9999px;
+        }
+      `}</style>
+
+      <div className="space-y-4">
         {/* Total Income */}
-        <div className="rounded-xl border border-border bg-surface-alt p-4">
+        <div className="flex items-center justify-between rounded-xl border border-border bg-surface-alt px-4 py-3">
           <p className="text-xs font-medium text-text-muted">{t("budget.total_income")}</p>
-          <p className="mt-1 font-mono text-lg font-bold text-text-primary">
+          <p className="font-mono text-base font-bold text-text-primary">
             {formatCurrency(totalIncome)}
           </p>
         </div>
 
-        {/* Sliders */}
-        <div className="space-y-5">
-          {/* Needs */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <label className="text-sm font-medium text-text-primary">
-                {t("budget.needs")}
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-sm font-bold text-primary">{needs}%</span>
-                <span className="font-mono text-xs text-text-muted">
-                  ({formatCurrency(needsAmount)})
-                </span>
-              </div>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={needs}
-              onChange={(e) => handleSliderChange("needs", Number(e.target.value))}
-              className="w-full accent-primary"
-            />
-            <p className="mt-1 text-xs text-text-muted">{t("budget.needs_desc")}</p>
-          </div>
-
-          {/* Wants */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <label className="text-sm font-medium text-text-primary">
-                {t("budget.wants")}
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-sm font-bold text-accent-secondary">{wants}%</span>
-                <span className="font-mono text-xs text-text-muted">
-                  ({formatCurrency(wantsAmount)})
-                </span>
-              </div>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={wants}
-              onChange={(e) => handleSliderChange("wants", Number(e.target.value))}
-              className="w-full accent-accent-secondary"
-            />
-            <p className="mt-1 text-xs text-text-muted">{t("budget.wants_desc")}</p>
-          </div>
-
-          {/* Savings */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <label className="text-sm font-medium text-text-primary">
-                {t("budget.savings")}
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-sm font-bold text-success">{savings}%</span>
-                <span className="font-mono text-xs text-text-muted">
-                  ({formatCurrency(savingsAmount)})
-                </span>
-              </div>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={savings}
-              onChange={(e) => handleSliderChange("savings", Number(e.target.value))}
-              className="w-full accent-success"
-            />
-            <p className="mt-1 text-xs text-text-muted">{t("budget.savings_desc")}</p>
-          </div>
-        </div>
+        {/* Sliders with numeric inputs */}
+        {(["needs", "wants", "savings"] as Bucket[]).map((bucket) => (
+          <BudgetSliderRow
+            key={`${bucket}-${isOpen}`}
+            bucket={bucket}
+            value={values[bucket]}
+            amount={Math.round((totalIncome * values[bucket]) / 100)}
+            totalIncome={totalIncome}
+            onChange={(v) => handleSliderChange(bucket, v)}
+            t={t}
+          />
+        ))}
 
         {/* Total */}
-        <div className="rounded-xl border border-border bg-surface-alt p-4">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-text-muted">{t("budget.total_allocated")}</p>
-            <p className={`font-mono text-sm font-bold ${total === 100 ? "text-success" : "text-danger"}`}>
-              {total}%
-            </p>
-          </div>
-          {total !== 100 && (
-            <p className="mt-1 text-xs text-danger">{t("budget.total_warning")}</p>
-          )}
+        <div className="flex items-center justify-between rounded-xl border border-border bg-surface-alt px-4 py-3">
+          <p className="text-xs font-medium text-text-muted">{t("budget.total_allocated")}</p>
+          <p className={`font-mono text-sm font-bold ${isValid ? "text-success" : "text-danger"}`}>
+            {total}%
+          </p>
         </div>
+        {!isValid && (
+          <p className="-mt-2 text-xs text-danger">{t("budget.total_warning")}</p>
+        )}
 
         {/* Actions */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-1">
           <button
             type="button"
             onClick={handleReset}
-            className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-alt"
+            className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-alt"
           >
             {t("budget.reset_default")}
           </button>
           <button
             type="button"
             onClick={handleSave}
-            disabled={total !== 100}
-            className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-hover disabled:opacity-50"
+            disabled={!isValid}
+            className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-hover disabled:opacity-50"
           >
             {t("common.save")}
           </button>

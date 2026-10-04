@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import type { Pocket } from "@/lib/pocket";
 import type { Transaction } from "@/lib/db";
 import { OLD_PRESET_NAMES } from "@/lib/pocket";
+import { TRANSFER_CATEGORY } from "@/lib/budgetRules";
 import { seedPresets, hasSeeded } from "@/lib/seedPresets";
 import { useState, useCallback, useMemo, useEffect } from "react";
 
@@ -113,7 +114,7 @@ export function usePockets() {
       const expenseTx: Omit<Transaction, "id"> = {
         type: "expense",
         amount,
-        category: "Pindah Saldo",
+        category: TRANSFER_CATEGORY,
         merchant: `Transfer ke ${toPocket.name}`,
         payment_method: fromPocket.name,
         timestamp: now,
@@ -124,7 +125,7 @@ export function usePockets() {
       const incomeTx: Omit<Transaction, "id"> = {
         type: "income",
         amount,
-        category: "Pindah Saldo",
+        category: TRANSFER_CATEGORY,
         merchant: `Transfer dari ${fromPocket.name}`,
         payment_method: toPocket.name,
         timestamp: now + 1,

@@ -28,7 +28,7 @@ export function TransactionHistory({ transactions }: TransactionHistoryProps) {
 
   if (transactions.length === 0) {
     return (
-      <div className="glass rounded-2xl p-5">
+      <div className="glass min-w-0 rounded-2xl p-5">
         <div className="flex items-center gap-2.5 mb-4">
           <Receipt className="h-4 w-4 text-text-muted" />
           <h2 className="text-sm font-semibold text-text-primary">
@@ -51,7 +51,7 @@ export function TransactionHistory({ transactions }: TransactionHistoryProps) {
   }
 
   return (
-    <div className="glass rounded-2xl p-5">
+    <div className="glass min-w-0 rounded-2xl p-5">
       <div className="flex items-center gap-2.5 mb-4">
         <Receipt className="h-4 w-4 text-text-muted" />
         <h2 className="text-sm font-semibold text-text-primary">
@@ -90,7 +90,7 @@ export function TransactionHistory({ transactions }: TransactionHistoryProps) {
                 <p className="truncate text-sm font-medium text-text-primary">
                   {tx.merchant}
                 </p>
-                <p className="mt-0.5 text-xs text-text-muted">{tx.category}</p>
+                <p className="mt-0.5 break-words text-xs text-text-muted">{tx.category}</p>
               </div>
 
               {/* Amount + Time */}

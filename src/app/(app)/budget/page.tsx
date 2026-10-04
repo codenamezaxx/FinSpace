@@ -11,7 +11,7 @@ import { useTransactionModal } from "@/lib/transaction-modal-context";
 import {
   calculateBudgetAllocation,
   checkBudgetStatus,
-  CATEGORY_MAPPING,
+  getBudgetCategory,
 } from "@/lib/budgetRules";
 import { usePockets } from "@/hooks/usePockets";
 import { PocketGrid } from "@/components/budget/PocketGrid";
@@ -62,9 +62,13 @@ function BudgetPageInner() {
 
   const monthlyIncome = useMemo(() => {
     return transactions
-      .filter((t) => t.type === "income")
+      // Transfers excluded: moving money between pockets is not income
+      .filter((t) => t.type === "income" && !t.transferId)
       .reduce((sum, t) => sum + t.amount, 0);
   }, [transactions]);
+
+  // Active budget percentages (custom or 50/30/20 default) — drives ring labels
+  const pct = customAllocation ?? { needs: 50, wants: 30, savings: 20 };
 
   const allocation = useMemo(() => {
     if (customAllocation) {
@@ -86,9 +90,10 @@ function BudgetPageInner() {
     let wants = 0;
 
     for (const tx of monthlyExpenses) {
-      const bucket = CATEGORY_MAPPING[tx.category] || "wants";
+      const bucket = getBudgetCategory(tx.category);
       if (bucket === "needs") needs += tx.amount;
-      else wants += tx.amount;
+      else if (bucket === "wants") wants += tx.amount;
+      // "savings"-bucket expenses are relocations, not consumption — excluded
     }
 
     return { needs, wants };
@@ -96,11 +101,17 @@ function BudgetPageInner() {
 
   const needsStatus = checkBudgetStatus(spending.needs, allocation.needs);
   const wantsStatus = checkBudgetStatus(spending.wants, allocation.wants);
-  const totalSaved = monthlyIncome - spending.needs - spending.wants;
-  const savingsStatus = checkBudgetStatus(
-    Math.max(0, allocation.savings - totalSaved),
-    allocation.savings
-  );
+
+  // Savings deposits: any non-transfer transaction (income or expense)
+  // in the canonical Tabungan category counts as money set aside.
+  // Legacy categories never auto-fill the ring — only explicit Tabungan does.
+  const savingsDeposits = useMemo(() => {
+    return transactions
+      .filter((t) => !t.transferId && t.category === "Tabungan")
+      .reduce((sum, t) => sum + t.amount, 0);
+  }, [transactions]);
+  const savingsStatus = checkBudgetStatus(savingsDeposits, allocation.savings);
+  const savingsComplete = allocation.savings > 0 && savingsDeposits >= allocation.savings;
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("id-ID", {
@@ -147,10 +158,10 @@ function BudgetPageInner() {
       {/* 50/30/20 Budget Overview */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {/* Needs (50%) */}
-        <div className="glass rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
+        <div className="glass min-w-0 rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={needsStatus.percentage}
-            label={`${t("budget.needs")} (50%)`}
+            label={`${t("budget.needs")} (${pct.needs}%)`}
             sublabel={`${t("budget.spent")} ${formatCurrency(spending.needs)}`}
             remaining={
               needsStatus.isOverBudget
@@ -162,10 +173,10 @@ function BudgetPageInner() {
         </div>
 
         {/* Wants (30%) */}
-        <div className="glass rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
+        <div className="glass min-w-0 rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={wantsStatus.percentage}
-            label={`${t("budget.wants")} (30%)`}
+            label={`${t("budget.wants")} (${pct.wants}%)`}
             sublabel={`${t("budget.spent")} ${formatCurrency(spending.wants)}`}
             remaining={
               wantsStatus.isOverBudget
@@ -177,17 +188,17 @@ function BudgetPageInner() {
         </div>
 
         {/* Savings (20%) */}
-        <div className="glass rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
+        <div className="glass min-w-0 rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={savingsStatus.percentage}
-            label={`${t("budget.savings")} (20%)`}
-            sublabel={`${t("budget.saved")} ${formatCurrency(totalSaved)}`}
+            label={`${t("budget.savings")} (${pct.savings}%)`}
+            sublabel={`${t("budget.saved")} ${formatCurrency(savingsDeposits)}`}
             remaining={
-              totalSaved >= allocation.savings
-                ? t("budget.surplus", { amount: formatCurrency(totalSaved - allocation.savings) })
-                : t("budget.toward_target", { amount: formatCurrency(Math.max(0, allocation.savings - totalSaved)) })
+              savingsComplete
+                ? t("budget.savings_complete")
+                : t("budget.toward_target", { amount: formatCurrency(Math.max(0, allocation.savings - savingsDeposits)) })
             }
-            isOverBudget={totalSaved < allocation.savings}
+            isOverBudget={false}
           />
         </div>
       </div>

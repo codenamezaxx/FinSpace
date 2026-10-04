@@ -13,6 +13,11 @@ export interface BudgetStatus {
 }
 
 export const CATEGORY_MAPPING: Record<string, BudgetCategory> = {
+  // Current 3-bucket categories (1:1 with budget buckets)
+  Kebutuhan: "needs",
+  Keinginan: "wants",
+  Tabungan: "savings",
+  // Legacy categories (kept so old transactions still bucket correctly)
   // Needs (50%)
   "Makanan & Minuman": "needs",
   Transportasi: "needs",
@@ -27,6 +32,21 @@ export const CATEGORY_MAPPING: Record<string, BudgetCategory> = {
   Freelance: "savings",
   Investasi: "savings",
 };
+
+/**
+ * Special category for pocket-to-pocket transfers. Transfer transactions
+ * must NEVER count toward budgeting, income totals, or expense totals —
+ * they only move money between pockets (balances still update).
+ */
+export const TRANSFER_CATEGORY = "Pindah Saldo";
+
+/** True for transfer transactions (robust against legacy rows missing transferId). */
+export function isTransferTransaction(tx: {
+  transferId?: string;
+  category?: string;
+}): boolean {
+  return !!tx.transferId || tx.category === TRANSFER_CATEGORY;
+}
 
 /**
  * Calculate 50/30/20 budget allocation from total monthly income.

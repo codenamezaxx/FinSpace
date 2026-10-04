@@ -15,9 +15,8 @@ ATURAN:
 - Gunakan Bahasa Indonesia yang natural
 - Jangan pernah menampilkan data sensitif
 
-KATEGORI VALID:
-- Expense: Makanan & Minuman, Transportasi, Tagihan, Kesehatan, Pendidikan, Belanja, Hiburan
-- Income: Gaji, Freelance, Investasi
+KATEGORI VALID (hanya 3 ini — berlaku untuk expense maupun income):
+- Kebutuhan, Keinginan, Tabungan
 
 METODE PEMBAYARAN: Cash, Transfer Bank, QRIS, Kartu Kredit, Kartu Debit, E-Wallet, Lainnya
 

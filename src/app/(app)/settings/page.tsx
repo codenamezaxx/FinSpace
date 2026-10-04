@@ -1,10 +1,15 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback } from "react";
-import { ArrowLeft, Cloud, RefreshCw, LogOut, Info } from "lucide-react";
+import { ArrowLeft, Cloud, RefreshCw, LogOut, Info, BellRing } from "lucide-react";
 import Link from "next/link";
 import { useCloudAuth } from "@/hooks/useCloudAuth";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
+import {
+  isRemindersEnabled,
+  setRemindersEnabled,
+  REMINDERS_CHANGED_EVENT,
+} from "@/lib/reminders";
 import { db } from "@/lib/db";
 import { useLanguage } from "@/lib/i18n";
 
@@ -21,6 +26,45 @@ export default function SettingsPage() {
   const prevPhase = useRef("__initial__");
   const [syncing, setSyncing] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // ── Daily expense reminders ──
+  const [remEnabled, setRemEnabled] = useState(false);
+  const [notifPermission, setNotifPermission] = useState<
+    NotificationPermission | "unsupported"
+  >("default");
+
+  useEffect(() => {
+    const refresh = () => {
+      setRemEnabled(isRemindersEnabled());
+      setNotifPermission(
+        typeof window !== "undefined" && "Notification" in window
+          ? Notification.permission
+          : "unsupported"
+      );
+    };
+    refresh();
+    window.addEventListener(REMINDERS_CHANGED_EVENT, refresh);
+    return () => window.removeEventListener(REMINDERS_CHANGED_EVENT, refresh);
+  }, []);
+
+  // Effective state: stored preference AND granted permission
+  const remindersEffective = remEnabled && notifPermission === "granted";
+
+  const handleReminderToggle = async () => {
+    if (remindersEffective) {
+      setRemindersEnabled(false);
+      return;
+    }
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission === "default") {
+      const p = await Notification.requestPermission();
+      setNotifPermission(p);
+      if (p !== "granted") return;
+    } else if (Notification.permission === "denied") {
+      return;
+    }
+    setRemindersEnabled(true);
+  };
 
   // ── Sync history: track phase transitions ──
   useEffect(() => {
@@ -208,6 +252,49 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* ── Daily reminders ── */}
+      <div className="mb-4 rounded-2xl border border-border bg-surface p-5">
+        <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-text-primary">
+          <BellRing className="h-5 w-5 text-primary" />
+          {t("settings.reminders_title")}
+        </h2>
+        <p className="mb-4 text-sm text-text-muted">
+          {t("settings.reminders_desc")}
+        </p>
+        <div className="flex items-center justify-between gap-3">
+          <span
+            className={`text-sm font-medium ${
+              remindersEffective ? "text-success" : "text-text-muted"
+            }`}
+          >
+            {remindersEffective
+              ? t("settings.reminders_on")
+              : t("settings.reminders_off")}
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={remindersEffective}
+            aria-label={t("settings.reminders_title")}
+            onClick={handleReminderToggle}
+            className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
+              remindersEffective ? "bg-primary" : "bg-border"
+            }`}
+          >
+            <span
+              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${
+                remindersEffective ? "left-6" : "left-1"
+              }`}
+            />
+          </button>
+        </div>
+        {remEnabled && notifPermission === "denied" && (
+          <p className="mt-3 text-xs text-warning">
+            {t("settings.reminders_need_permission")}
+          </p>
         )}
       </div>
 

@@ -93,7 +93,7 @@ export function SmartInsights({
   const topColor = getStatusColor(topInsight.status);
 
   return (
-    <div className="glass rounded-2xl p-6">
+    <div className="glass min-w-0 rounded-2xl p-6">
       {/* Health Score Ring */}
       <HealthScoreRing score={healthScore} />
 
@@ -120,10 +120,10 @@ export function SmartInsights({
             <p className="font-mono text-xs font-medium uppercase tracking-wider text-text-muted">
               {topInsight.category}
             </p>
-            <p className="mt-1.5 text-sm font-semibold text-text-primary">
+            <p className="mt-1.5 break-words text-sm font-semibold text-text-primary">
               {topInsight.title}
             </p>
-            <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+            <p className="mt-1 break-words text-xs leading-relaxed text-text-secondary">
               {topInsight.message}
             </p>
             <div className="mt-2.5 flex items-center gap-2">
@@ -136,7 +136,7 @@ export function SmartInsights({
               >
                 {t(`financial.score_${topInsight.status}`)}
               </span>
-              <span className="text-xs font-medium" style={{ color: topColor }}>
+              <span className="min-w-0 break-words text-xs font-medium" style={{ color: topColor }}>
                 {topInsight.action}
               </span>
             </div>
@@ -160,10 +160,10 @@ export function SmartInsights({
                 <p className="font-mono text-[10px] font-medium uppercase tracking-wider text-text-muted">
                   {insight.category}
                 </p>
-                <p className="mt-1 text-sm font-medium text-text-primary">
+                <p className="mt-1 break-words text-sm font-medium text-text-primary">
                   {insight.title}
                 </p>
-                <p className="mt-0.5 text-xs text-text-secondary">
+                <p className="mt-0.5 break-words text-xs text-text-secondary">
                   {insight.message}
                 </p>
                 <div className="mt-2 flex items-center gap-2">
@@ -176,7 +176,7 @@ export function SmartInsights({
                   >
                     {t(`financial.score_${insight.status}`)}
                   </span>
-                  <span className="text-xs font-medium" style={{ color: c }}>
+                  <span className="min-w-0 break-words text-xs font-medium" style={{ color: c }}>
                     {insight.action}
                   </span>
                 </div>

@@ -11,11 +11,15 @@ export function useFinnyScan() {
   const scanImage = useCallback(async (imageDataUrl: string, pockets?: PocketInfo[]) => {
     if (!imageDataUrl) return;
     setIsLoading(true); setError(null); setResult(null);
+    // Hard timeout so a hung request becomes a retriable error, not a forever-spinner
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 90_000);
     try {
       const res = await fetch("/api/ai/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: imageDataUrl, pockets: pockets ?? [] }),
+        signal: controller.signal,
       });
       const data = await res.json();
       if (!res.ok) {
@@ -27,8 +31,12 @@ export function useFinnyScan() {
       }
       setResult(data);
     } catch (err) {
-      setError((err as Error).message || "Gagal scan struk. Coba lagi ya!");
-    } finally { setIsLoading(false); }
+      if ((err as Error).name === "AbortError") {
+        setError("Kelamaan memproses. Coba lagi ya!");
+      } else {
+        setError((err as Error).message || "Gagal scan struk. Coba lagi ya!");
+      }
+    } finally { clearTimeout(timeout); setIsLoading(false); }
   }, []);
 
   const reset = useCallback(() => { setResult(null); setError(null); }, []);

@@ -6,6 +6,7 @@ import { Plus, Banknote, CreditCard } from "lucide-react";
 import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
 import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
 import { useLanguage } from "@/lib/i18n";
+import { usePockets } from "@/hooks/usePockets";
 
 type ItemType = "asset" | "liability";
 
@@ -14,8 +15,10 @@ interface AssetLiabilityFormProps {
   onClose: () => void;
   onSave: (item: AssetEntry | LiabilityEntry) => void;
   defaultType?: "asset" | "liability";
-  onPurchase?: (data: { name: string; amount: number }) => void;
+  onPurchase?: (data: { name: string; amount: number; pocketId?: string }) => void;
   currentBalance?: number;
+  /** When set, the form works in edit mode: fields are prefilled and the original id/createdAt are preserved on save. */
+  initialItem?: AssetEntry | LiabilityEntry;
 }
 
 export function AssetLiabilityForm({
@@ -25,6 +28,7 @@ export function AssetLiabilityForm({
   defaultType,
   onPurchase,
   currentBalance,
+  initialItem,
 }: AssetLiabilityFormProps) {
   const { t } = useLanguage();
   const [type, setType] = useState<ItemType>("asset");
@@ -33,17 +37,38 @@ export function AssetLiabilityForm({
   const [assetType, setAssetType] = useState<AssetEntry["type"]>("liquid");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [deductFromBalance, setDeductFromBalance] = useState(false);
+  const [purchasePocketId, setPurchasePocketId] = useState("");
+  const { pockets, balances } = usePockets();
 
-  // Reset state when modal opens
+  const isEditing = !!initialItem;
+
+  // Reset (add mode) or prefill (edit mode) state when modal opens
   useEffect(() => {
     if (isOpen) {
-      if (defaultType) setType(defaultType);
+      if (initialItem) {
+        setType("type" in initialItem ? "asset" : "liability");
+        setName(initialItem.name);
+        setAmount(String(initialItem.amount));
+        if ("type" in initialItem) setAssetType(initialItem.type);
+      } else {
+        if (defaultType) setType(defaultType);
+        setName("");
+        setAmount("");
+      }
       setDeductFromBalance(false);
-      setName("");
-      setAmount("");
+      setPurchasePocketId("");
       setErrors({});
     }
-  }, [isOpen, defaultType]);
+  }, [isOpen, defaultType, initialItem]);
+
+  // Default purchase pocket (Tunai first) once pockets load
+  useEffect(() => {
+    if (isOpen && !purchasePocketId && pockets.length > 0) {
+      setPurchasePocketId(
+        pockets.find((p) => p.name === "Tunai")?.id ?? pockets[0].id
+      );
+    }
+  }, [isOpen, purchasePocketId, pockets]);
 
   function validate() {
     const errs: Record<string, string> = {};
@@ -59,26 +84,37 @@ export function AssetLiabilityForm({
     const now = Date.now();
     const suffix = `${now}_${crypto.randomUUID().slice(0, 8)}`;
     const parsed = Math.round(Number(amount));
+    // Edit mode: keep the original id + createdAt so `put` updates in place
+    // (new id would duplicate, new createdAt would reorder history).
+    const prevId = initialItem?.id;
+    const prevCreatedAt =
+      initialItem && "createdAt" in initialItem
+        ? (initialItem.createdAt as number | undefined)
+        : undefined;
 
     if (type === "asset") {
       onSave({
-        id: `ass${suffix}`,
+        id: prevId ?? `ass${suffix}`,
         name: name.trim(),
         amount: parsed,
         type: assetType,
-        createdAt: now,
+        createdAt: prevCreatedAt ?? now,
       } as AssetEntry);
     } else {
       onSave({
-        id: `lia${suffix}`,
+        id: prevId ?? `lia${suffix}`,
         name: name.trim(),
         amount: parsed,
-        createdAt: now,
+        createdAt: prevCreatedAt ?? now,
       } as LiabilityEntry);
     }
 
     if (deductFromBalance && onPurchase) {
-      onPurchase({ name: name.trim(), amount: parsed });
+      onPurchase({
+        name: name.trim(),
+        amount: parsed,
+        pocketId: purchasePocketId || undefined,
+      });
     }
 
     setName("");
@@ -94,7 +130,15 @@ export function AssetLiabilityForm({
     <ResponsiveModal
       isOpen={isOpen}
       onClose={onClose}
-      title={type === "asset" ? t("wealth.add_asset") : t("wealth.add_liability")}
+      title={
+        isEditing
+          ? type === "asset"
+            ? t("wealth.edit_asset")
+            : t("wealth.edit_liability")
+          : type === "asset"
+            ? t("wealth.add_asset")
+            : t("wealth.add_liability")
+      }
     >
       <div className="space-y-4">
         {/* Type toggle */}
@@ -102,7 +146,8 @@ export function AssetLiabilityForm({
           <button
             type="button"
             onClick={() => setType("asset")}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border p-3 font-mono text-sm font-medium transition-all duration-200 ${
+            disabled={isEditing}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border p-3 font-mono text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
               type === "asset"
                 ? "border-primary bg-primary text-white shadow-lg shadow-primary/25"
                 : "border-border bg-surface-alt text-text-secondary hover:border-text-muted"
@@ -114,7 +159,8 @@ export function AssetLiabilityForm({
           <button
             type="button"
             onClick={() => setType("liability")}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border p-3 font-mono text-sm font-medium transition-all duration-200 ${
+            disabled={isEditing}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border p-3 font-mono text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
               type === "liability"
                 ? "border-danger bg-danger text-white shadow-lg shadow-danger/25"
                 : "border-border bg-surface-alt text-text-secondary hover:border-text-muted"
@@ -183,7 +229,8 @@ export function AssetLiabilityForm({
           </div>
         )}
 
-        {/* Buy from Balance */}
+        {/* Buy from Balance — add mode only */}
+        {!isEditing && (
         <div className="space-y-3 rounded-xl border border-border bg-surface-alt p-3">
           {currentBalance !== undefined && (
             <div className="flex items-center justify-between">
@@ -206,7 +253,35 @@ export function AssetLiabilityForm({
               {t("wealth.buy_from_balance")}
             </span>
           </label>
+          {deductFromBalance && (
+            <div>
+              <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
+                {t("budget.transfer_from")}
+              </label>
+              <select
+                value={purchasePocketId}
+                onChange={(e) => setPurchasePocketId(e.target.value)}
+                className={inputClasses}
+              >
+                {pockets.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} — {formatCurrency(balances[p.id] ?? 0)}
+                  </option>
+                ))}
+              </select>
+              {Number(amount || 0) > (balances[purchasePocketId] ?? 0) && (
+                <p className="mt-1 font-mono text-xs text-warning">
+                  {t("transfer.insufficient_balance", {
+                    pocket:
+                      pockets.find((p) => p.id === purchasePocketId)?.name ?? "",
+                    balance: formatCurrency(balances[purchasePocketId] ?? 0),
+                  })}
+                </p>
+              )}
+            </div>
+          )}
         </div>
+        )}
 
         {/* Save button */}
         <button

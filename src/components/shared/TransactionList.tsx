@@ -7,7 +7,9 @@ import { TransactionCard } from "./TransactionCard";
 import { TransactionDetailModal } from "./TransactionDetailModal";
 import { TransactionEditModal } from "./TransactionEditModal";
 import { ConfirmModal } from "./ConfirmModal";
+import { PaginationControls } from "./PaginationControls";
 import { useTransactions } from "@/hooks/useTransactions";
+import { usePagination } from "@/hooks/usePagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { Transaction } from "@/lib/db";
 import type { Pocket } from "@/lib/pocket";
@@ -110,6 +112,16 @@ export function TransactionList({
     hideTransfers,
   ]);
 
+  const { page, totalPages, pageSize, setPageSize, next, prev } = usePagination(
+    filtered.length,
+    15,
+    `${debouncedSearch}|${sortField}|${sortDir}|${typeFilter}|${pocketFilter}|${hideTransfers}`
+  );
+  const paged = useMemo(
+    () => filtered.slice((page - 1) * pageSize, page * pageSize),
+    [filtered, page, pageSize]
+  );
+
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -166,12 +178,12 @@ export function TransactionList({
             className="w-full rounded-lg border border-border bg-surface py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(["all", "income", "expense"] as const).map((filterType) => (
             <button
               key={filterType}
               onClick={() => setTypeFilter(filterType)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+              className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
                 typeFilter === filterType
                   ? "bg-primary text-white"
                   : "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
@@ -186,7 +198,7 @@ export function TransactionList({
           ))}
           <button
             onClick={() => setHideTransfers(!hideTransfers)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+            className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
               hideTransfers
                 ? "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
                 : "bg-primary/10 text-primary"
@@ -199,7 +211,7 @@ export function TransactionList({
 
       {/* Mobile: Card List */}
       <div className="space-y-3 md:hidden">
-        {filtered.map((t) => (
+        {paged.map((t) => (
           <TransactionCard
             key={t.id}
             transaction={t}
@@ -251,7 +263,7 @@ export function TransactionList({
             </tr>
           </thead>
           <tbody>
-            {filtered.map((tx) => (
+            {paged.map((tx) => (
               <tr
                 key={tx.id}
                 onClick={() => setDetailTx(tx)}
@@ -306,6 +318,15 @@ export function TransactionList({
           </tbody>
         </table>
       </div>
+
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        onPrev={prev}
+        onNext={next}
+        pageSize={pageSize}
+        onPageSizeChange={setPageSize}
+      />
 
       {/* Detail Modal */}
       <TransactionDetailModal

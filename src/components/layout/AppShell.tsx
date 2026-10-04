@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { NavigationBar } from "./NavigationBar";
 import { TopBar } from "./TopBar";
 import { FinnyTrigger, FinnySheet } from "@/components/ai";
@@ -10,6 +11,7 @@ import CameraOverlay from "@/components/shared/CameraOverlay";
 import { NotificationSheet } from "@/components/notifications/NotificationSheet";
 import { useNotificationsContext } from "@/components/notifications/NotificationsProvider";
 import { useFinnyScan } from "@/hooks/useFinnyScan";
+import { useExpenseReminders } from "@/hooks/useExpenseReminders";
 import { usePockets } from "@/hooks/usePockets";
 import { TransactionModalProvider } from "@/lib/transaction-modal-context";
 import { GlobalTransactionModal } from "@/components/shared/GlobalTransactionModal";
@@ -18,12 +20,17 @@ import { db, migrateWealthFromLocalStorage, deduplicateWealthData } from "@/lib/
 import type { Transaction } from "@/lib/db";
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  // No floating button inside the Finny room itself — the page IS the chat
+  const isFinnyRoom = pathname.startsWith("/finny");
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [scanImageDataUrl, setScanImageDataUrl] = useState<string | null>(null);
 
   const { scanImage, result, isLoading, error, reset } = useFinnyScan();
+  // Daily expense-logging reminders (12:00, 17:00, 21:00) — scheduled once here
+  useExpenseReminders();
   const { pockets: pocketEnts } = usePockets();
   const {
     isOpen: isNotificationsOpen,
@@ -170,18 +177,20 @@ export function AppShell({ children }: { children: ReactNode }) {
       />
       <TopBar isSidebarCollapsed={isSidebarCollapsed} />
       <main
-        className={`relative z-10 flex-1 pt-16 pb-20 transition-all duration-300 lg:pb-0 ${
+        className={`relative z-10 flex-1 overflow-x-clip pt-16 pb-20 transition-all duration-300 lg:pb-0 ${
           isSidebarCollapsed ? "lg:ml-[72px]" : "lg:ml-64"
         }`}
       >
-        <div className="mx-auto w-full max-w-7xl px-4 py-6">
+        <div className="mx-auto w-full max-w-7xl min-w-0 px-4 py-6">
           {children}
         </div>
       </main>
 
-      <div className="fixed bottom-24 right-6 z-50 lg:bottom-12 lg:right-12">
-        <FinnyTrigger onClick={() => setIsChatOpen(true)} />
-      </div>
+      {!isFinnyRoom && (
+        <div className="fixed bottom-24 right-6 z-50 lg:bottom-12 lg:right-12">
+          <FinnyTrigger onClick={() => setIsChatOpen(true)} />
+        </div>
+      )}
       <FinnySheet
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}

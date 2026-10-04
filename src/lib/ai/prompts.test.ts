@@ -9,25 +9,11 @@ describe("SYSTEM_PROMPT", () => {
     }
   });
 
-  it("contains valid expense categories", () => {
-    const categories = [
-      "Makanan & Minuman",
-      "Transportasi",
-      "Tagihan",
-      "Kesehatan",
-      "Pendidikan",
-      "Belanja",
-      "Hiburan",
-    ];
+  it("contains the 3-bucket categories", () => {
+    const categories = ["Kebutuhan", "Keinginan", "Tabungan"];
     for (const cat of categories) {
       expect(SYSTEM_PROMPT).toContain(cat);
     }
-  });
-
-  it("contains valid income categories", () => {
-    expect(SYSTEM_PROMPT).toContain("Gaji");
-    expect(SYSTEM_PROMPT).toContain("Freelance");
-    expect(SYSTEM_PROMPT).toContain("Investasi");
   });
 
   it("contains payment methods", () => {

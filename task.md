@@ -178,6 +178,23 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Landing page: add Back to Top button above footer
 - [x] Landing page: improve footer — GitHub link, tech note, v1.0 badge, desktop divider, premium copyright bar
 - [x] Mobile nav: smooth tab switching animation — sliding indicator, icon scale (active scale-110 / inactive scale-95), FAB hover lift
+- [x] Wealth sync: purge legacy localStorage keys after migration — fixes deleted assets ("Investasi", "Dana Darurat") resurrecting via re-migration + Dexie Cloud put-over-tombstone on refresh
+- [x] Wealth edit: pencil buttons on assets/liabilities/debts — AssetLiabilityForm + DebtForm edit mode (prefill, preserve id/createdAt/paidAmount, locked type toggle, overdue-editable due dates)
+- [x] 3-bucket categories: Kebutuhan/Keinginan/Tabungan only (forms, Finny prompts, labels) — legacy categories keep mapping; transfers ("Pindah Saldo") excluded from budget + all income/expense totals (dashboard, budget, wealth); dynamic ring % labels
+- [x] Savings ring: fills from Tabungan-category transactions (income+expense, transfers excluded) vs savings target — full ring shows "Tabungan bulanan telah terpenuhi"
+- [x] Budget settings modal v2: numeric % inputs with two-way slider binding + custom slider styling (per-bucket color track/thumb, hover scale)
+- [x] Budget settings modal v3: editable Rp nominal per bucket (draft-while-typing, commits to % on blur/Enter)
+- [x] Mobile overflow hardening: overflow-x-clip page guard, flex-wrap filter buttons, min-w-0 grid children, break-words long text, wrapping balance row (fixes "zoomed"/sideways-shift on dashboard + budget)
+- [x] Desktop sidebar: collapse toggle moved from bottom to header (next to FinSpace title); collapsed logo replaced with open-sidebar icon button
+- [x] Cash flow chart: dual-series income (green) + expense (red) in one view with legend + tooltips; range pills Hari/Minggu/Bulan/Tahun (14 hari, 12 minggu, 12 bulan, 5 tahun); transfers excluded; net-worth tab kept
+- [x] Receipt scan endless-spinner: camera captures now downscaled to 1600px (was full sensor res → oversized body/timeout); API maxDuration 60s + oversize guard + missing-key diagnostic; client 90s abort timeout
+- [x] Finny roomchat (/finny): persistent sessions + messages in Dexie (v6 tables, synced) — session list with resume/delete/new, auto-resume latest; floating button opens a fresh persisted session; external-link icon in sheet header opens the room
+- [x] Finny roomchat entry in desktop sidebar only (active state + collapsed icon mode; mobile bottom bar unchanged)
+- [x] Pagination (shared usePagination + PaginationControls): transaction history 10/page with filter-reset; wealth assets/liabilities/debts 5/page
+- [x] Pagination page-size selector (15/25/50/75, default 15) on all paginated lists
+- [x] Daily expense reminders (12:00/17:00/21:00): local scheduled notifications via SW + in-app bell entry, skipped when an expense was already logged, per-day dedupe, Settings toggle with permission flow
+- [x] Version bump 1.0.0 → 1.5.0 (package.json + lockfile, landing badge, receipt/PDF footers; About modal follows via APP_VERSION)
+- [x] Asset purchase from balance: pocket selector (with balance + insufficient warning) when "beli dari saldo" checked; expense linked to chosen pocket
 
 ## Phase 10: Deployment & Final Acceptance Testing
 - [ ] Build a robust suite of validation test scenarios for simulated offline state.

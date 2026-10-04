@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import { Plus } from "lucide-react";
 import type { DebtEntry } from "@/lib/netWorth";
@@ -11,9 +11,11 @@ interface DebtFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (debt: DebtEntry) => void;
+  /** When set, the form works in edit mode: fields are prefilled and id/paidAmount/createdAt are preserved. */
+  initialDebt?: DebtEntry;
 }
 
-export function DebtForm({ isOpen, onClose, onSave }: DebtFormProps) {
+export function DebtForm({ isOpen, onClose, onSave, initialDebt }: DebtFormProps) {
   const { t } = useLanguage();
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
@@ -21,13 +23,36 @@ export function DebtForm({ isOpen, onClose, onSave }: DebtFormProps) {
   const [interestRate, setInterestRate] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const isEditing = !!initialDebt;
+
+  // Prefill (edit mode) or reset (add mode) when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      if (initialDebt) {
+        const d = new Date(initialDebt.dueDate);
+        const pad = (n: number) => String(n).padStart(2, "0");
+        setName(initialDebt.name);
+        setAmount(String(initialDebt.totalAmount));
+        setDueDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
+        setInterestRate(initialDebt.interestRate != null ? String(initialDebt.interestRate) : "");
+      } else {
+        setName("");
+        setAmount("");
+        setDueDate("");
+        setInterestRate("");
+      }
+      setErrors({});
+    }
+  }, [isOpen, initialDebt]);
+
   function validate() {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = t("wealth.debt_name_required");
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0)
       errs.amount = t("wealth.valid_amount");
     if (!dueDate) errs.dueDate = t("wealth.due_date_required");
-    else if (new Date(dueDate).getTime() <= Date.now())
+    // New debts must be in the future; existing (possibly overdue) debts stay editable
+    else if (!initialDebt && new Date(dueDate).getTime() <= Date.now())
       errs.dueDate = t("wealth.due_date_future");
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -37,13 +62,13 @@ export function DebtForm({ isOpen, onClose, onSave }: DebtFormProps) {
     if (!validate()) return;
     const now = Date.now();
     onSave({
-      id: `dbt${now}_${crypto.randomUUID().slice(0, 8)}`,
+      id: initialDebt?.id ?? `dbt${now}_${crypto.randomUUID().slice(0, 8)}`,
       name: name.trim(),
       totalAmount: Math.round(Number(amount)),
       dueDate: new Date(dueDate).getTime(),
-      paidAmount: 0,
+      paidAmount: initialDebt?.paidAmount ?? 0,
       interestRate: interestRate ? Number(interestRate) : undefined,
-      createdAt: now,
+      createdAt: initialDebt?.createdAt ?? now,
     });
     setName("");
     setAmount("");
@@ -56,7 +81,7 @@ export function DebtForm({ isOpen, onClose, onSave }: DebtFormProps) {
     "w-full rounded-lg border border-border bg-surface-alt px-3 py-2.5 font-mono text-sm text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-colors";
 
   return (
-    <ResponsiveModal isOpen={isOpen} onClose={onClose} title={t("wealth.add_debt")}>
+    <ResponsiveModal isOpen={isOpen} onClose={onClose} title={isEditing ? t("wealth.edit_debt") : t("wealth.add_debt")}>
       <div className="space-y-4">
         <div>
           <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
@@ -131,7 +156,7 @@ export function DebtForm({ isOpen, onClose, onSave }: DebtFormProps) {
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-mono text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25"
         >
           <Plus className="h-4 w-4" />
-          {t("wealth.add_debt")}
+          {isEditing ? t("wealth.edit_debt") : t("wealth.add_debt")}
         </button>
       </div>
     </ResponsiveModal>

@@ -2,6 +2,13 @@ import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
 import { buildScanPrompt } from "@/lib/ai/scan-prompt";
 
+// Vision calls can take a while — allow up to 60s where the platform permits.
+export const maxDuration = 60;
+
+// ~6.5MB binary. Larger payloads time out downstream; the client downscales
+// captures, so this is only a backstop with a friendly message.
+const MAX_IMAGE_CHARS = 9_000_000;
+
 export async function POST(req: Request) {
   let language: string | undefined;
 
@@ -12,6 +19,25 @@ export async function POST(req: Request) {
 
     if (!image || typeof image !== "string") {
       return Response.json({ error: "image (dataUrl) is required" }, { status: 400 });
+    }
+
+    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      console.error("Finny scan error: GOOGLE_GENERATIVE_AI_API_KEY is not set");
+      return Response.json({
+        error: language === "en"
+          ? "AI service is not configured. Please contact support!"
+          : "Layanan AI belum dikonfigurasi. Hubungi admin ya!",
+      }, { status: 500 });
+    }
+
+    if (image.length > MAX_IMAGE_CHARS) {
+      return Response.json({
+        action: "chat",
+        message: language === "en"
+          ? "This photo is too large to process. Please try a smaller photo!"
+          : "Fotonya terlalu besar untuk diproses. Coba foto yang lebih kecil ya!",
+        confidence: "low",
+      });
     }
 
     const pocketNames = Array.isArray(pockets) && pockets.length > 0

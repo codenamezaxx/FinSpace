@@ -24,12 +24,15 @@ import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import {
   Plus,
   Trash2,
+  Pencil,
   PiggyBank,
   Wallet,
   TrendingDown,
   Gauge,
 } from "lucide-react";
 import { usePockets } from "@/hooks/usePockets";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/shared/PaginationControls";
 import type { AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
 import type { HealthStatus } from "@/lib/financialRatios";
 import { useLanguage } from "@/lib/i18n";
@@ -57,7 +60,7 @@ export default function WealthPage() {
     endTime: endOfMonth,
   });
   const { addTransaction } = useTransactions();
-  const { totalBalance: pocketTotalBalance } = usePockets();
+  const { pockets, totalBalance: pocketTotalBalance } = usePockets();
 
   const [showDebtForm, setShowDebtForm] = useState(false);
   const [payingDebt, setPayingDebt] = useState<DebtEntry | null>(null);
@@ -65,6 +68,7 @@ export default function WealthPage() {
   const [liabilityToDelete, setLiabilityToDelete] =
     useState<LiabilityEntry | null>(null);
   const [debtToDelete, setDebtToDelete] = useState<DebtEntry | null>(null);
+  const [editingDebt, setEditingDebt] = useState<DebtEntry | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   // Force re-render when cloud sync completes (fixes stale data after sync)
@@ -79,18 +83,30 @@ export default function WealthPage() {
   const liabilities = useLiveQuery(() => db.liabilities.toArray(), [syncTick]) ?? [];
   const debts = useLiveQuery(() => db.debts.toArray(), [syncTick]) ?? [];
 
+  const assetPager = usePagination(assets.length, 15, assets.length);
+  const liabilityPager = usePagination(liabilities.length, 15, liabilities.length);
+  const pagedAssets = assets.slice(
+    (assetPager.page - 1) * assetPager.pageSize,
+    assetPager.page * assetPager.pageSize
+  );
+  const pagedLiabilities = liabilities.slice(
+    (liabilityPager.page - 1) * liabilityPager.pageSize,
+    liabilityPager.page * liabilityPager.pageSize
+  );
+
   const netWorthData = useMemo(
     () => calculateNetWorth(assets, liabilities, pocketTotalBalance, debts),
     [assets, liabilities, pocketTotalBalance, debts]
   );
 
   const monthlyData = useMemo(() => {
+    // Transfers excluded: moving money between pockets is neither income nor spending
     const income = transactions
-      .filter((tx) => tx.type === "income")
+      .filter((tx) => tx.type === "income" && !tx.transferId)
       .reduce((sum, tx) => sum + tx.amount, 0);
 
     const expenses = transactions
-      .filter((tx) => tx.type === "expense")
+      .filter((tx) => tx.type === "expense" && !tx.transferId)
       .reduce((sum, tx) => sum + tx.amount, 0);
 
     const debtPayments = totalMonthlyDebtObligation(debts);
@@ -157,16 +173,20 @@ export default function WealthPage() {
   );
 
   const handlePurchase = useCallback(
-    (data: { name: string; amount: number }) => {
+    (data: { name: string; amount: number; pocketId?: string }) => {
+      const pocket =
+        pockets.find((p) => p.id === data.pocketId) ??
+        pockets.find((p) => p.name === "Tunai");
       addTransaction({
         amount: data.amount,
         type: "expense",
         category: "Pembelian",
         merchant: `Pembelian: ${data.name}`,
-        payment_method: "Tunai",
+        payment_method: pocket?.name ?? "Tunai",
+        pocketId: pocket?.id ?? null,
       });
     },
-    [addTransaction]
+    [addTransaction, pockets]
   );
 
   async function removeAsset(id: string) {
@@ -314,7 +334,7 @@ export default function WealthPage() {
                 {t("wealth.no_assets_yet")}
               </p>
             ) : (
-              assets.map((asset) => (
+              pagedAssets.map((asset) => (
                 <div
                   key={asset.id}
                   className="glass flex items-center justify-between rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
@@ -333,6 +353,14 @@ export default function WealthPage() {
                     </span>
                     <button
                       type="button"
+                      onClick={() => openAssetLiabilityModal({ editItem: asset })}
+                      className="text-text-muted transition-colors duration-200 hover:text-primary"
+                      aria-label={t("wealth.edit_asset")}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setAssetToDelete(asset)}
                       className="text-text-muted transition-colors duration-200 hover:text-danger"
                     >
@@ -342,6 +370,14 @@ export default function WealthPage() {
                 </div>
               ))
             )}
+            <PaginationControls
+              page={assetPager.page}
+              totalPages={assetPager.totalPages}
+              onPrev={assetPager.prev}
+              onNext={assetPager.next}
+              pageSize={assetPager.pageSize}
+              onPageSizeChange={assetPager.setPageSize}
+            />
           </div>
         </div>
 
@@ -356,7 +392,7 @@ export default function WealthPage() {
             </p>
           ) : (
             <div className="space-y-2">
-              {liabilities.map((liability) => (
+              {pagedLiabilities.map((liability) => (
                 <div
                   key={liability.id}
                   className="glass flex items-center justify-between rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
@@ -370,6 +406,14 @@ export default function WealthPage() {
                     </span>
                     <button
                       type="button"
+                      onClick={() => openAssetLiabilityModal({ editItem: liability })}
+                      className="text-text-muted transition-colors duration-200 hover:text-primary"
+                      aria-label={t("wealth.edit_liability")}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setLiabilityToDelete(liability)}
                       className="text-text-muted transition-colors duration-200 hover:text-danger"
                     >
@@ -378,6 +422,14 @@ export default function WealthPage() {
                   </div>
                 </div>
               ))}
+              <PaginationControls
+                page={liabilityPager.page}
+                totalPages={liabilityPager.totalPages}
+                onPrev={liabilityPager.prev}
+                onNext={liabilityPager.next}
+                pageSize={liabilityPager.pageSize}
+                onPageSizeChange={liabilityPager.setPageSize}
+              />
             </div>
           )}
         </div>
@@ -401,6 +453,7 @@ export default function WealthPage() {
         <DebtList
           debts={debts}
           onPay={(debt) => setPayingDebt(debt)}
+          onEdit={(debt) => setEditingDebt(debt)}
           onDelete={(id) => {
             const debt = debts.find((d) => d.id === id);
             if (debt) setDebtToDelete(debt);
@@ -410,9 +463,10 @@ export default function WealthPage() {
 
       {/* Modals */}
       <DebtForm
-        isOpen={showDebtForm}
-        onClose={() => setShowDebtForm(false)}
+        isOpen={showDebtForm || !!editingDebt}
+        onClose={() => { setShowDebtForm(false); setEditingDebt(null); }}
         onSave={handleAddDebt}
+        initialDebt={editingDebt ?? undefined}
       />
       <PayDebtModal
         isOpen={!!payingDebt}

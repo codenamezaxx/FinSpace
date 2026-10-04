@@ -4,6 +4,7 @@ import { Fragment, useState, useRef, useEffect, useCallback, useMemo } from "rea
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
+  Bot,
   Camera,
   Info,
   LayoutDashboard,
@@ -115,30 +116,52 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
         }`}
         style={{ boxShadow: "var(--sidebar-shadow)" }}
       >
-        {/* Logo area — collapsed: only logo icon */}
+        {/* Logo area + collapse toggle — collapsed: open-sidebar icon replaces logo */}
         <div
           className={`flex items-center border-b border-border transition-all duration-300 ${
-            isCollapsed ? "h-16 justify-center px-0" : "h-24 gap-2 px-6"
+            isCollapsed ? "h-16 justify-center px-0" : "h-24 gap-2 px-4"
           }`}
         >
-          <img
-            src="/icons/icon-192x192.svg"
-            alt="FinSpace Logo"
-            className="h-9 w-9 shrink-0"
-          />
-          <div
-            className={`flex flex-col overflow-hidden transition-all duration-300 cursor-pointer ${
-              isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-            }`}
-            onClick={() => window.location.href = "/"}
-          >
-            <span className="whitespace-nowrap text-xl font-bold px-2 text-text-primary">
-              FinSpace
-            </span>
-            <span className="whitespace-nowrap text-xs font-medium px-2 text-text-muted">
-              Financial Dashboard
-            </span>
-          </div>
+          {isCollapsed ? (
+            <button
+              type="button"
+              onClick={onToggle}
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-text-muted transition-colors hover:bg-surface hover:text-text-primary"
+              aria-label={t("nav.expand_sidebar")}
+              title={t("nav.expand_sidebar")}
+            >
+              <PanelLeftOpen className="h-5 w-5" />
+            </button>
+          ) : (
+            <>
+              <img
+                src="/icons/icon-192x192.svg"
+                alt="FinSpace Logo"
+                className="h-9 w-9 shrink-0 cursor-pointer"
+                onClick={() => window.location.href = "/"}
+              />
+              <div
+                className="flex flex-1 cursor-pointer flex-col overflow-hidden"
+                onClick={() => window.location.href = "/"}
+              >
+                <span className="whitespace-nowrap px-2 text-xl font-bold text-text-primary">
+                  FinSpace
+                </span>
+                <span className="whitespace-nowrap px-2 text-xs font-medium text-text-muted">
+                  Financial Dashboard
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={onToggle}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface hover:text-text-primary"
+                aria-label={t("nav.collapse_sidebar")}
+                title={t("nav.collapse_sidebar")}
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </button>
+            </>
+          )}
         </div>
 
         {/* Tambah Transaksi */}
@@ -199,34 +222,36 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
               </Link>
             );
           })}
+          {/* Finny roomchat — desktop sidebar only (not in mobile bottom bar) */}
+          <Link
+            href="/finny"
+            className={`flex items-center rounded-lg text-xs font-medium transition-all duration-200 ${
+              isCollapsed
+                ? "justify-center px-0 py-3"
+                : "gap-3 px-4 py-3"
+            } ${
+              pathname.startsWith("/finny")
+                ? "bg-primary/10 text-primary"
+                : "text-text-muted hover:bg-surface hover:text-text-secondary"
+            }`}
+            title={isCollapsed ? t("ai.chat_title") : undefined}
+          >
+            <Bot
+              className={`h-5 w-5 shrink-0 ${
+                pathname.startsWith("/finny") ? "text-primary" : "text-text-muted"
+              }`}
+            />
+            <span
+              className={`overflow-hidden transition-all duration-300 ${
+                isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+              }`}
+            >
+              {t("ai.chat_title")}
+            </span>
+          </Link>
         </nav>
 
-          {/* Toggle button */}
-          <div className="p-3 pt-1">
-            <button
-              type="button"
-              onClick={onToggle}
-              className={`flex items-center rounded-lg transition-colors hover:bg-surface ${
-                isCollapsed
-                  ? "mx-auto h-9 w-9 justify-center"
-                  : "w-full gap-3 px-3 py-2"
-              }`}
-              aria-label={isCollapsed ? t("nav.expand_sidebar") : t("nav.collapse_sidebar")}
-            >
-              {isCollapsed ? (
-                <PanelLeftOpen className="h-4 w-4 shrink-0 text-text-muted" />
-              ) : (
-                <>
-                  <PanelLeftClose className="h-4 w-4 shrink-0 text-text-muted" />
-                  <span className="text-xs font-medium text-text-muted">
-                    {t("nav.collapse")}
-                  </span>
-                </>
-              )}
-            </button>
-          </div>
-
-        {/* Settings + Toggle — bottom of sidebar */}
+        {/* Settings + About — bottom of sidebar */}
         <div className="border-t border-border">
           {/* Settings */}
           <div className="px-3 py-4">

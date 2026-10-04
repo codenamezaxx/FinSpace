@@ -3,20 +3,23 @@
  * Single source of truth; all components import from here.
  */
 
-/** Expense categories */
-export const EXPENSE_CATEGORIES: readonly string[] = [
-  "Makanan & Minuman",
-  "Transportasi",
-  "Belanja",
-  "Hiburan",
-  "Tagihan",
-  "Kesehatan",
-  "Pendidikan",
-  "Lainnya",
+/**
+ * Transaction categories — single 3-bucket system aligned 1:1 with budgeting:
+ * Kebutuhan (needs), Keinginan (wants), Tabungan (savings).
+ * Legacy categories (Makanan & Minuman, Gaji, …) still exist on old
+ * transactions; they keep working via CATEGORY_MAPPING in budgetRules.
+ */
+export const TRANSACTION_CATEGORIES: readonly string[] = [
+  "Kebutuhan",
+  "Keinginan",
+  "Tabungan",
 ];
 
-/** Income categories */
-export const INCOME_CATEGORIES: readonly string[] = ["Gaji", "Freelance", "Investasi"];
+/** Expense categories (alias of the shared 3-bucket list) */
+export const EXPENSE_CATEGORIES: readonly string[] = TRANSACTION_CATEGORIES;
+
+/** Income categories (alias of the shared 3-bucket list) */
+export const INCOME_CATEGORIES: readonly string[] = TRANSACTION_CATEGORIES;
 
 /** Payment methods */
 export const PAYMENT_METHODS: readonly string[] = [
@@ -39,6 +42,9 @@ export const ASSET_TYPES = [
 
 /** Maps canonical category names to i18n translation keys */
 export const CATEGORY_LABEL_MAP: Record<string, string> = {
+  Kebutuhan: "budget.needs",
+  Keinginan: "budget.wants",
+  Tabungan: "budget.savings",
   "Makanan & Minuman": "transaction.food",
   Transportasi: "transaction.transport",
   Belanja: "transaction.shopping",
@@ -49,10 +55,9 @@ export const CATEGORY_LABEL_MAP: Record<string, string> = {
   Lainnya: "wealth.other",
 };
 
-/** All categories combined (for seed.ts) */
+/** All categories combined, deduplicated (for seed.ts) */
 export const ALL_CATEGORIES = [
-  ...EXPENSE_CATEGORIES,
-  ...INCOME_CATEGORIES,
+  ...new Set([...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES]),
 ] as const;
 
 /** Sample merchants for seed data */

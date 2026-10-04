@@ -105,7 +105,7 @@ export function printReceiptHtml(transaction: Transaction, t: TranslateFn): void
 
   <!-- Footer -->
   <div class="footer">${t("print.thank_you")}</div>
-  <div class="footer">FinSpace App v1.0</div>
+  <div class="footer">FinSpace App v1.5.0</div>
 </body>
 </html>`;
 

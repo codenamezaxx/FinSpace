@@ -1,6 +1,8 @@
 "use client";
 
-import { Trash2, HandCoins, AlertTriangle } from "lucide-react";
+import { Trash2, HandCoins, AlertTriangle, Pencil } from "lucide-react";
+import { PaginationControls } from "@/components/shared/PaginationControls";
+import { usePagination } from "@/hooks/usePagination";
 import type { DebtEntry } from "@/lib/netWorth";
 import { formatCurrency } from "@/lib/netWorth";
 import { calcInstallment, remainingAmount } from "@/lib/debtUtils";
@@ -11,10 +13,17 @@ interface DebtListProps {
   debts: DebtEntry[];
   onPay: (debt: DebtEntry) => void;
   onDelete: (id: string) => void;
+  onEdit?: (debt: DebtEntry) => void;
 }
 
-export function DebtList({ debts, onPay, onDelete }: DebtListProps) {
+export function DebtList({ debts, onPay, onDelete, onEdit }: DebtListProps) {
   const { t, lang } = useLanguage();
+  const { page, totalPages, pageSize, setPageSize, next, prev } = usePagination(
+    debts.length,
+    15,
+    debts.length
+  );
+  const paged = debts.slice((page - 1) * pageSize, page * pageSize);
 
   if (debts.length === 0) {
     return (
@@ -26,7 +35,7 @@ export function DebtList({ debts, onPay, onDelete }: DebtListProps) {
 
   return (
     <div className="space-y-2">
-      {debts.map((debt) => {
+      {paged.map((debt) => {
         const remaining = remainingAmount(debt);
         const progress = debt.totalAmount > 0
           ? Math.round((debt.paidAmount / debt.totalAmount) * 100)
@@ -42,11 +51,20 @@ export function DebtList({ debts, onPay, onDelete }: DebtListProps) {
             installment={installment}
             onPay={() => onPay(debt)}
             onDelete={() => onDelete(debt.id)}
+            onEdit={onEdit ? () => onEdit(debt) : undefined}
             t={t}
             lang={lang}
           />
         );
       })}
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        onPrev={prev}
+        onNext={next}
+        pageSize={pageSize}
+        onPageSizeChange={setPageSize}
+      />
     </div>
   );
 }
@@ -58,6 +76,7 @@ function DebtItem({
   installment,
   onPay,
   onDelete,
+  onEdit,
   t,
   lang,
 }: {
@@ -67,6 +86,7 @@ function DebtItem({
   installment: InstallmentResult;
   onPay: () => void;
   onDelete: () => void;
+  onEdit?: () => void;
   t: (key: string, vars?: Record<string, string | number>) => string;
   lang: string;
 }) {
@@ -115,6 +135,16 @@ function DebtItem({
             <HandCoins className="h-3.5 w-3.5" />
             {t("debt.pay")}
           </button>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="text-text-muted transition-colors hover:text-primary"
+              aria-label={t("wealth.edit_debt")}
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
           <button
             type="button"
             onClick={onDelete}

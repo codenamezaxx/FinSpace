@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
+import type { FinnyChatRow } from "@/lib/db";
 
 export interface FinnyMessage {
   id: string;
@@ -10,10 +12,18 @@ export interface FinnyMessage {
   data?: Record<string, unknown>;
   missingFields?: string[];
   confidence?: string;
+  /** Monotonic timestamp used for stable ordering of persisted history. */
+  createdAt?: number;
 }
 
 function generateId(): string {
   return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+/** Derive a session title from the first user message. Exported for tests. */
+export function sessionTitleFor(text: string, max = 42): string {
+  const clean = text.trim().replace(/\s+/g, " ");
+  return clean.length > max ? `${clean.slice(0, max)}…` : clean;
 }
 
 interface RawAiResponse {
@@ -46,6 +56,15 @@ export interface PocketInfo {
   category: "tunai" | "ewallet" | "rekening";
 }
 
+export interface UseFinnyChatOptions {
+  /** Resume this persisted session. Omit/null = ephemeral (unless persist creates one). */
+  sessionId?: string | null;
+  /** Persist turns to Dexie (sessions list + messages) so chats survive reloads. */
+  persist?: boolean;
+  /** Called with the new id the first time a session row is created. */
+  onSessionCreated?: (id: string) => void;
+}
+
 export interface UseFinnyChatResult {
   messages: FinnyMessage[];
   isLoading: boolean;
@@ -54,14 +73,66 @@ export interface UseFinnyChatResult {
   sendMessage: (text: string, pockets?: PocketInfo[], language?: string) => Promise<void>;
   clearMessages: () => void;
   dismissError: () => void;
+  /** Currently active persisted session id (null while ephemeral). */
+  activeSessionId: string | null;
+  /** Discard current state and start a fresh (ephemeral until first send) session. */
+  startNewSession: () => void;
 }
 
-export function useFinnyChat(): UseFinnyChatResult {
+function toRow(sessionId: string, m: FinnyMessage): FinnyChatRow {
+  return {
+    id: m.id,
+    sessionId,
+    role: m.role,
+    content: m.content,
+    action: m.action,
+    data: m.data,
+    missingFields: m.missingFields,
+    confidence: m.confidence,
+    createdAt: m.createdAt ?? Date.now(),
+  };
+}
+
+function fromRow(r: FinnyChatRow): FinnyMessage {
+  return {
+    id: r.id,
+    role: r.role,
+    content: r.content,
+    action: r.action,
+    data: r.data,
+    missingFields: r.missingFields,
+    confidence: r.confidence,
+    createdAt: r.createdAt,
+  };
+}
+
+export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult {
+  const persist = options?.persist ?? false;
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(
+    options?.sessionId ?? null
+  );
   const [messages, setMessages] = useState<FinnyMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Refs mirroring state for use inside async flows/effects
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
+  const activeSessionIdRef = useRef<string | null>(activeSessionId);
+  const seededForRef = useRef<string | null>(null);
+  const prevLoadingRef = useRef(false);
+  const tsRef = useRef(0);
+  const onSessionCreatedRef = useRef(options?.onSessionCreated);
+  onSessionCreatedRef.current = options?.onSessionCreated;
+
+  /** Monotonic timestamp so persisted history keeps exact send order. */
+  const stamp = useCallback((): number => {
+    const n = Date.now();
+    tsRef.current = Math.max(n, tsRef.current + 1);
+    return tsRef.current;
+  }, []);
 
   useEffect(() => {
     setIsOffline(!navigator.onLine);
@@ -74,6 +145,74 @@ export function useFinnyChat(): UseFinnyChatResult {
     };
   }, []);
 
+  // Follow session switches (roomchat): reset state, history reseeds from DB below
+  useEffect(() => {
+    const sid = options?.sessionId ?? null;
+    if (sid === activeSessionIdRef.current) return;
+    abortRef.current?.abort();
+    abortRef.current = null;
+    activeSessionIdRef.current = sid;
+    setActiveSessionId(sid);
+    seededForRef.current = null;
+    setMessages([]);
+    setError(null);
+  }, [options?.sessionId]);
+
+  // Load persisted history for the active session (once per session)
+  const stored = useLiveQuery(async () => {
+    if (!persist || !activeSessionId) return [];
+    const { db } = await import("@/lib/db");
+    return db.finny_messages
+      .where("sessionId")
+      .equals(activeSessionId)
+      .sortBy("createdAt");
+  }, [persist, activeSessionId]);
+
+  useEffect(() => {
+    if (!persist || !activeSessionId) return;
+    if (seededForRef.current === activeSessionId) return;
+    if (stored === undefined) return;
+    seededForRef.current = activeSessionId;
+    if (stored.length > 0) setMessages(stored.map(fromRow));
+  }, [persist, activeSessionId, stored]);
+
+  const ensureSession = useCallback(
+    async (firstText: string): Promise<string | null> => {
+      if (!persist) return activeSessionIdRef.current;
+      if (activeSessionIdRef.current) return activeSessionIdRef.current;
+      const { db } = await import("@/lib/db");
+      const id = `ses_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      const now = Date.now();
+      await db.finny_sessions.add({
+        id,
+        title: sessionTitleFor(firstText),
+        createdAt: now,
+        updatedAt: now,
+      });
+      activeSessionIdRef.current = id;
+      setActiveSessionId(id);
+      onSessionCreatedRef.current?.(id);
+      return id;
+    },
+    [persist]
+  );
+
+  // Persist the finished turn (user + assistant messages) + touch session time
+  useEffect(() => {
+    if (prevLoadingRef.current && !isLoading) {
+      const sid = activeSessionIdRef.current;
+      const msgs = messagesRef.current;
+      if (persist && sid && msgs.length > 0) {
+        const rows = msgs.map((m) => toRow(sid, m));
+        import("@/lib/db").then(({ db }) => {
+          db.finny_messages.bulkPut(rows).catch(() => {});
+          db.finny_sessions.update(sid, { updatedAt: Date.now() }).catch(() => {});
+        });
+      }
+    }
+    prevLoadingRef.current = isLoading;
+  }, [isLoading, persist]);
+
   const sendMessage = useCallback(
     async (text: string, pockets?: PocketInfo[], language?: string) => {
       if (!text.trim() || isLoading) return;
@@ -82,11 +221,19 @@ export function useFinnyChat(): UseFinnyChatResult {
         id: generateId(),
         role: "user",
         content: text.trim(),
+        createdAt: stamp(),
       };
 
       setMessages((prev) => [...prev, userMsg]);
       setIsLoading(true);
       setError(null);
+
+      // Lazily create the persisted session on first send (no-op when ephemeral)
+      try {
+        await ensureSession(text.trim());
+      } catch {
+        // Persistence unavailable — continue as an ephemeral chat
+      }
 
       if (!navigator.onLine) {
         try {
@@ -108,6 +255,7 @@ export function useFinnyChat(): UseFinnyChatResult {
             ? "Your message has been queued. I'll process it when you're back online! 🙏"
             : "Pesanmu sudah masuk antrean. Aku akan proses saat online kembali ya! 🙏",
           action: "chat",
+          createdAt: stamp(),
         };
         setMessages((prev) => [...prev, offlineMsg]);
         setIsLoading(false);
@@ -147,6 +295,7 @@ export function useFinnyChat(): UseFinnyChatResult {
                 typeof errData.action === "string"
                   ? errData.action
                   : "chat",
+              createdAt: stamp(),
             };
             setMessages((prev) => [...prev, rateLimitMsg]);
             setIsLoading(false);
@@ -199,6 +348,7 @@ export function useFinnyChat(): UseFinnyChatResult {
           data: parsed?.data,
           missingFields: parsed?.missing_fields,
           confidence: parsed?.confidence,
+          createdAt: stamp(),
         };
 
         setMessages((prev) => {
@@ -224,6 +374,7 @@ export function useFinnyChat(): UseFinnyChatResult {
             ? "Sorry, I'm having trouble. Please try again! 🙏"
             : "Maaf, aku lagi bermasalah. Coba lagi ya! 🙏",
           action: "chat",
+          createdAt: stamp(),
         };
         setMessages((prev) => [...prev, errAiMsg]);
       } finally {
@@ -231,7 +382,7 @@ export function useFinnyChat(): UseFinnyChatResult {
         abortRef.current = null;
       }
     },
-    [messages, isLoading]
+    [messages, isLoading, ensureSession, stamp]
   );
 
   const clearMessages = useCallback(() => {
@@ -243,6 +394,16 @@ export function useFinnyChat(): UseFinnyChatResult {
     setError(null);
   }, []);
 
+  const startNewSession = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    activeSessionIdRef.current = null;
+    seededForRef.current = null;
+    setActiveSessionId(null);
+    setMessages([]);
+    setError(null);
+  }, []);
+
   return {
     messages,
     isLoading,
@@ -251,5 +412,7 @@ export function useFinnyChat(): UseFinnyChatResult {
     sendMessage,
     clearMessages,
     dismissError,
+    activeSessionId,
+    startNewSession,
   };
 }

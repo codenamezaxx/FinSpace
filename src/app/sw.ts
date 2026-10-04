@@ -31,3 +31,27 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+// Tapping an expense-reminder notification focuses/opens the dashboard
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url =
+    (event.notification.data as { url?: string } | null)?.url ?? "/dashboard";
+  event.waitUntil(
+    (async () => {
+      const allClients = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      for (const client of allClients) {
+        if ("focus" in client && typeof client.focus === "function") {
+          await client.focus();
+          return;
+        }
+      }
+      if (self.clients.openWindow) {
+        await self.clients.openWindow(url);
+      }
+    })()
+  );
+});

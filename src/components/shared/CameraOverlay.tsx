@@ -65,19 +65,32 @@ const CameraOverlay: FC<CameraOverlayProps> = ({ isOpen, onCapture, onClose }) =
     }
   }, [isOpen, cameraState]);
 
-  // ── Capture photo ──
+  // ── Capture photo (downscaled — full sensor resolution makes the
+  // upload huge and the scan API times out; 1600px is plenty for OCR) ──
   const handleCapture = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    const MAX_DIM = 1600; // longest edge in px
+    let w = video.videoWidth;
+    let h = video.videoHeight;
+    if (Math.max(w, h) > MAX_DIM) {
+      if (w > h) {
+        h = Math.round((h / w) * MAX_DIM);
+        w = MAX_DIM;
+      } else {
+        w = Math.round((w / h) * MAX_DIM);
+        h = MAX_DIM;
+      }
+    }
+    canvas.width = w;
+    canvas.height = h;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.drawImage(video, 0, 0);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+    ctx.drawImage(video, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
     setCapturedImage(dataUrl);
     stopCamera();
     setCameraState("preview");

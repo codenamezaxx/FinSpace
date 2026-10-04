@@ -12,6 +12,8 @@ vi.mock("@/hooks/useFinnyChat", () => ({
     sendMessage: vi.fn(),
     clearMessages: vi.fn(),
     dismissError: vi.fn(),
+    activeSessionId: null,
+    startNewSession: vi.fn(),
   }),
 }));
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, AlertTriangle, Calendar } from "lucide-react";
+import { Bell, BellRing, AlertTriangle, Calendar } from "lucide-react";
 import type { Notification } from "@/lib/db";
 
 interface NotificationCardProps {
@@ -25,6 +25,11 @@ const typeConfig = {
     color: "text-accent",
     bgColor: "bg-accent/10",
   },
+  reminder: {
+    icon: BellRing,
+    color: "text-accent-secondary",
+    bgColor: "bg-accent-secondary/10",
+  },
 } as const;
 
 function formatRelativeTime(ts: number): string {
@@ -47,7 +52,7 @@ function formatRelativeTime(ts: number): string {
 
 export function NotificationCard({ notification, onMarkAsRead, onClick }: NotificationCardProps) {
   const isUnread = !notification.read;
-  const config = typeConfig[notification.type];
+  const config = typeConfig[notification.type] ?? typeConfig.transaction;
   const Icon = config.icon;
 
   return (

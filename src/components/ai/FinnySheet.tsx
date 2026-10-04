@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState, useCallback, useMemo, type FC } from "react";
-import { Bot, X } from "lucide-react";
+import React, { useState, useCallback, useMemo, useEffect, type FC } from "react";
+import { Bot, X, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { useFinnyChat, type PocketInfo } from "@/hooks/useFinnyChat";
+import { useFinnySave } from "@/hooks/useFinnySave";
 import { usePockets } from "@/hooks/usePockets";
 import FinnyChatArea from "./FinnyChatArea";
 import FinnyInput from "./FinnyInput";
 import TransactionPreview from "./TransactionPreview";
 import type { FinnyMessage } from "./FinnyChatArea";
-import { db } from "@/lib/db";
 
 interface FinnySheetProps {
   isOpen: boolean;
@@ -19,9 +19,17 @@ interface FinnySheetProps {
 
 const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
   const { lang, t } = useLanguage();
-  const { messages, isLoading, isOffline, sendMessage } = useFinnyChat();
+  // persist: true — every floating chat is saved as a resumable session.
+  // A fresh session starts each time the sheet opens (see effect below).
+  const { messages, isLoading, isOffline, sendMessage, startNewSession } =
+    useFinnyChat({ persist: true });
   const { pockets: pocketEnts, addPocket } = usePockets();
+  const { handleSave: saveData } = useFinnySave(pocketEnts, addPocket);
   const [showPreview, setShowPreview] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) startNewSession();
+  }, [isOpen, startNewSession]);
 
   const pocketInfo: PocketInfo[] = useMemo(
     () =>
@@ -54,89 +62,14 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
   const handleSave = useCallback(
     async (action: string, data: Record<string, unknown>) => {
       try {
-        switch (action) {
-          case "transaction": {
-            const { db } = await import("@/lib/db");
-            const pocketName = (data.pocket_name as string) || "Tunai";
-            const pocket = pocketEnts.find(
-              (p) => p.name.toLowerCase() === pocketName.toLowerCase()
-            ) ?? pocketEnts.find((p) => p.name === "Tunai");
-
-            await db.transactions.add({
-              id: `trn_${Date.now()}`,
-              type: data.type as "income" | "expense",
-              amount: data.amount as number,
-              category: data.category as string,
-              merchant: data.merchant as string,
-              payment_method: data.payment_method as string,
-              pocketId: pocket?.id ?? null,
-              timestamp: Date.now(),
-            });
-            break;
-          }
-          case "asset": {
-            await db.assets.put({
-              id: `ass${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
-              name: data.name as string,
-              amount: data.amount as number,
-              type: data.asset_type as "liquid" | "investment" | "property" | "other",
-              createdAt: Date.now(),
-            });
-            break;
-          }
-          case "liability": {
-            await db.liabilities.put({
-              id: `lia${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
-              name: data.name as string,
-              amount: data.amount as number,
-              createdAt: Date.now(),
-            });
-            break;
-          }
-          case "debt": {
-            await db.debts.put({
-              id: `dbt${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
-              name: data.name as string,
-              totalAmount: data.totalAmount as number,
-              paidAmount: (data.paidAmount as number) ?? 0,
-              dueDate: data.dueDate
-                ? new Date(data.dueDate as string).getTime()
-                : Date.now() + 365 * 86400000,
-              interestRate: (data.interestRate as number) ?? undefined,
-              createdAt: Date.now(),
-            });
-            break;
-          }
-          case "create_pocket": {
-            const name = data.name as string;
-            if (!name?.trim()) throw new Error("Nama kantong harus diisi");
-            const category = (data.category as "tunai" | "ewallet" | "rekening") ?? "ewallet";
-            const pocketId = await addPocket(name.trim(), category);
-            // Jika ada saldo awal, buat transaksi income untuk isi saldo
-            const initialBalance = (data.initial_balance as number) ?? 0;
-            if (initialBalance > 0) {
-              const { db } = await import("@/lib/db");
-              await db.transactions.add({
-                id: `trn_${Date.now()}`,
-                type: "income",
-                amount: initialBalance,
-                category: "Lainnya",
-                merchant: `Saldo awal ${name.trim()}`,
-                payment_method: "Lainnya",
-                pocketId,
-                timestamp: Date.now(),
-              });
-            }
-            break;
-          }
-        }
+        await saveData(action, data);
         setShowPreview(false);
         onClose();
       } catch (err) {
         console.error("Save error:", err);
       }
     },
-    [onClose]
+    [saveData, onClose]
   );
 
   const handleCancel = useCallback(() => {
@@ -175,13 +108,26 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
               <span className="text-xs text-text-muted">{t("ai.assistant_title")}</span>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-surface transition-colors cursor-pointer"
-            aria-label={t("common.close")}
-          >
-            <X className="w-5 h-5 text-text-secondary" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                onClose();
+                window.location.href = "/finny";
+              }}
+              className="p-1.5 rounded-lg hover:bg-surface transition-colors cursor-pointer"
+              aria-label={t("ai.open_full_chat")}
+              title={t("ai.open_full_chat")}
+            >
+              <ExternalLink className="w-5 h-5 text-text-secondary" />
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-surface transition-colors cursor-pointer"
+              aria-label={t("common.close")}
+            >
+              <X className="w-5 h-5 text-text-secondary" />
+            </button>
+          </div>
         </div>
 
         {/* Chat Area */}

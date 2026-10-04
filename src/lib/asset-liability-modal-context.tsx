@@ -15,8 +15,10 @@ const UPDATE_EVENT = "finspace-assets-updated";
 
 interface ModalOptions {
   defaultType?: "asset" | "liability";
-  onPurchase?: (data: { name: string; amount: number }) => void;
+  onPurchase?: (data: { name: string; amount: number; pocketId?: string }) => void;
   currentBalance?: number;
+  /** When set, the modal opens in edit mode for this item. */
+  editItem?: AssetEntry | LiabilityEntry;
 }
 
 interface AssetLiabilityModalContextValue {
@@ -72,6 +74,7 @@ export function AssetLiabilityModalProvider({
         defaultType={modalOptions?.defaultType}
         onPurchase={modalOptions?.onPurchase}
         currentBalance={modalOptions?.currentBalance}
+        initialItem={modalOptions?.editItem}
       />
     </AssetLiabilityModalContext.Provider>
   );
