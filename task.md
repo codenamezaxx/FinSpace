@@ -194,6 +194,7 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Pagination page-size selector (15/25/50/75, default 15) on all paginated lists
 - [x] Daily expense reminders (12:00/17:00/21:00): local scheduled notifications via SW + in-app bell entry, skipped when an expense was already logged, per-day dedupe, Settings toggle with permission flow
 - [x] Version bump 1.0.0 → 1.5.0 (package.json + lockfile, landing badge, receipt/PDF footers; About modal follows via APP_VERSION)
+- [x] Scan "unreadable" fix: strict raw-JSON-only prompt rule + temperature 0 + balanced-brace multi-candidate parser (scan-parse.ts, tested) + server logging of unparseable output
 - [x] Asset purchase from balance: pocket selector (with balance + insufficient warning) when "beli dari saldo" checked; expense linked to chosen pocket
 
 ## Phase 10: Deployment & Final Acceptance Testing

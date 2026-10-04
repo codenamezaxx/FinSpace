@@ -1,6 +1,7 @@
 import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
 import { buildScanPrompt } from "@/lib/ai/scan-prompt";
+import { parseScanResponse } from "@/lib/ai/scan-parse";
 
 // Vision calls can take a while — allow up to 60s where the platform permits.
 export const maxDuration = 60;
@@ -46,6 +47,8 @@ export async function POST(req: Request) {
 
     const result = await generateText({
       model: google("gemini-2.5-flash"),
+      // Deterministic output: same receipt → same JSON, less prose drift
+      temperature: 0,
       system: buildScanPrompt(pocketNames.length > 0 ? pocketNames : undefined, language),
       messages: [
         {
@@ -59,20 +62,15 @@ export async function POST(req: Request) {
     });
 
     const text = result.text;
-    let parsed;
-    try { parsed = JSON.parse(text); }
-    catch {
-      // Strip markdown fences first, then try non-greedy first JSON object match
-      const cleaned = text.replace(/```(?:json)?\s*([\s\S]*?)```/g, "$1").trim();
-      const match = cleaned.match(/\{[\s\S]*?\}/);
-      if (match) {
-        try { parsed = JSON.parse(match[0]); } catch { parsed = null; }
-      } else {
-        parsed = null;
-      }
-    }
+    // Balanced-brace candidate scan (longest first): tolerates prose,
+    // fences, stray braces and multiple objects in the model output
+    const parsed = parseScanResponse(text);
 
     if (!parsed) {
+      console.error(
+        "Finny scan: model output contained no parseable action JSON:",
+        text.slice(0, 2000)
+      );
       return Response.json({
         action: "chat",
         message: language === "en"

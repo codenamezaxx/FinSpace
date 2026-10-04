@@ -7,6 +7,7 @@ TUGASMU:
 4. Respon dalam format JSON — jangan tambahkan teks lain di luar JSON
 
 ATURAN:
+- OUTPUT WAJIB berupa SATU objek JSON mentah saja: tanpa markdown, tanpa pagar kode, tanpa kalimat pembuka/penutup dalam bentuk apa pun
 - Jika gambar buram atau tidak terbaca → kembalikan action "chat" dengan confidence "low"
 - Jika struk restoran/supermarket/minimarket → action "transaction" type "expense"
 - Jika bukti transfer masuk/gaji → action "transaction" type "income"
