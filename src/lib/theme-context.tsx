@@ -12,10 +12,18 @@ import {
 
 type Theme = "dark" | "light";
 
+export type Accent = "default" | "mono";
+
+export function parseStoredAccent(raw: string | null): Accent {
+  return raw === "mono" ? "mono" : "default";
+}
+
 interface ThemeContextValue {
   theme: Theme;
   toggleTheme: () => void;
   setTheme: (t: Theme) => void;
+  accent: Accent;
+  setAccent: (a: Accent) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -31,8 +39,20 @@ function getStoredTheme(): Theme | null {
   return null;
 }
 
+function getStoredAccent(): Accent | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = window.localStorage.getItem("finspace-accent");
+    if (stored === "mono" || stored === "default") return stored;
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
+  const [accent, setAccentState] = useState<Accent>("default");
 
   // On mount, read stored theme (fallback light) and sync to state
   useEffect(() => {
@@ -40,6 +60,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const active = stored ?? "light";
     setThemeState(active);
     document.documentElement.setAttribute("data-theme", active);
+    const storedAccent = getStoredAccent();
+    const activeAccent = storedAccent ?? "default";
+    setAccentState(activeAccent);
+    document.documentElement.setAttribute("data-accent", activeAccent);
   }, []);
 
   const setTheme = useCallback((t: Theme) => {
@@ -56,9 +80,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setTheme(theme === "dark" ? "light" : "dark");
   }, [theme, setTheme]);
 
+  const setAccent = useCallback((a: Accent) => {
+    const next = parseStoredAccent(a);
+    setAccentState(next);
+    document.documentElement.setAttribute("data-accent", next);
+    try {
+      window.localStorage.setItem("finspace-accent", next);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const value = useMemo<ThemeContextValue>(
-    () => ({ theme, toggleTheme, setTheme }),
-    [theme, toggleTheme, setTheme]
+    () => ({ theme, toggleTheme, setTheme, accent, setAccent }),
+    [theme, toggleTheme, setTheme, accent, setAccent]
   );
 
   return (

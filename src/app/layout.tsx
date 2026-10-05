@@ -130,7 +130,7 @@ export default function RootLayout({
           id="theme-init"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("finspace-theme");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem("finspace-theme");var a=localStorage.getItem("finspace-accent");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");document.documentElement.setAttribute("data-accent",a==="mono"?"mono":"default")}catch(e){}})()`,
           }}
         />
       </head>
