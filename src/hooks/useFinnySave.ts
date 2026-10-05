@@ -3,6 +3,12 @@
 import { useCallback } from "react";
 import type { Pocket } from "@/lib/pocket";
 import { usePockets } from "./usePockets";
+import {
+  newAssetId,
+  newDebtId,
+  newLiabilityId,
+  newTransactionId,
+} from "@/lib/ids";
 
 type AddPocketFn = ReturnType<typeof usePockets>["addPocket"];
 
@@ -22,9 +28,9 @@ export function useFinnySave(pocketEnts: Pocket[], addPocket: AddPocketFn) {
             (p) => p.name.toLowerCase() === pocketName.toLowerCase()
           ) ?? pocketEnts.find((p) => p.name === "Tunai");
 
-          await db.transactions.add({
-            id: `trn_${Date.now()}`,
-            type: data.type as "income" | "expense",
+            await db.transactions.add({
+              id: newTransactionId(),
+              type: data.type as "income" | "expense",
             amount: data.amount as number,
             category: data.category as string,
             merchant: data.merchant as string,
@@ -37,7 +43,7 @@ export function useFinnySave(pocketEnts: Pocket[], addPocket: AddPocketFn) {
         case "asset": {
           const { db } = await import("@/lib/db");
           await db.assets.put({
-            id: `ass${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
+            id: newAssetId(),
             name: data.name as string,
             amount: data.amount as number,
             type: data.asset_type as "liquid" | "investment" | "property" | "other",
@@ -48,7 +54,7 @@ export function useFinnySave(pocketEnts: Pocket[], addPocket: AddPocketFn) {
         case "liability": {
           const { db } = await import("@/lib/db");
           await db.liabilities.put({
-            id: `lia${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
+            id: newLiabilityId(),
             name: data.name as string,
             amount: data.amount as number,
             createdAt: Date.now(),
@@ -58,7 +64,7 @@ export function useFinnySave(pocketEnts: Pocket[], addPocket: AddPocketFn) {
         case "debt": {
           const { db } = await import("@/lib/db");
           await db.debts.put({
-            id: `dbt${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
+            id: newDebtId(),
             name: data.name as string,
             totalAmount: data.totalAmount as number,
             paidAmount: (data.paidAmount as number) ?? 0,
@@ -80,7 +86,7 @@ export function useFinnySave(pocketEnts: Pocket[], addPocket: AddPocketFn) {
           if (initialBalance > 0) {
             const { db } = await import("@/lib/db");
             await db.transactions.add({
-              id: `trn_${Date.now()}`,
+              id: newTransactionId(),
               type: "income",
               amount: initialBalance,
               category: "Lainnya",

@@ -92,6 +92,17 @@ export function scoreToColor(score: number): string {
   return "#EF4444";
 }
 
+/**
+ * Derive a HealthStatus from the composite score — same thresholds as
+ * scoreToLabel/scoreToColor. Single source of truth shared by the dashboard
+ * ring and the wealth speedometer so both pages always agree.
+ */
+export function scoreToStatus(score: number): HealthStatus {
+  if (score >= 70) return "safe";
+  if (score >= 40) return "warning";
+  return "danger";
+}
+
 // Health status helpers
 
 export function getLiquidityStatus(ratio: number): HealthStatus {

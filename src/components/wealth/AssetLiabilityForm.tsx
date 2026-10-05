@@ -7,6 +7,7 @@ import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
 import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
 import { useLanguage } from "@/lib/i18n";
 import { usePockets } from "@/hooks/usePockets";
+import { newAssetId, newLiabilityId } from "@/lib/ids";
 
 type ItemType = "asset" | "liability";
 
@@ -82,7 +83,6 @@ export function AssetLiabilityForm({
   function handleSave() {
     if (!validate()) return;
     const now = Date.now();
-    const suffix = `${now}_${crypto.randomUUID().slice(0, 8)}`;
     const parsed = Math.round(Number(amount));
     // Edit mode: keep the original id + createdAt so `put` updates in place
     // (new id would duplicate, new createdAt would reorder history).
@@ -94,7 +94,7 @@ export function AssetLiabilityForm({
 
     if (type === "asset") {
       onSave({
-        id: prevId ?? `ass${suffix}`,
+        id: prevId ?? newAssetId(),
         name: name.trim(),
         amount: parsed,
         type: assetType,
@@ -102,7 +102,7 @@ export function AssetLiabilityForm({
       } as AssetEntry);
     } else {
       onSave({
-        id: prevId ?? `lia${suffix}`,
+        id: prevId ?? newLiabilityId(),
         name: name.trim(),
         amount: parsed,
         createdAt: prevCreatedAt ?? now,

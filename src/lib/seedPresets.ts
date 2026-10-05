@@ -59,11 +59,23 @@ async function _doSeed(): Promise<void> {
       await db.pockets.bulkDelete(dupIds);
     }
 
-    // 2. Check which presets are missing (by name).
+    // 2. Check which presets are missing (by name) — but never
+    // re-add presets the user explicitly deleted (synced markers, so this
+    // holds across devices and fresh installs instead of resurrecting them).
     const existingNames = new Set(
       (await db.pockets.toArray()).map((p) => p.name)
     );
-    const missing = PRESET_POCKETS.filter((p) => !existingNames.has(p.name));
+    const { DELETED_PRESET_PREFIX } = await import("@/lib/ids");
+    const deletedKeys = await db.app_meta
+      .where("key")
+      .startsWith(DELETED_PRESET_PREFIX)
+      .primaryKeys();
+    const deletedNames = new Set(
+      deletedKeys.map((k) => String(k).slice(DELETED_PRESET_PREFIX.length))
+    );
+    const missing = PRESET_POCKETS.filter(
+      (p) => !existingNames.has(p.name) && !deletedNames.has(p.name)
+    );
     if (missing.length === 0) return;
 
     // 3. Add only missing presets.

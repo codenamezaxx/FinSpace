@@ -1,6 +1,6 @@
 "use client";
 
-import { scoreToColor, scoreToLabel } from "@/lib/financialRatios";
+import { scoreToColor, scoreToStatus } from "@/lib/financialRatios";
 import { useLanguage } from "@/lib/i18n";
 
 interface HealthScoreRingProps {
@@ -10,9 +10,7 @@ interface HealthScoreRingProps {
 export function HealthScoreRing({ score }: HealthScoreRingProps) {
   const { t } = useLanguage();
   const color = scoreToColor(score);
-  const rawLabel = scoreToLabel(score);
-  const labelKey = rawLabel === "Aman" ? "financial.score_safe" : rawLabel === "Waspada" ? "financial.score_warning" : "financial.score_danger";
-  const label = t(labelKey);
+  const label = t(`financial.score_${scoreToStatus(score)}`);
 
   /* ── SVG ring ── */
   const size = 184;

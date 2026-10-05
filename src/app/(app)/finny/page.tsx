@@ -18,7 +18,10 @@ import FinnyChatArea from "@/components/ai/FinnyChatArea";
 import type { FinnyMessage } from "@/components/ai/FinnyChatArea";
 import FinnyInput from "@/components/ai/FinnyInput";
 import TransactionPreview from "@/components/ai/TransactionPreview";
+import ScanResultModal from "@/components/ai/ScanResultModal";
+import CameraOverlay from "@/components/shared/CameraOverlay";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
+import { useFinnyScan } from "@/hooks/useFinnyScan";
 import { db } from "@/lib/db";
 
 function formatSessionDate(ts: number, lang: string): string {
@@ -53,6 +56,17 @@ export default function FinnyRoomPage() {
   const { pockets: pocketEnts, addPocket } = usePockets();
   const { handleSave: saveData } = useFinnySave(pocketEnts, addPocket);
 
+  // Receipt scan (same flow as the floating sheet)
+  const {
+    result: scanResult,
+    isLoading: scanLoading,
+    error: scanError,
+    scanImage,
+    reset: resetScan,
+  } = useFinnyScan();
+  const [isScanOpen, setIsScanOpen] = useState(false);
+  const [scanImageDataUrl, setScanImageDataUrl] = useState<string | null>(null);
+
   const pocketInfo: PocketInfo[] = useMemo(
     () =>
       pocketEnts.map((p) => ({
@@ -61,6 +75,41 @@ export default function FinnyRoomPage() {
         category: p.category,
       })),
     [pocketEnts]
+  );
+
+  const handleScanClick = useCallback(() => {
+    resetScan();
+    setIsScanOpen(true);
+  }, [resetScan]);
+
+  const handleScanImage = useCallback(
+    (dataUrl: string) => {
+      setScanImageDataUrl(dataUrl);
+      scanImage(dataUrl, pocketInfo);
+    },
+    [scanImage, pocketInfo]
+  );
+
+  const handleScanClose = useCallback(() => {
+    setIsScanOpen(false);
+    setScanImageDataUrl(null);
+    resetScan();
+  }, [resetScan]);
+
+  const handleScanRetry = useCallback(() => {
+    if (scanImageDataUrl) scanImage(scanImageDataUrl, pocketInfo);
+  }, [scanImageDataUrl, scanImage, pocketInfo]);
+
+  const handleScanSave = useCallback(
+    async (action: string, data: Record<string, unknown>) => {
+      try {
+        await saveData(action, data);
+        handleScanClose();
+      } catch (err) {
+        console.error("Scan save error:", err);
+      }
+    },
+    [saveData, handleScanClose]
   );
 
   const handleSend = useCallback(
@@ -273,6 +322,7 @@ export default function FinnyRoomPage() {
               onSend={handleSend}
               isLoading={isLoading}
               isOffline={isOffline}
+              onScan={handleScanClick}
             />
           </div>
         </div>
@@ -286,6 +336,23 @@ export default function FinnyRoomPage() {
         message={t("ai.delete_session_message")}
         confirmLabel={t("common.delete")}
         isLoading={deleting}
+      />
+
+      <CameraOverlay
+        isOpen={isScanOpen && !scanImageDataUrl}
+        onCapture={handleScanImage}
+        onClose={handleScanClose}
+      />
+      <ScanResultModal
+        isOpen={isScanOpen && !!scanImageDataUrl}
+        imageDataUrl={scanImageDataUrl}
+        result={scanResult}
+        isLoading={scanLoading}
+        error={scanError}
+        onSave={handleScanSave}
+        onClose={handleScanClose}
+        onRetry={handleScanRetry}
+        pockets={pocketInfo}
       />
     </div>
   );

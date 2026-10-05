@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Must use vi.hoisted so these exist when vi.mock factory runs (hoisted to top)
-const { mockToArray, mockCount, mockBulkAdd, mockBulkDelete } = vi.hoisted(() => ({
+const { mockToArray, mockCount, mockBulkAdd, mockBulkDelete, mockPrimaryKeys } = vi.hoisted(() => ({
   mockToArray: vi.fn().mockResolvedValue([]),
   mockCount: vi.fn().mockResolvedValue(0),
   mockBulkAdd: vi.fn().mockResolvedValue(undefined),
   mockBulkDelete: vi.fn().mockResolvedValue(undefined),
+  mockPrimaryKeys: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("./db", () => ({
@@ -15,6 +16,13 @@ vi.mock("./db", () => ({
       count: mockCount,
       bulkAdd: mockBulkAdd,
       bulkDelete: mockBulkDelete,
+    },
+    app_meta: {
+      where: vi.fn().mockReturnValue({
+        startsWith: vi.fn().mockReturnValue({
+          primaryKeys: mockPrimaryKeys,
+        }),
+      }),
     },
   },
 }));
@@ -113,5 +121,18 @@ describe("seedPresets", () => {
 
     resetSeedFlag();
     expect(hasSeeded()).toBe(false);
+  });
+
+  it("never re-adds user-deleted presets", async () => {
+    // Gopay was explicitly deleted by the user (synced marker)
+    mockPrimaryKeys.mockResolvedValueOnce(["app-deleted-preset:Gopay"]);
+
+    await seedPresets();
+
+    expect(mockBulkAdd).toHaveBeenCalledOnce();
+    const added = mockBulkAdd.mock.calls[0][0];
+    const names = added.map((p: { name: string }) => p.name);
+    expect(names).toHaveLength(5);
+    expect(names).not.toContain("Gopay");
   });
 });

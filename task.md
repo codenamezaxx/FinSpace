@@ -190,9 +190,14 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Receipt scan endless-spinner: camera captures now downscaled to 1600px (was full sensor res → oversized body/timeout); API maxDuration 60s + oversize guard + missing-key diagnostic; client 90s abort timeout
 - [x] Finny roomchat (/finny): persistent sessions + messages in Dexie (v6 tables, synced) — session list with resume/delete/new, auto-resume latest; floating button opens a fresh persisted session; external-link icon in sheet header opens the room
 - [x] Finny roomchat entry in desktop sidebar only (active state + collapsed icon mode; mobile bottom bar unchanged)
+- [x] Finny persistence fixes: Dexie Cloud `@`-key prefixes centralized (src/lib/ids.ts + regression test) — finny sessions/messages, liabilities (lbl), offline queue (aq), deleted-preset markers; chat turns persisted inline per message; seed-once-poison race fixed (verified end-to-end in browser: history survives reload)
+- [x] FinnyInput multiline (auto-growing textarea, Enter send / Shift+Enter newline); receipt scan (camera + gallery) inside roomchat via FinnyInput button
 - [x] Pagination (shared usePagination + PaginationControls): transaction history 10/page with filter-reset; wealth assets/liabilities/debts 5/page
 - [x] Pagination page-size selector (15/25/50/75, default 15) on all paginated lists
 - [x] Daily expense reminders (12:00/17:00/21:00): local scheduled notifications via SW + in-app bell entry, skipped when an expense was already logged, per-day dedupe, Settings toggle with permission flow
+- [x] Health label unified: scoreToStatus() shared by dashboard ring + wealth speedometer (≥70 safe, ≥40 warning) — skor 74 kini Aman di kedua halaman; ring pakai kunci i18n financial.score_*
+- [x] Income category fixed: form pemasukan kini pakai dropdown 3-bucket (sebelumnya hardcoded "Pemasukkan" di luar sistem)
+- [x] Preset resurrection guard: deleted-preset markers synced (app_meta, v7) — kantong preset yang dihapus user takkan di-seed ulang di perangkat mana pun
 - [x] Version bump 1.0.0 → 1.5.0 (package.json + lockfile, landing badge, receipt/PDF footers; About modal follows via APP_VERSION)
 - [x] Scan "unreadable" fix: strict raw-JSON-only prompt rule + temperature 0 + balanced-brace multi-candidate parser (scan-parse.ts, tested) + server logging of unparseable output
 - [x] Asset purchase from balance: pocket selector (with balance + insufficient warning) when "beli dari saldo" checked; expense linked to chosen pocket

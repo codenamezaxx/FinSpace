@@ -18,6 +18,7 @@ import {
   getLiquidityStatus,
   getSavingsRateStatus,
   getDebtToIncomeStatus,
+  scoreToStatus,
 } from "@/lib/financialRatios";
 import { totalMonthlyDebtObligation } from "@/lib/debtUtils";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
@@ -127,16 +128,12 @@ export default function WealthPage() {
 
   const healthScore = useMemo(() => calculateHealthScore(ratios), [ratios]);
 
-  const overallStatus: HealthStatus = useMemo(() => {
-    const statuses = [
-      getLiquidityStatus(ratios.liquidityRatio),
-      getSavingsRateStatus(ratios.savingsRate),
-      getDebtToIncomeStatus(ratios.debtToIncome),
-    ];
-    if (statuses.some((s) => s === "danger")) return "danger";
-    if (statuses.some((s) => s === "warning")) return "warning";
-    return "safe";
-  }, [ratios]);
+  // Same source of truth as the dashboard ring: status derives from the
+  // composite score (≥70 safe, ≥40 warning) — never from the worst ratio.
+  const overallStatus: HealthStatus = useMemo(
+    () => scoreToStatus(healthScore),
+    [healthScore]
+  );
 
   const handleAddDebt = useCallback(
     async (debt: DebtEntry) => {

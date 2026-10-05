@@ -2,7 +2,13 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import type { FinnyChatRow } from "@/lib/db";
+import { db, type FinnyChatRow } from "@/lib/db";
+import {
+  newAiQueueId,
+  newFinnyAssistantMessageId,
+  newFinnySessionId,
+  newFinnyUserMessageId,
+} from "@/lib/ids";
 
 export interface FinnyMessage {
   id: string;
@@ -17,7 +23,7 @@ export interface FinnyMessage {
 }
 
 function generateId(): string {
-  return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  return newFinnyUserMessageId();
 }
 
 /** Derive a session title from the first user message. Exported for tests. */
@@ -118,11 +124,8 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
   const abortRef = useRef<AbortController | null>(null);
 
   // Refs mirroring state for use inside async flows/effects
-  const messagesRef = useRef(messages);
-  messagesRef.current = messages;
   const activeSessionIdRef = useRef<string | null>(activeSessionId);
   const seededForRef = useRef<string | null>(null);
-  const prevLoadingRef = useRef(false);
   const tsRef = useRef(0);
   const onSessionCreatedRef = useRef(options?.onSessionCreated);
   onSessionCreatedRef.current = options?.onSessionCreated;
@@ -158,30 +161,36 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
     setError(null);
   }, [options?.sessionId]);
 
-  // Load persisted history for the active session (once per session)
-  const stored = useLiveQuery(async () => {
+  // Load persisted history for the active session (once per session).
+  // NOTE: the querier must stay SYNCHRONOUS (static db import) — an async
+  // querier with a dynamic import breaks liveQuery change tracking, so new
+  // rows never arrive and history silently stays empty.
+  const stored = useLiveQuery(() => {
     if (!persist || !activeSessionId) return [];
-    const { db } = await import("@/lib/db");
     return db.finny_messages
       .where("sessionId")
       .equals(activeSessionId)
-      .sortBy("createdAt");
+      .toArray()
+      .then((rows) =>
+        rows.sort((a, b) => (a.createdAt ?? 0) - (b.createdAt ?? 0))
+      );
   }, [persist, activeSessionId]);
 
   useEffect(() => {
     if (!persist || !activeSessionId) return;
     if (seededForRef.current === activeSessionId) return;
-    if (stored === undefined) return;
+    if (stored === undefined || stored.length === 0) return;
     seededForRef.current = activeSessionId;
-    if (stored.length > 0) setMessages(stored.map(fromRow));
+    // Only fill an empty view — never clobber a live turn already in state
+    // (its messages are persisted separately via persistBatch).
+    setMessages((prev) => (prev.length === 0 ? stored.map(fromRow) : prev));
   }, [persist, activeSessionId, stored]);
 
   const ensureSession = useCallback(
     async (firstText: string): Promise<string | null> => {
       if (!persist) return activeSessionIdRef.current;
       if (activeSessionIdRef.current) return activeSessionIdRef.current;
-      const { db } = await import("@/lib/db");
-      const id = `ses_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      const id = newFinnySessionId();
       const now = Date.now();
       await db.finny_sessions.add({
         id,
@@ -197,21 +206,21 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
     [persist]
   );
 
-  // Persist the finished turn (user + assistant messages) + touch session time
-  useEffect(() => {
-    if (prevLoadingRef.current && !isLoading) {
-      const sid = activeSessionIdRef.current;
-      const msgs = messagesRef.current;
-      if (persist && sid && msgs.length > 0) {
-        const rows = msgs.map((m) => toRow(sid, m));
-        import("@/lib/db").then(({ db }) => {
-          db.finny_messages.bulkPut(rows).catch(() => {});
-          db.finny_sessions.update(sid, { updatedAt: Date.now() }).catch(() => {});
-        });
+  // Durably persist each message batch inline (awaited inside sendMessage),
+  // so a reload/close can never lose a finished turn. Failures are logged —
+  // never swallowed — to keep persistence bugs diagnosable.
+  const persistBatch = useCallback(
+    async (sid: string | null, batch: FinnyMessage[]): Promise<void> => {
+      if (!persist || !sid || batch.length === 0) return;
+      try {
+        await db.finny_messages.bulkPut(batch.map((m) => toRow(sid, m)));
+        await db.finny_sessions.update(sid, { updatedAt: Date.now() });
+      } catch (e) {
+        console.error("[Finny] failed to persist chat turn:", e);
       }
-    }
-    prevLoadingRef.current = isLoading;
-  }, [isLoading, persist]);
+    },
+    [persist]
+  );
 
   const sendMessage = useCallback(
     async (text: string, pockets?: PocketInfo[], language?: string) => {
@@ -223,23 +232,28 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
         content: text.trim(),
         createdAt: stamp(),
       };
+      // Assistant ids must ALSO carry the table prefix (Fnn…) — Dexie
+      // Cloud rejects anything else, so derive one stable id per turn.
+      const asstId = newFinnyAssistantMessageId();
 
       setMessages((prev) => [...prev, userMsg]);
       setIsLoading(true);
       setError(null);
 
       // Lazily create the persisted session on first send (no-op when ephemeral)
+      let sid: string | null = null;
       try {
-        await ensureSession(text.trim());
-      } catch {
+        sid = await ensureSession(text.trim());
+      } catch (e) {
         // Persistence unavailable — continue as an ephemeral chat
+        console.error("[Finny] ensureSession failed:", e);
       }
+      await persistBatch(sid, [userMsg]);
 
       if (!navigator.onLine) {
         try {
-          const { db } = await import("@/lib/db");
           await db.ai_queue.add({
-            queue_id: `ai_${Date.now()}`,
+            queue_id: newAiQueueId(),
             input_type: "text_chat",
             payload: text.trim(),
             created_at: Date.now(),
@@ -258,6 +272,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
           createdAt: stamp(),
         };
         setMessages((prev) => [...prev, offlineMsg]);
+        await persistBatch(sid, [offlineMsg]);
         setIsLoading(false);
         return;
       }
@@ -288,7 +303,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
           // Rate limit — tampilkan sebagai pesan asisten, bukan error
           if (response.status === 429 && typeof errData.message === "string") {
             const rateLimitMsg: FinnyMessage = {
-              id: `ai_${userMsg.id}`,
+              id: asstId,
               role: "assistant",
               content: errData.message,
               action:
@@ -298,6 +313,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
               createdAt: stamp(),
             };
             setMessages((prev) => [...prev, rateLimitMsg]);
+            await persistBatch(sid, [rateLimitMsg]);
             setIsLoading(false);
             return;
           }
@@ -325,7 +341,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
 
           setMessages((prev) => {
             const last = prev[prev.length - 1];
-            if (last?.role === "assistant" && last.id === `ai_${userMsg.id}`) {
+            if (last?.role === "assistant" && last.id === asstId) {
               return [
                 ...prev.slice(0, -1),
                 { ...last, content: fullContent },
@@ -337,7 +353,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
 
         const parsed = parseAiResponse(fullContent);
         const finalMsg: FinnyMessage = {
-          id: `ai_${userMsg.id}`,
+          id: asstId,
           role: "assistant",
           content:
             (parsed?.message ?? fullContent) ||
@@ -353,11 +369,12 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
 
         setMessages((prev) => {
           const last = prev[prev.length - 1];
-          if (last?.role === "assistant" && last.id === `ai_${userMsg.id}`) {
+          if (last?.role === "assistant" && last.id === asstId) {
             return [...prev.slice(0, -1), finalMsg];
           }
           return [...prev, finalMsg];
         });
+        await persistBatch(sid, [finalMsg]);
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
         const errorMsg =
@@ -368,7 +385,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
         setError(errorMsg);
 
         const errAiMsg: FinnyMessage = {
-          id: `ai_${userMsg.id}`,
+          id: asstId,
           role: "assistant",
           content: language === "en"
             ? "Sorry, I'm having trouble. Please try again! 🙏"
@@ -377,12 +394,13 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
           createdAt: stamp(),
         };
         setMessages((prev) => [...prev, errAiMsg]);
+        await persistBatch(sid, [errAiMsg]);
       } finally {
         setIsLoading(false);
         abortRef.current = null;
       }
     },
-    [messages, isLoading, ensureSession, stamp]
+    [messages, isLoading, ensureSession, persistBatch, stamp]
   );
 
   const clearMessages = useCallback(() => {

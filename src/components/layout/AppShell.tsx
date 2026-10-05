@@ -16,6 +16,7 @@ import { usePockets } from "@/hooks/usePockets";
 import { TransactionModalProvider } from "@/lib/transaction-modal-context";
 import { GlobalTransactionModal } from "@/components/shared/GlobalTransactionModal";
 import { notifyTransaction, checkOverspending, checkCreditReminders } from "@/lib/notificationTriggers";
+import { newLiabilityId } from "@/lib/ids";
 import { db, migrateWealthFromLocalStorage, deduplicateWealthData } from "@/lib/db";
 import type { Transaction } from "@/lib/db";
 
@@ -132,7 +133,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           }
           case "liability": {
             await db.liabilities.put({
-              id: `lia${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
+              id: newLiabilityId(),
               name: data.name as string,
               amount: data.amount as number,
               createdAt: Date.now(),

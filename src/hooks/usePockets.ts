@@ -4,7 +4,9 @@ import { useLiveQuery, useObservable } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import type { Pocket } from "@/lib/pocket";
 import type { Transaction } from "@/lib/db";
-import { OLD_PRESET_NAMES } from "@/lib/pocket";
+import { OLD_PRESET_NAMES, PRESET_POCKETS } from "@/lib/pocket";
+
+const PRESET_NAMES = new Set(PRESET_POCKETS.map((p) => p.name));
 import { TRANSFER_CATEGORY } from "@/lib/budgetRules";
 import { seedPresets, hasSeeded } from "@/lib/seedPresets";
 import { useState, useCallback, useMemo, useEffect } from "react";
@@ -90,11 +92,18 @@ export function usePockets() {
   }, []);
 
   const deletePocket = useCallback(async (id: string) => {
+    const pocket = await db.pockets.get(id);
     const txs = await db.transactions.where("pocketId").equals(id).toArray();
     for (const tx of txs) {
       await db.transactions.update(tx.id, { pocketId: null });
     }
     await db.pockets.delete(id);
+    // Remember explicitly deleted presets (synced marker) so seedPresets
+    // never resurrects them — on this device or any other.
+    if (pocket && PRESET_NAMES.has(pocket.name)) {
+      const { deletedPresetKey } = await import("@/lib/ids");
+      await db.app_meta.put({ key: deletedPresetKey(pocket.name), value: "1" });
+    }
     setPocketFilter((prev) => (prev === id ? null : prev));
   }, []);
 

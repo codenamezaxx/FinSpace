@@ -35,6 +35,12 @@ export interface Notification {
   relatedId?: string;
 }
 
+/** Synced key-value metadata (seed flags, user-deleted preset markers, …). */
+export interface AppMeta {
+  key: string;
+  value: string;
+}
+
 /** A saved Finny conversation session (roomchat). */
 export interface FinnySession {
   id: string;
@@ -66,6 +72,7 @@ export class FinSpaceDB extends Dexie {
   notifications!: EntityTable<Notification, "id">;
   finny_sessions!: EntityTable<FinnySession, "id">;
   finny_messages!: EntityTable<FinnyChatRow, "id">;
+  app_meta!: EntityTable<AppMeta, "key">;
 
   constructor() {
     super("FinSpaceDB", { addons: [dexieCloud] });
@@ -122,6 +129,20 @@ export class FinSpaceDB extends Dexie {
       finny_messages: "@id, sessionId, createdAt",
     });
 
+    // v7: synced app metadata (user-deleted preset markers, …)
+    this.version(7).stores({
+      transactions: "@id, type, category, timestamp, pocketId",
+      pockets: "@id, category, sortOrder",
+      ai_queue: "@queue_id, input_type, created_at",
+      assets: "@id, type, createdAt",
+      liabilities: "@id, createdAt",
+      debts: "@id, createdAt",
+      notifications: "@id, type, read, createdAt",
+      finny_sessions: "@id, updatedAt",
+      finny_messages: "@id, sessionId, createdAt",
+      app_meta: "@key",
+    });
+
     this.cloud.configure({
       databaseUrl: process.env.NEXT_PUBLIC_DEXIE_CLOUD_URL!,
       requireAuth: false, // anonymous first, login kapan saja
@@ -146,7 +167,7 @@ export async function migrateWealthFromLocalStorage(): Promise<void> {
     const fixAssetId = (id: string) =>
       id.startsWith("ass") || id.startsWith("#ass") ? id : `ass${id.replace(/^[^a-z]+/, "")}_${crypto.randomUUID().slice(0, 8)}`;
     const fixLiabilityId = (id: string) =>
-      id.startsWith("lia") || id.startsWith("#lia") ? id : `lia${id.replace(/^[^a-z]+/, "")}_${crypto.randomUUID().slice(0, 8)}`;
+      id.startsWith("lbl") || id.startsWith("#lbl") ? id : `lbl${id.replace(/^[^a-z]+/, "")}_${crypto.randomUUID().slice(0, 8)}`;
     const fixDebtId = (id: string) =>
       id.startsWith("dbt") || id.startsWith("#dbt") ? id : `dbt${id.replace(/^[^a-z]+/, "")}_${crypto.randomUUID().slice(0, 8)}`;
 
