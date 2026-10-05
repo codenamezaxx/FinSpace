@@ -85,6 +85,59 @@ html {
   color-scheme: dark;
 }
 
+/* ─── Accent variant: default (dokumentatif, nilai = baseline) ─── */
+:root,
+[data-accent="default"] {
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-accent: #eab393;
+  --color-accent-secondary: #8940f9;
+}
+
+/* ─── Accent variant: monochrome (light) ─── */
+[data-accent="mono"] {
+  --color-background: #f5f5f5;
+  --color-surface: #ffffff;
+  --color-surface-alt: #e7e7e7;
+  --color-border: #d4d4d4;
+  --color-track: #d4d4d4;
+  --color-text-primary: #171717;
+  --color-text-secondary: #525252;
+  --color-text-muted: #a3a3a3;
+  --color-primary: #525252;
+  --color-primary-hover: #404040;
+  --color-accent: #a3a3a3;
+  --color-accent-secondary: #737373;
+  --glow-primary: rgba(0, 0, 0, 0.08);
+  --glow-accent: rgba(0, 0, 0, 0.06);
+  --gradient-card-purple: rgba(212, 212, 212, 0.9);
+  --gradient-card-mid: rgba(255, 255, 255, 0.65);
+  --gradient-card-blue: rgb(229, 229, 229);
+}
+
+/* ─── Accent variant: monochrome (dark) — harus setelah blok dark ─── */
+[data-theme="dark"][data-accent="mono"] {
+  --color-background: #0A0A0A;
+  --color-surface: #1a1a1a;
+  --color-surface-alt: #111111;
+  --color-border: #262626;
+  --color-track: #404040;
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a3a3a3;
+  --color-text-muted: #737373;
+  --color-primary: #737373;
+  --color-primary-hover: #525252;
+  --color-accent: #a3a3a3;
+  --color-accent-secondary: #525252;
+  --glass-bg: rgba(26, 26, 26, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glow-primary: rgba(255, 255, 255, 0.04);
+  --glow-accent: rgba(255, 255, 255, 0.03);
+  --gradient-card-purple: rgba(64, 64, 64, 0.33);
+  --gradient-card-mid: rgba(26, 26, 26, 0.55);
+  --gradient-card-blue: rgba(115, 115, 115, 0.24);
+}
+
 /* ─── Glassmorphism Utility ─── */
 .glass {
   background: var(--glass-bg);
