@@ -192,6 +192,7 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Finny roomchat entry in desktop sidebar only (active state + collapsed icon mode; mobile bottom bar unchanged)
 - [x] Finny persistence fixes: Dexie Cloud `@`-key prefixes centralized (src/lib/ids.ts + regression test) — finny sessions/messages, liabilities (lbl), offline queue (aq), deleted-preset markers; chat turns persisted inline per message; seed-once-poison race fixed (verified end-to-end in browser: history survives reload)
 - [x] FinnyInput multiline (auto-growing textarea, Enter send / Shift+Enter newline); receipt scan (camera + gallery) inside roomchat via FinnyInput button
+- [x] Roomchat overlays portaled to document.body (camera, scan result, mobile session drawer) — fixes AppShell <main> stacking context trapping them below sidebar/topbar
 - [x] Pagination (shared usePagination + PaginationControls): transaction history 10/page with filter-reset; wealth assets/liabilities/debts 5/page
 - [x] Pagination page-size selector (15/25/50/75, default 15) on all paginated lists
 - [x] Daily expense reminders (12:00/17:00/21:00): local scheduled notifications via SW + in-app bell entry, skipped when an expense was already logged, per-day dedupe, Settings toggle with permission flow
