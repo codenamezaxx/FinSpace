@@ -136,7 +136,7 @@ export default function LandingNav() {
             </button>
             <Link
               href="/dashboard"
-              className="ml-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
+              className="ml-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-all hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
             >
               {t("landing.hero_cta_start")}
             </Link>
@@ -325,7 +325,7 @@ export default function LandingNav() {
           <Link
             href="/dashboard"
             onClick={handleNavClick}
-            className="flex w-full items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-primary-hover"
+            className="flex w-full items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-on-primary transition-all hover:bg-primary-hover"
           >
             {t("landing.hero_cta_start")}
           </Link>

@@ -119,7 +119,7 @@ export default function ReceiptGenerator() {
                 printReceiptHtml(selectedTransaction, t);
               }
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-mono text-sm font-bold text-white transition-all duration-200 hover:bg-primary-hover"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-mono text-sm font-bold text-on-primary transition-all duration-200 hover:bg-primary-hover"
           >
             <Printer className="h-4 w-4" />
             {t("receipt.print_button")}

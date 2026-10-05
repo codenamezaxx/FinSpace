@@ -54,10 +54,10 @@ export function ConfirmModal({
             type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className={`flex-1 rounded-lg px-4 py-3 text-sm font-semibold text-white transition-all duration-200 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 ${
+            className={`flex-1 rounded-lg px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 ${
               confirmVariant === "danger"
-                ? "bg-danger hover:bg-danger/90"
-                : "bg-primary hover:bg-primary-hover"
+                ? "bg-danger text-white hover:bg-danger/90"
+                : "bg-primary text-on-primary hover:bg-primary-hover"
             }`}
           >
             {isLoading ? t("common.loading") : (confirmLabel ?? t("confirm.confirm"))}

@@ -107,7 +107,7 @@ export function TransactionDetailModal({
               onEdit(transaction);
               onClose();
             }}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover active:scale-[0.97]"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-on-primary transition-all duration-200 hover:bg-primary-hover active:scale-[0.97]"
           >
             <Pencil className="h-4 w-4" />
             {t("common.edit")}

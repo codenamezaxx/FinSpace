@@ -179,7 +179,7 @@ export function ExportCSV() {
           </button>
           <button
             onClick={handleDownloadPdf}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-mono text-sm font-bold text-white transition-all duration-200 hover:bg-primary-hover"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-mono text-sm font-bold text-on-primary transition-all duration-200 hover:bg-primary-hover"
           >
             <FileText className="h-4 w-4" />
             {t("tools.report_title")}

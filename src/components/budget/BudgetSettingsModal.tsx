@@ -305,7 +305,7 @@ export function BudgetSettingsModal({
             type="button"
             onClick={handleSave}
             disabled={!isValid}
-            className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-hover disabled:opacity-50"
+            className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-all hover:bg-primary-hover disabled:opacity-50"
           >
             {t("common.save")}
           </button>

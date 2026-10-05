@@ -153,7 +153,7 @@ export function DebtForm({ isOpen, onClose, onSave, initialDebt }: DebtFormProps
         <button
           type="button"
           onClick={handleSave}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-mono text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-mono text-sm font-semibold text-on-primary transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25"
         >
           <Plus className="h-4 w-4" />
           {isEditing ? t("wealth.edit_debt") : t("wealth.add_debt")}

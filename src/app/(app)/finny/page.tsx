@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   Bot,
@@ -39,6 +40,11 @@ export default function FinnyRoomPage() {
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const autoSelectedRef = useRef(false);
+  // Portals need document (client-only) — avoids SSR mismatch
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const sessions =
     useLiveQuery(
@@ -184,7 +190,7 @@ export default function FinnyRoomPage() {
       <button
         type="button"
         onClick={handleNewChat}
-        className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-hover"
+        className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-all hover:bg-primary-hover"
       >
         <Plus className="h-4 w-4" />
         {t("ai.new_chat")}
@@ -269,12 +275,15 @@ export default function FinnyRoomPage() {
           {sessionList}
         </aside>
 
-        {/* Session list — mobile drawer */}
-        <div
-          className={`fixed inset-0 z-50 transition-opacity duration-300 lg:hidden ${
-            listOpen ? "opacity-100" : "pointer-events-none opacity-0"
-          }`}
-        >
+        {/* Session list — mobile drawer (portaled: escapes the <main>
+            stacking context so TopBar never paints over it) */}
+        {mounted &&
+          createPortal(
+            <div
+              className={`fixed inset-0 z-50 transition-opacity duration-300 lg:hidden ${
+                listOpen ? "opacity-100" : "pointer-events-none opacity-0"
+              }`}
+            >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setListOpen(false)}
@@ -299,7 +308,9 @@ export default function FinnyRoomPage() {
             </div>
             {sessionList}
           </aside>
-        </div>
+            </div>,
+            document.body
+          )}
 
         {/* Chat column */}
         <div className="flex h-[calc(100dvh-13rem)] min-h-[60dvh] min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-surface-alt lg:h-[calc(100dvh-11rem)]">
@@ -338,22 +349,31 @@ export default function FinnyRoomPage() {
         isLoading={deleting}
       />
 
-      <CameraOverlay
-        isOpen={isScanOpen && !scanImageDataUrl}
-        onCapture={handleScanImage}
-        onClose={handleScanClose}
-      />
-      <ScanResultModal
-        isOpen={isScanOpen && !!scanImageDataUrl}
-        imageDataUrl={scanImageDataUrl}
-        result={scanResult}
-        isLoading={scanLoading}
-        error={scanError}
-        onSave={handleScanSave}
-        onClose={handleScanClose}
-        onRetry={handleScanRetry}
-        pockets={pocketInfo}
-      />
+      {/* Portaled to document.body: the AppShell <main> establishes its own
+          stacking context (relative z-10), which would otherwise trap these
+          fixed overlays BELOW the sidebar/topbar (see camera screenshot). */}
+      {mounted &&
+        createPortal(
+          <>
+            <CameraOverlay
+              isOpen={isScanOpen && !scanImageDataUrl}
+              onCapture={handleScanImage}
+              onClose={handleScanClose}
+            />
+            <ScanResultModal
+              isOpen={isScanOpen && !!scanImageDataUrl}
+              imageDataUrl={scanImageDataUrl}
+              result={scanResult}
+              isLoading={scanLoading}
+              error={scanError}
+              onSave={handleScanSave}
+              onClose={handleScanClose}
+              onRetry={handleScanRetry}
+              pockets={pocketInfo}
+            />
+          </>,
+          document.body
+        )}
     </div>
   );
 }

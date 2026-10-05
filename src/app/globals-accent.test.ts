@@ -6,7 +6,7 @@ const css = readFileSync("src/app/globals.css", "utf8");
 describe("accent mono tokens", () => {
   it("defines light mono overrides", () => {
     expect(css).toContain('[data-accent="mono"]');
-    expect(css).toContain("--color-primary: #525252;");
+    expect(css).toContain("--color-primary: #141414;");
     expect(css).toContain("--color-accent-secondary: #737373;");
   });
   it("defines dark mono overrides with higher specificity after dark block", () => {
@@ -46,5 +46,23 @@ describe("@theme accent indirection", () => {
     );
     expect(rootBlock).toContain("--color-primary:");
     expect(rootBlock).toContain("--color-primary-hover:");
+    expect(rootBlock).toContain("--color-on-primary:");
+  });
+});
+
+describe("on-primary button text token", () => {
+  const themeBlock = css.slice(
+    css.indexOf("@theme inline {"),
+    css.indexOf("/* ─── Default theme tokens (light) ─── */")
+  );
+
+  it("routes on-primary through vars", () => {
+    expect(themeBlock).toContain("--color-on-primary: var(--color-on-primary);");
+  });
+
+  it("uses near-black text on light-gray button in dark mono", () => {
+    const monoDark = css.slice(css.indexOf('[data-theme="dark"][data-accent="mono"]'));
+    expect(monoDark).toContain("--color-primary: #e3e3e3;");
+    expect(monoDark).toContain("--color-on-primary: #0A0A0A;");
   });
 });

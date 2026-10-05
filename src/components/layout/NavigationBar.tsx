@@ -84,7 +84,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
               {i === 2 && onScan && (
                 <button
                   onClick={onScan}
-                  className="flex items-center justify-center w-full max-w-14 h-14 -mt-5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/40 active:scale-95 hover:-mt-6"
+                  className="flex items-center justify-center w-full max-w-14 h-14 -mt-5 rounded-full bg-primary text-on-primary shadow-lg shadow-primary/30 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/40 active:scale-95 hover:-mt-6"
                   aria-label={t("nav.scan_receipt")}
                 >
                   <Camera className="w-6 h-6" />
@@ -169,7 +169,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
           <button
             type="button"
             onClick={() => openAddTransaction()}
-            className={`flex items-center justify-center rounded-xl bg-primary text-sm font-bold text-white shadow-lg shadow-primary/25 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30 ${
+            className={`flex items-center justify-center rounded-xl bg-primary text-sm font-bold text-on-primary shadow-lg shadow-primary/25 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30 ${
               isCollapsed
                 ? "mx-auto h-10 w-10"
                 : "w-full gap-2 px-5 py-3"

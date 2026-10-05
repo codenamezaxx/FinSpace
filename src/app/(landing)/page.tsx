@@ -127,7 +127,7 @@ export default function LandingPage() {
           <motion.div variants={heroItem} className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
             <Link
               href="/dashboard"
-              className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/30"
+              className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-on-primary shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/30"
             >
               {t("landing.hero_cta_start")}
               <ArrowRight size={18} />
@@ -161,7 +161,7 @@ export default function LandingPage() {
                 {/* Row 1: Balance Card + Net Worth Card */}
                 <div className="flex flex-col md:flex-row gap-4">
                   {/* Balance card — brand gradient */}
-                  <div className="rounded-xl bg-gradient-to-br from-primary to-primary/80 p-5 text-white w-full">
+                  <div className="rounded-xl bg-gradient-to-br from-primary to-primary/80 p-5 text-on-primary w-full">
                     <p className="text-xs font-medium text-white/80">{t("landing.mock_balance")}</p>
                     <p className="mt-1.5 text-2xl font-bold">{t("landing.mock_balance_amount")}</p>
                     <div className="mt-3 flex items-center justify-center gap-2">
@@ -530,7 +530,7 @@ export default function LandingPage() {
             </p>
             <Link
               href="/dashboard"
-              className="mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/30"
+              className="mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-on-primary shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/30"
             >
               {t("landing.hero_cta_start")}
               <ArrowRight size={18} />

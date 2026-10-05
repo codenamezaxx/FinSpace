@@ -149,7 +149,7 @@ export function AssetLiabilityForm({
             disabled={isEditing}
             className={`flex flex-1 items-center justify-center gap-2 rounded-lg border p-3 font-mono text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
               type === "asset"
-                ? "border-primary bg-primary text-white shadow-lg shadow-primary/25"
+                ? "border-primary bg-primary text-on-primary shadow-lg shadow-primary/25"
                 : "border-border bg-surface-alt text-text-secondary hover:border-text-muted"
             }`}
           >
@@ -287,7 +287,7 @@ export function AssetLiabilityForm({
         <button
           type="button"
           onClick={handleSave}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-mono text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-mono text-sm font-semibold text-on-primary transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
         >
           <Plus className="h-4 w-4" />
           {t("wealth.add_record")}

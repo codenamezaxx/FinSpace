@@ -153,7 +153,7 @@ export function MonthlyChart({
             onClick={() => setView(v)}
             className={`flex-1 rounded-lg py-3 text-xs font-medium transition-all duration-200 ${
               view === v
-                ? "bg-primary text-white shadow-md shadow-primary/25"
+                ? "bg-primary text-on-primary shadow-md shadow-primary/25"
                 : "text-text-muted hover:text-text-secondary"
             }`}
           >

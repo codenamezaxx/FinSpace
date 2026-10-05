@@ -87,13 +87,13 @@ export function ProfileButton() {
                   "bg-primary",
                   "text-xs",
                   "font-bold",
-                  "text-white"
+                  "text-on-primary"
                 );
                 target.parentElement!.textContent = initials;
               }}
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-primary text-xs font-bold text-white">
+            <div className="flex h-full w-full items-center justify-center bg-primary text-xs font-bold text-on-primary">
               {initials}
             </div>
           )
@@ -135,7 +135,7 @@ export function ProfileButton() {
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white">
+                    <div className="flex h-full w-full items-center justify-center text-sm font-bold text-on-primary">
                       {initials}
                     </div>
                   )}

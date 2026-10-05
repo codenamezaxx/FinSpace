@@ -102,7 +102,7 @@ const ScanResultModal: FC<ScanResultModalProps> = ({
               <p className="text-sm text-danger text-center">{error}</p>
               <button
                 onClick={onRetry}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-on-primary text-sm font-medium hover:opacity-90 transition-opacity"
               >
                 <RefreshCw className="w-4 h-4" />
                 Coba Lagi
@@ -133,7 +133,7 @@ const ScanResultModal: FC<ScanResultModalProps> = ({
               </p>
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                className="px-4 py-2 rounded-xl bg-primary text-on-primary text-sm font-medium hover:opacity-90 transition-opacity"
               >
                 Tutup
               </button>

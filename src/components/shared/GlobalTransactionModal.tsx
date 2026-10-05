@@ -113,7 +113,7 @@ export function GlobalTransactionModal() {
               className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-all duration-200 ${
                 tab === tabType
                   ? tabType === "expense"
-                    ? "bg-primary text-white shadow-md shadow-primary/25"
+                    ? "bg-primary text-on-primary shadow-md shadow-primary/25"
                     : "bg-success text-white shadow-md shadow-success/25"
                   : "text-text-muted hover:text-text-secondary hover:bg-surface"
               }`}
@@ -201,7 +201,7 @@ export function GlobalTransactionModal() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-on-primary transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {submitting ? t("transaction.saving") : t("transaction.save")}
         </button>

@@ -216,7 +216,7 @@ const CameraOverlay: FC<CameraOverlayProps> = ({ isOpen, onCapture, onClose }) =
           </p>
           <button
             onClick={handleGalleryClick}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary text-sm font-medium hover:opacity-90 transition-opacity"
           >
             <ImageIcon className="w-4 h-4" />
             Pilih dari Galeri
@@ -308,7 +308,7 @@ const CameraOverlay: FC<CameraOverlayProps> = ({ isOpen, onCapture, onClose }) =
             </button>
             <button
               onClick={handleConfirm}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90 transition-opacity"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary text-sm font-medium hover:opacity-90 transition-opacity"
             >
               <Check className="w-5 h-5" />
               Gunakan

@@ -87,7 +87,7 @@ const FinnyInput: FC<FinnyInputProps> = ({ onSend, isLoading, isOffline, onScan 
       <button
         onClick={handleSend}
         disabled={!canSend}
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
         aria-label={t("ai.send_message")}
       >
         <Send className="w-4 h-4" />

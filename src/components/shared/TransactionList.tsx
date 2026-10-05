@@ -185,7 +185,7 @@ export function TransactionList({
               onClick={() => setTypeFilter(filterType)}
               className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
                 typeFilter === filterType
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-on-primary"
                   : "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
               }`}
             >

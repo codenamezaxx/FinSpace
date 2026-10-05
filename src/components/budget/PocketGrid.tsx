@@ -66,7 +66,7 @@ export function PocketGrid({
           onClick={() => onSelect(null)}
           className={`rounded-lg h-auto w-full lg:w-auto px-6 py-3 text-sm font-medium transition-all duration-200 ${
             selectedId === null
-              ? "bg-primary text-white"
+              ? "bg-primary text-on-primary"
               : "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
           }`}
         >

@@ -277,7 +277,7 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
         </button>
         <button
           onClick={() => onSave(action, editData)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-primary text-on-primary text-sm font-medium hover:opacity-90 transition-opacity"
         >
           <Check className="w-4 h-4" />
           {t("ai.save")}

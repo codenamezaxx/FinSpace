@@ -15,6 +15,7 @@ html {
   --color-surface-alt: var(--color-surface-alt);
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
+  --color-on-primary: var(--color-on-primary);
   --color-accent: var(--color-accent);
   --color-accent-secondary: var(--color-accent-secondary);
   --color-warning: var(--color-warning);
@@ -46,6 +47,7 @@ html {
   --color-warning: #D97706;
   --color-primary: #3B82F6;
   --color-primary-hover: #2563EB;
+  --color-on-primary: #FFFFFF;
   --color-accent: #EAB393;
   --color-accent-secondary: #8940F9;
   --glass-bg: rgba(255, 255, 255, 0.72);
@@ -106,7 +108,7 @@ html {
   --color-text-primary: #171717;
   --color-text-secondary: #525252;
   --color-text-muted: #a3a3a3;
-  --color-primary: #525252;
+  --color-primary: #141414;
   --color-primary-hover: #404040;
   --color-accent: #a3a3a3;
   --color-accent-secondary: #737373;
@@ -127,8 +129,9 @@ html {
   --color-text-primary: #fafafa;
   --color-text-secondary: #a3a3a3;
   --color-text-muted: #737373;
-  --color-primary: #737373;
-  --color-primary-hover: #525252;
+  --color-primary: #e3e3e3;
+  --color-primary-hover: #dddddd;
+  --color-on-primary: #0A0A0A;
   --color-accent: #a3a3a3;
   --color-accent-secondary: #525252;
   --glass-bg: rgba(26, 26, 26, 0.55);

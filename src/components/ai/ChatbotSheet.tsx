@@ -153,7 +153,7 @@ export function ChatbotSheet({ isOpen, onClose }: ChatbotSheetProps) {
             <button
               onClick={handleSend}
               disabled={!input.trim()}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white transition-all duration-200 hover:bg-primary-hover disabled:opacity-40"
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-on-primary transition-all duration-200 hover:bg-primary-hover disabled:opacity-40"
               aria-label="Kirim pesan"
             >
               <Send className="h-4 w-4" />
