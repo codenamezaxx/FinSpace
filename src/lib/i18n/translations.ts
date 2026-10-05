@@ -320,6 +320,11 @@ export const translations = {
       reminders_on: "On",
       reminders_off: "Off",
       reminders_need_permission: "Notification permission is blocked — enable it in your browser settings.",
+      appearance_title: "Appearance",
+      accent_label: "Accent color",
+      accent_desc: "Applies to light and dark mode. Indicators stay colored.",
+      accent_default: "Default (Blue–Purple)",
+      accent_mono: "Monochrome",
     },
     about: {
       title: "About & Feedback",
@@ -917,6 +922,11 @@ export const translations = {
       reminders_on: "Aktif",
       reminders_off: "Nonaktif",
       reminders_need_permission: "Izin notifikasi diblokir — aktifkan di pengaturan browser.",
+      appearance_title: "Tampilan",
+      accent_label: "Warna aksen",
+      accent_desc: "Berlaku untuk mode terang dan gelap. Indikator tetap berwarna.",
+      accent_default: "Default (Biru–Ungu)",
+      accent_mono: "Monokrom",
     },
     about: {
       title: "Tentang & Umpan Balik",

@@ -12,6 +12,7 @@ import {
 } from "@/lib/reminders";
 import { db } from "@/lib/db";
 import { useLanguage } from "@/lib/i18n";
+import { AccentPicker } from "@/components/settings/AccentPicker";
 
 interface SyncLogEntry {
   time: string;
@@ -297,6 +298,9 @@ export default function SettingsPage() {
           </p>
         )}
       </div>
+
+      {/* ── Appearance ── */}
+      <AccentPicker />
 
       {/* ── Info footer ── */}
       <div className="rounded-2xl border border-border bg-surface p-5">
