@@ -22,3 +22,29 @@ describe("accent mono tokens", () => {
     expect(lightMono).not.toContain("--color-danger");
   });
 });
+
+describe("@theme accent indirection", () => {
+  const themeBlock = css.slice(
+    css.indexOf("@theme inline {"),
+    css.indexOf("/* ─── Default theme tokens (light) ─── */")
+  );
+
+  it("routes primary/accent through vars, not hardcoded hex", () => {
+    expect(themeBlock).toContain("--color-primary: var(--color-primary);");
+    expect(themeBlock).toContain("--color-primary-hover: var(--color-primary-hover);");
+    expect(themeBlock).toContain("--color-accent: var(--color-accent);");
+    expect(themeBlock).toContain("--color-accent-secondary: var(--color-accent-secondary);");
+    expect(themeBlock).not.toContain("#3B82F6");
+    expect(themeBlock).not.toContain("#EAB393");
+    expect(themeBlock).not.toContain("#8940F9");
+  });
+
+  it("defines primary defaults in :root", () => {
+    const rootBlock = css.slice(
+      css.indexOf("/* ─── Default theme tokens (light) ─── */"),
+      css.indexOf("/* ─── Dark Theme Override ─── */")
+    );
+    expect(rootBlock).toContain("--color-primary:");
+    expect(rootBlock).toContain("--color-primary-hover:");
+  });
+});

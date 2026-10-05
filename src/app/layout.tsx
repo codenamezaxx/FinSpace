@@ -106,25 +106,7 @@ export default function RootLayout({
           [data-theme="dark"] .light-hidden { display: inline-flex !important; }
           [data-theme="dark"] .dark-hidden { display: none !important; }
 
-          /* ─── Dark mode utility class overrides ─── */
-          [data-theme="dark"] .bg-background { background-color: #020617 !important; }
-          [data-theme="dark"] .bg-surface { background-color: #1E293B !important; }
-          [data-theme="dark"] .bg-surface-alt { background-color: #0F172A !important; }
-          [data-theme="dark"] .text-text-primary { color: #FFFFFF !important; }
-          [data-theme="dark"] .text-text-secondary { color: #94A3B8 !important; }
-          [data-theme="dark"] .text-text-muted { color: #64748B !important; }
-          [data-theme="dark"] .border-border { border-color: #334155 !important; }
-          [data-theme="dark"] .text-primary { color: #3B82F6 !important; }
-
-          [data-theme="dark"] .glass {
-            background: rgba(30, 41, 59, 0.55) !important;
-            border-color: rgba(255, 255, 255, 0.06) !important;
-          }
-
-          [data-theme="dark"] .hover\\:bg-surface:hover { background-color: #1E293B !important; }
-          [data-theme="dark"] .hover\\:bg-surface-alt:hover { background-color: #0F172A !important; }
-          [data-theme="dark"] .hover\\:text-text-secondary:hover { color: #94A3B8 !important; }
-          [data-theme="dark"] .hover\\:text-text-primary:hover { color: #FFFFFF !important; }
+          /* Theme colors resolve via CSS vars in globals.css — no overrides needed. */
         `}</style>
         <Script
           id="theme-init"

@@ -13,10 +13,10 @@ html {
   --color-background: var(--color-background);
   --color-surface: var(--color-surface);
   --color-surface-alt: var(--color-surface-alt);
-  --color-primary: #3B82F6;
-  --color-primary-hover: #2563EB;
-  --color-accent: #EAB393;
-  --color-accent-secondary: #8940F9;
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-accent: var(--color-accent);
+  --color-accent-secondary: var(--color-accent-secondary);
   --color-warning: var(--color-warning);
   --color-border: var(--color-border);
   --color-track: var(--color-track);
@@ -44,6 +44,8 @@ html {
   --color-text-secondary: #475569;
   --color-text-muted: #94A3B8;
   --color-warning: #D97706;
+  --color-primary: #3B82F6;
+  --color-primary-hover: #2563EB;
   --color-accent: #EAB393;
   --color-accent-secondary: #8940F9;
   --glass-bg: rgba(255, 255, 255, 0.72);
