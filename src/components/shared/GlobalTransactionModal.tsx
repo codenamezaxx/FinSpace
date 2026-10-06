@@ -60,7 +60,7 @@ export function GlobalTransactionModal() {
       const id = await addTransaction({
         amount: numAmount,
         type: tab,
-        category,
+        category: tab === "income" ? "Pemasukkan" : category,
         merchant: merchant.trim(),
         payment_method: pockets.find((p) => p.id === selectedPocketId)?.name ?? "Tunai",
         pocketId: selectedPocketId,
@@ -71,7 +71,7 @@ export function GlobalTransactionModal() {
         id,
         type: tab,
         amount: tab === "expense" ? -numAmount : numAmount,
-        category,
+        category: tab === "income" ? "Lainnya" : category,
         merchant: merchant.trim(),
         payment_method: pockets.find((p) => p.id === selectedPocketId)?.name ?? "Tunai",
         pocketId: selectedPocketId,
@@ -156,8 +156,8 @@ export function GlobalTransactionModal() {
           />
         </div>
 
-        {/* ── Category (shared 3-bucket list, both tabs) ── */}
-        {(
+        {/* ── Category (expense only — income needs none) ── */}
+        {tab === "expense" && (
           <div>
             <label className="mb-1.5 block text-sm font-medium text-text-secondary">
               {t("transaction.category")}
