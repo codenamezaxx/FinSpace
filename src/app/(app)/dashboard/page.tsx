@@ -71,12 +71,23 @@ function formatPctChange(value: number): string {
 /* ─── MoM badge: +% vs last month. Wraps below nominal when tight. ─── */
 function MoMBadge({
   change,
+  current,
+  newLabel,
   invert = false,
 }: {
   change: number | null;
+  current: number;
+  newLabel: string;
   invert?: boolean;
 }) {
-  if (change === null || !Number.isFinite(change)) return null;
+  if (change === null || !Number.isFinite(change)) {
+    if (current <= 0) return null;
+    return (
+      <span className="inline-flex shrink-0 items-center rounded-full bg-surface-alt px-1.5 py-0.5 font-mono text-[11px] font-semibold text-text-muted">
+        {newLabel}
+      </span>
+    );
+  }
   const up = change > 0.05;
   const down = change < -0.05;
   const flat = !up && !down;
@@ -396,7 +407,7 @@ export default function DashboardPage() {
                     <p className="break-words font-mono text-lg font-semibold text-success">
                       {formatCurrency(income)}
                     </p>
-                    <MoMBadge change={momIncome} />
+                    <MoMBadge change={momIncome} current={income} newLabel={t("dashboard.mom_new")} />
                   </div>
                 </div>
                 <div className="min-w-0">
@@ -405,7 +416,7 @@ export default function DashboardPage() {
                     <p className="break-words font-mono text-lg font-semibold text-danger">
                       {formatCurrency(expenses)}
                     </p>
-                    <MoMBadge change={momExpenses} invert />
+                    <MoMBadge change={momExpenses} current={expenses} newLabel={t("dashboard.mom_new")} invert />
                   </div>
                 </div>
               </div>
@@ -468,7 +479,7 @@ export default function DashboardPage() {
                   <p className="font-mono text-lg font-semibold text-success">
                     {formatCurrency(income)}
                   </p>
-                  <MoMBadge change={momIncome} />
+                  <MoMBadge change={momIncome} current={income} newLabel={t("dashboard.mom_new")} />
                 </div>
               </div>
               <div className="min-w-0">
@@ -477,7 +488,7 @@ export default function DashboardPage() {
                   <p className="font-mono text-lg font-semibold text-danger">
                     {formatCurrency(expenses)}
                   </p>
-                  <MoMBadge change={momExpenses} invert />
+                  <MoMBadge change={momExpenses} current={expenses} newLabel={t("dashboard.mom_new")} invert />
                 </div>
               </div>
           </div>
@@ -519,7 +530,7 @@ export default function DashboardPage() {
           </button>
           <Link
             href="/finny"
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-accent-secondary/40 bg-accent-secondary/10 px-6 py-3.5 text-sm font-semibold text-accent-secondary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-secondary hover:shadow-lg hover:shadow-accent-secondary/15"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-accent-secondary bg-accent-secondary/10 px-6 py-3.5 text-sm font-semibold text-primary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-secondary hover:shadow-lg hover:shadow-accent-secondary/15"
           >
             <Bot className="h-5 w-5" />
             {t("dashboard.chat_finny")}
