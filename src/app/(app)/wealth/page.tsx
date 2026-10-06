@@ -5,6 +5,8 @@ import { useLiveQuery, useObservable } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { NetWorthCard } from "@/components/wealth/NetWorthCard";
 import { NetWorthTrend } from "@/components/wealth/NetWorthTrend";
+import { AssetAllocation } from "@/components/wealth/AssetAllocation";
+import { PayoffSimulator } from "@/components/wealth/PayoffSimulator";
 import { RatioCard } from "@/components/wealth/RatioCard";
 import { Speedometer } from "@/components/wealth/Speedometer";
 import { DebtForm } from "@/components/wealth/DebtForm";
@@ -323,6 +325,9 @@ export default function WealthPage() {
         />
       </div>
 
+      {/* Asset Allocation */}
+      <AssetAllocation assets={assets} />
+
       {/* Assets & Liabilities Lists */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Assets */}
@@ -476,6 +481,9 @@ export default function WealthPage() {
           }}
         />
       </div>
+
+      {/* Payoff Simulator */}
+      <PayoffSimulator debts={debts} />
 
       {/* Modals */}
       <DebtForm
