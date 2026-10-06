@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useEffect, type FC } from "react";
+import { useRef, useEffect, useState, useCallback, type FC } from "react";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
-import { Bot } from "lucide-react";
+import { ArrowDown, Bot } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
 export interface FinnyMessage {
@@ -21,12 +21,47 @@ interface FinnyChatAreaProps {
   isLoading: boolean;
 }
 
+const NEAR_BOTTOM_PX = 120;
+
 const FinnyChatArea: FC<FinnyChatAreaProps> = ({ messages, isLoading }) => {
   const { t } = useLanguage();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  // Whether the view is pinned to the bottom: new messages only auto-scroll
+  // when pinned, so reading history up top is never yanked away.
+  const pinnedRef = useRef(true);
+  const [showJump, setShowJump] = useState(false);
+
+  const scrollToBottom = useCallback((smooth = true) => {
+    const el = scrollRef.current ?? bottomRef.current?.parentElement;
+    if (!el) return;
+    pinnedRef.current = true;
+    setShowJump(false);
+    if (typeof el.scrollTo === "function") {
+      el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+    } else {
+      bottomRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+    }
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const pinned = distFromBottom <= NEAR_BOTTOM_PX;
+    pinnedRef.current = pinned;
+    setShowJump(!pinned);
+  }, []);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Freshly loaded history (e.g. opening a session) always starts pinned.
+    if (messages.length === 0) {
+      pinnedRef.current = true;
+      setShowJump(false);
+    }
+    if (pinnedRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, isLoading]);
 
   if (messages.length === 0 && !isLoading) {
@@ -48,12 +83,26 @@ const FinnyChatArea: FC<FinnyChatAreaProps> = ({ messages, isLoading }) => {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4">
-      {messages.map((msg) => (
-        <MessageBubble key={msg.id} role={msg.role} content={msg.content} />
-      ))}
-      {isLoading && <TypingIndicator />}
-      <div ref={bottomRef} />
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div ref={scrollRef} onScroll={handleScroll} className="min-h-0 flex-1 overflow-y-auto p-4">
+        {messages.map((msg) => (
+          <MessageBubble key={msg.id} role={msg.role} content={msg.content} />
+        ))}
+        {isLoading && <TypingIndicator />}
+        <div ref={bottomRef} />
+      </div>
+      <button
+        type="button"
+        onClick={() => scrollToBottom(true)}
+        aria-label={t("ai.scroll_to_bottom")}
+        className={`absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30 transition-all duration-200 hover:bg-primary-hover ${
+          showJump
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none translate-y-2 opacity-0"
+        }`}
+      >
+        <ArrowDown className="h-5 w-5" />
+      </button>
     </div>
   );
 };

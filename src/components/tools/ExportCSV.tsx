@@ -99,7 +99,7 @@ export function ExportCSV() {
   return (
     <div className="glass rounded-2xl p-5">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-        {t("tools.export_csv")}
+        {t("tools.monthly_report")}
       </h2>
 
       <div className="mt-4 grid grid-cols-2 gap-3">

@@ -1,6 +1,7 @@
 import { jsPDF } from "jspdf";
 import autoTable, { type UserOptions } from "jspdf-autotable";
 import type { Transaction } from "@/lib/db";
+import { isTransferTransaction } from "@/lib/budgetRules";
 
 type TranslateFn = (key: string, vars?: Record<string, string | number>) => string;
 
@@ -47,6 +48,10 @@ export function generateMonthlyReportPdf(
   const PAGE_W = 210;
   const MARGIN = 20;
   const CONTENT_W = PAGE_W - MARGIN * 2; // 170mm
+
+  // Pocket transfers are pure relocations — excluded from all totals,
+  // category breakdowns, top-5 lists and the detail table below.
+  transactions = transactions.filter((t) => !isTransferTransaction(t));
 
   const incomeAgg = aggregate(transactions, "income");
   const expenseAgg = aggregate(transactions, "expense");

@@ -193,6 +193,13 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Finny persistence fixes: Dexie Cloud `@`-key prefixes centralized (src/lib/ids.ts + regression test) — finny sessions/messages, liabilities (lbl), offline queue (aq), deleted-preset markers; chat turns persisted inline per message; seed-once-poison race fixed (verified end-to-end in browser: history survives reload)
 - [x] FinnyInput multiline (auto-growing textarea, Enter send / Shift+Enter newline); receipt scan (camera + gallery) inside roomchat via FinnyInput button
 - [x] Roomchat overlays portaled to document.body (camera, scan result, mobile session drawer) — fixes AppShell <main> stacking context trapping them below sidebar/topbar
+- [x] Cross-device live sync: CSP connect-src now allows wss://*.dexie.cloud (live channel was blocked — updates only arrived on login); autosync fallback pulls on tab-focus/reconnect
+- [x] Roomchat session swap fixed: seed effect ignores stale rows from the previous session (selecting A no longer shows B); covered by A→B→A regression test (proven to fail without the guard)
+- [x] Finny session rename (inline edit per session) + AI topic titles: background title call after first turn (max 5 words, user language); manual renames always win (shouldApplyAiTitle guard, tested)
+- [x] Finny scroll-to-bottom button (appears when scrolled up, smooth scroll); new messages no longer yank readers away from history
+- [x] Finny capabilities: per-request financial snapshot (balances, monthly totals, 20 recent tx, assets, debts, net worth) so it answers totals/history + gives data-based advice; new transfer_pocket action with preview + execution; FX-to-IDR rule for chat + scan receipts
+- [x] Monthly report PDF excludes pocket transfers from income/expense totals, category breakdowns, top-5 and detail table (single filter at entry via isTransferTransaction)
+- [x] Version bump 1.5.0 → 1.6.0
 - [x] Pagination (shared usePagination + PaginationControls): transaction history 10/page with filter-reset; wealth assets/liabilities/debts 5/page
 - [x] Pagination page-size selector (15/25/50/75, default 15) on all paginated lists
 - [x] Daily expense reminders (12:00/17:00/21:00): local scheduled notifications via SW + in-app bell entry, skipped when an expense was already logged, per-day dedupe, Settings toggle with permission flow

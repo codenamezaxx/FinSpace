@@ -5,6 +5,7 @@ import { Bot, X, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { useFinnyChat, type PocketInfo } from "@/hooks/useFinnyChat";
 import { useFinnySave } from "@/hooks/useFinnySave";
+import { useFinnyContext } from "@/hooks/useFinnyContext";
 import { usePockets } from "@/hooks/usePockets";
 import FinnyChatArea from "./FinnyChatArea";
 import FinnyInput from "./FinnyInput";
@@ -23,8 +24,17 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
   // A fresh session starts each time the sheet opens (see effect below).
   const { messages, isLoading, isOffline, sendMessage, startNewSession } =
     useFinnyChat({ persist: true });
-  const { pockets: pocketEnts, addPocket } = usePockets();
-  const { handleSave: saveData } = useFinnySave(pocketEnts, addPocket);
+  const {
+    pockets: pocketEnts,
+    addPocket,
+    transferBetweenPockets,
+  } = usePockets();
+  const { handleSave: saveData } = useFinnySave(
+    pocketEnts,
+    addPocket,
+    transferBetweenPockets
+  );
+  const finnyContext = useFinnyContext();
   const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
@@ -41,10 +51,11 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
     [pocketEnts]
   );
 
-  // Wrap sendMessage so pockets and language are always included
+  // Wrap sendMessage so pockets, language and the financial snapshot
+  // are always included
   const handleSend = useCallback(
-    (text: string) => sendMessage(text, pocketInfo, lang),
-    [sendMessage, pocketInfo, lang]
+    (text: string) => sendMessage(text, pocketInfo, lang, finnyContext),
+    [sendMessage, pocketInfo, lang, finnyContext]
   );
 
   // Find the last AI message with transaction data

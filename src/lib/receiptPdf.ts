@@ -104,7 +104,7 @@ export function generateReceiptPdf(transaction: Transaction, t: TranslateFn): vo
   doc.setTextColor(128, 128, 128);
   doc.text(t("pdf_receipt.thank_you"), MM_WIDTH / 2, y, { align: "center" });
   y += 4;
-  doc.text("FinSpace App v1.5.0", MM_WIDTH / 2, y, { align: "center" });
+  doc.text("FinSpace App v1.6.0", MM_WIDTH / 2, y, { align: "center" });
   y += 6;
 
   // ── Save ──

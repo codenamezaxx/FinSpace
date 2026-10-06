@@ -16,7 +16,11 @@ const nextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
-              "connect-src 'self' https://*.dexie.cloud",
+              // NOTE: wss: is REQUIRED — Dexie Cloud live sync runs over
+              // WebSocket, and an https: source does NOT cover the wss:
+              // scheme. Without it, devices only pull on login and never
+              // receive live updates from other devices.
+              "connect-src 'self' https://*.dexie.cloud wss://*.dexie.cloud",
               "worker-src 'self' blob:",
               "frame-ancestors 'none'",
             ].join("; "),

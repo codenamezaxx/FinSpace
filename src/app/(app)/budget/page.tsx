@@ -199,6 +199,7 @@ function BudgetPageInner() {
                 : t("budget.toward_target", { amount: formatCurrency(Math.max(0, allocation.savings - savingsDeposits)) })
             }
             isOverBudget={false}
+            metSavingsGoal={savingsComplete}
           />
         </div>
       </div>

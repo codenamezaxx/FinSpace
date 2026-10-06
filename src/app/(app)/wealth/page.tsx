@@ -4,7 +4,6 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useLiveQuery, useObservable } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { NetWorthCard } from "@/components/wealth/NetWorthCard";
-import { NetWorthTrend } from "@/components/wealth/NetWorthTrend";
 import { AssetAllocation } from "@/components/wealth/AssetAllocation";
 import { PayoffSimulator } from "@/components/wealth/PayoffSimulator";
 import { RatioCard } from "@/components/wealth/RatioCard";
@@ -297,57 +296,6 @@ export default function WealthPage() {
         netWorth={netWorthData.netWorth}
       />
 
-      {/* Net Worth Trend */}
-      <NetWorthTrend
-        assets={assets}
-        liabilities={liabilities}
-        transactions={historyTransactions}
-        debts={debts}
-      />
-
-      {/* Financial Health Ratios */}
-      <div>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-text-primary">
-          <Gauge className="h-5 w-5 text-accent-secondary" />
-          {t("wealth.financial_health_ratios")}
-        </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <RatioCard
-            title={t("financial.liquidity_ratio")}
-            value={`${ratios.liquidityRatio}x`}
-            description={t("wealth.liquidity_ratio_desc")}
-            status={getLiquidityStatus(ratios.liquidityRatio)}
-            icon={<Wallet className="h-4 w-4" />}
-          />
-          <RatioCard
-            title={t("financial.savings_rate")}
-            value={`${ratios.savingsRate}%`}
-            description={t("wealth.savings_rate_desc")}
-            status={getSavingsRateStatus(ratios.savingsRate)}
-            icon={<PiggyBank className="h-4 w-4" />}
-          />
-          <RatioCard
-            title={t("financial.debt_to_income")}
-            value={`${ratios.debtToIncome}%`}
-            description={t("wealth.debt_ratio_desc")}
-            status={getDebtToIncomeStatus(ratios.debtToIncome)}
-            icon={<TrendingDown className="h-4 w-4" />}
-          />
-        </div>
-      </div>
-
-      {/* Speedometer */}
-      <div className="glass flex flex-col items-center rounded-2xl p-6">
-        <h2 className="mb-2 font-mono text-lg font-semibold text-text-primary">
-          {t("wealth.health_score")}
-        </h2>
-        <Speedometer
-          value={healthScore}
-          label={t("wealth.financial_health")}
-          status={overallStatus}
-        />
-      </div>
-
       {/* Asset Allocation */}
       <AssetAllocation assets={assets} />
 
@@ -551,6 +499,50 @@ export default function WealthPage() {
 
       {/* Payoff Simulator */}
       <PayoffSimulator debts={debts} />
+      
+      {/* Financial Health Ratios */}
+      <div>
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-text-primary">
+          <Gauge className="h-5 w-5 text-accent-secondary" />
+          {t("wealth.financial_health_ratios")}
+        </h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <RatioCard
+            title={t("financial.liquidity_ratio")}
+            value={`${ratios.liquidityRatio}x`}
+            description={t("wealth.liquidity_ratio_desc")}
+            status={getLiquidityStatus(ratios.liquidityRatio)}
+            icon={<Wallet className="h-4 w-4" />}
+          />
+          <RatioCard
+            title={t("financial.savings_rate")}
+            value={`${ratios.savingsRate}%`}
+            description={t("wealth.savings_rate_desc")}
+            status={getSavingsRateStatus(ratios.savingsRate)}
+            icon={<PiggyBank className="h-4 w-4" />}
+          />
+          <RatioCard
+            title={t("financial.debt_to_income")}
+            value={`${ratios.debtToIncome}%`}
+            description={t("wealth.debt_ratio_desc")}
+            status={getDebtToIncomeStatus(ratios.debtToIncome)}
+            icon={<TrendingDown className="h-4 w-4" />}
+          />
+        </div>
+      </div>
+
+      {/* Speedometer */}
+      <div className="glass flex flex-col items-center rounded-2xl p-6">
+        <h2 className="mb-2 font-mono text-lg font-semibold text-text-primary">
+          {t("wealth.health_score")}
+        </h2>
+        <Speedometer
+          value={healthScore}
+          label={t("wealth.financial_health")}
+          status={overallStatus}
+        />
+      </div>
+
 
       {/* Modals */}
       <DebtForm

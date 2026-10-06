@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     language = body.language;
-    const { messages, pockets } = body;
+    const { messages, pockets, context } = body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return Response.json(
@@ -22,9 +22,16 @@ export async function POST(req: Request) {
         ? pockets.map((p: { name?: string }) => p.name ?? "").filter(Boolean)
         : [];
 
+    const system = buildSystemPrompt(
+      pocketNames.length > 0 ? pocketNames : undefined,
+      language
+    );
     const result = streamText({
       model: google("gemini-2.5-flash"),
-      system: buildSystemPrompt(pocketNames.length > 0 ? pocketNames : undefined, language),
+      system:
+        typeof context === "string" && context.length > 0
+          ? `${system}\n\n${context}`
+          : system,
       messages,
     });
 

@@ -17,10 +17,24 @@ type AddPocketFn = ReturnType<typeof usePockets>["addPocket"];
  * FinnySheet and the full roomchat page. Persists transaction / asset /
  * liability / debt / pocket actions proposed by the assistant.
  */
-export function useFinnySave(pocketEnts: Pocket[], addPocket: AddPocketFn) {
+export function useFinnySave(
+  pocketEnts: Pocket[],
+  addPocket: AddPocketFn,
+  transferFn?: (fromId: string, toId: string, amount: number) => Promise<void>
+) {
   const handleSave = useCallback(
     async (action: string, data: Record<string, unknown>) => {
       switch (action) {
+        case "transfer_pocket": {
+          if (!transferFn) throw new Error("Transfer tidak didukung di sini");
+          const fromName = ((data.from_pocket as string) || "").toLowerCase();
+          const toName = ((data.to_pocket as string) || "").toLowerCase();
+          const from = pocketEnts.find((p) => p.name.toLowerCase() === fromName);
+          const to = pocketEnts.find((p) => p.name.toLowerCase() === toName);
+          if (!from || !to) throw new Error("Kantong tidak ditemukan");
+          await transferFn(from.id, to.id, data.amount as number);
+          break;
+        }
         case "transaction": {
           const { db } = await import("@/lib/db");
           const pocketName = (data.pocket_name as string) || "Tunai";
@@ -100,7 +114,7 @@ export function useFinnySave(pocketEnts: Pocket[], addPocket: AddPocketFn) {
         }
       }
     },
-    [pocketEnts, addPocket]
+    [pocketEnts, addPocket, transferFn]
   );
 
   return { handleSave };

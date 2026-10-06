@@ -12,6 +12,7 @@ import { NotificationSheet } from "@/components/notifications/NotificationSheet"
 import { useNotificationsContext } from "@/components/notifications/NotificationsProvider";
 import { useFinnyScan } from "@/hooks/useFinnyScan";
 import { useExpenseReminders } from "@/hooks/useExpenseReminders";
+import { useCloudAutosync } from "@/hooks/useCloudAutosync";
 import { usePockets } from "@/hooks/usePockets";
 import { TransactionModalProvider } from "@/lib/transaction-modal-context";
 import { GlobalTransactionModal } from "@/components/shared/GlobalTransactionModal";
@@ -32,6 +33,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { scanImage, result, isLoading, error, reset } = useFinnyScan();
   // Daily expense-logging reminders (12:00, 17:00, 21:00) — scheduled once here
   useExpenseReminders();
+  // Incremental cloud pull on focus/reconnect — covers live-channel drops
+  useCloudAutosync();
   const { pockets: pocketEnts } = usePockets();
   const {
     isOpen: isNotificationsOpen,

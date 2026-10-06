@@ -86,4 +86,69 @@ describe("persist scratch", () => {
     await db.finny_sessions.delete(sid!);
     db.close();
   }, 30000);
+
+  it("never shows the previous session's messages after switching", async () => {
+    await db.open();
+    for (const [sid, word] of [
+      ["fnn_swap_A", "alpha"],
+      ["fnn_swap_B", "beta"],
+    ] as const) {
+      await db.finny_sessions.put({
+        id: sid,
+        title: word,
+        createdAt: 1,
+        updatedAt: 1,
+      });
+      await db.finny_messages.bulkPut([
+        {
+          id: `Fnn_${sid}_u`,
+          sessionId: sid,
+          role: "user",
+          content: `${word} user`,
+          createdAt: 2,
+        },
+        {
+          id: `Fnn_${sid}_a`,
+          sessionId: sid,
+          role: "assistant",
+          content: `${word} assistant`,
+          createdAt: 3,
+        },
+      ]);
+    }
+
+    const { result, rerender } = renderHook(
+      ({ sid }: { sid: string }) => useFinnyChat({ sessionId: sid, persist: true }),
+      { initialProps: { sid: "fnn_swap_A" } }
+    );
+    await waitFor(() =>
+      expect(result.current.messages.map((m) => m.content)).toEqual([
+        "alpha user",
+        "alpha assistant",
+      ])
+    );
+
+    rerender({ sid: "fnn_swap_B" });
+    await waitFor(() =>
+      expect(result.current.messages.map((m) => m.content)).toEqual([
+        "beta user",
+        "beta assistant",
+      ])
+    );
+    // …and switching back restores A (no cross-contamination either way)
+    rerender({ sid: "fnn_swap_A" });
+    await waitFor(() =>
+      expect(result.current.messages.map((m) => m.content)).toEqual([
+        "alpha user",
+        "alpha assistant",
+      ])
+    );
+
+    await db.finny_messages
+      .where("sessionId")
+      .anyOf(["fnn_swap_A", "fnn_swap_B"])
+      .delete();
+    await db.finny_sessions.bulkDelete(["fnn_swap_A", "fnn_swap_B"]);
+    db.close();
+  }, 30000);
 });

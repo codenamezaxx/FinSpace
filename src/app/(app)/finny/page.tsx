@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   Bot,
+  Pencil,
   Plus,
   Trash2,
   MessageSquareText,
@@ -14,6 +15,7 @@ import {
 import { useLanguage } from "@/lib/i18n";
 import { useFinnyChat, type PocketInfo } from "@/hooks/useFinnyChat";
 import { useFinnySave } from "@/hooks/useFinnySave";
+import { useFinnyContext } from "@/hooks/useFinnyContext";
 import { usePockets } from "@/hooks/usePockets";
 import FinnyChatArea from "@/components/ai/FinnyChatArea";
 import type { FinnyMessage } from "@/components/ai/FinnyChatArea";
@@ -39,7 +41,22 @@ export default function FinnyRoomPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameDraft, setRenameDraft] = useState("");
   const autoSelectedRef = useRef(false);
+
+  const commitRename = useCallback(async () => {
+    if (!renamingId) return;
+    const id = renamingId;
+    const name = renameDraft.trim().slice(0, 60);
+    setRenamingId(null);
+    if (!name) return;
+    try {
+      await db.finny_sessions.update(id, { title: name, updatedAt: Date.now() });
+    } catch {
+      // ignore — the list simply keeps the old title
+    }
+  }, [renamingId, renameDraft]);
   // Portals need document (client-only) — avoids SSR mismatch
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -59,8 +76,17 @@ export default function FinnyRoomPage() {
       onSessionCreated: setSelectedId,
     });
 
-  const { pockets: pocketEnts, addPocket } = usePockets();
-  const { handleSave: saveData } = useFinnySave(pocketEnts, addPocket);
+  const {
+    pockets: pocketEnts,
+    addPocket,
+    transferBetweenPockets,
+  } = usePockets();
+  const { handleSave: saveData } = useFinnySave(
+    pocketEnts,
+    addPocket,
+    transferBetweenPockets
+  );
+  const finnyContext = useFinnyContext();
 
   // Receipt scan (same flow as the floating sheet)
   const {
@@ -119,8 +145,8 @@ export default function FinnyRoomPage() {
   );
 
   const handleSend = useCallback(
-    (text: string) => sendMessage(text, pocketInfo, lang),
-    [sendMessage, pocketInfo, lang]
+    (text: string) => sendMessage(text, pocketInfo, lang, finnyContext),
+    [sendMessage, pocketInfo, lang, finnyContext]
   );
 
   const effectiveId = activeSessionId ?? selectedId;
@@ -214,29 +240,56 @@ export default function FinnyRoomPage() {
                 isActive ? "bg-primary/10" : "hover:bg-surface"
               }`}
             >
+              {renamingId === s.id ? (
+                <input
+                  autoFocus
+                  value={renameDraft}
+                  onChange={(e) => setRenameDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void commitRename();
+                    else if (e.key === "Escape") setRenamingId(null);
+                  }}
+                  onBlur={() => void commitRename()}
+                  aria-label={t("ai.rename_chat")}
+                  className="my-1 min-w-0 flex-1 rounded-lg border border-primary/50 bg-surface px-3 py-1.5 text-sm font-medium text-text-primary outline-none"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedId(s.id);
+                    setListOpen(false);
+                  }}
+                  className="min-w-0 flex-1 px-2 py-2 text-left"
+                >
+                  <p
+                    className={`truncate text-sm font-medium ${
+                      isActive ? "text-primary" : "text-text-primary"
+                    }`}
+                  >
+                    {s.title}
+                  </p>
+                  <p className="mt-0.5 font-mono text-[10px] text-text-muted">
+                    {formatSessionDate(s.updatedAt, lang)}
+                  </p>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedId(s.id);
-                  setListOpen(false);
+                  setRenamingId(s.id);
+                  setRenameDraft(s.title);
                 }}
-                className="min-w-0 flex-1 px-2 py-2 text-left"
+                className="shrink-0 rounded-lg p-1.5 text-text-muted transition-all hover:bg-surface-alt hover:text-primary focus:opacity-100 opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                aria-label={t("ai.rename_chat")}
+                title={t("ai.rename_chat")}
               >
-                <p
-                  className={`truncate text-sm font-medium ${
-                    isActive ? "text-primary" : "text-text-primary"
-                  }`}
-                >
-                  {s.title}
-                </p>
-                <p className="mt-0.5 font-mono text-[10px] text-text-muted">
-                  {formatSessionDate(s.updatedAt, lang)}
-                </p>
+                <Pencil className="h-4 w-4" />
               </button>
               <button
                 type="button"
                 onClick={() => setSessionToDelete(s.id)}
-                className="shrink-0 rounded-lg p-1.5 text-text-muted opacity-0 transition-all hover:bg-surface-alt hover:text-danger focus:opacity-100 group-hover:opacity-100"
+                className="shrink-0 rounded-lg p-1.5 text-text-muted transition-all hover:bg-surface-alt hover:text-danger focus:opacity-100 opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                 aria-label={t("ai.delete_session_title")}
               >
                 <Trash2 className="h-4 w-4" />

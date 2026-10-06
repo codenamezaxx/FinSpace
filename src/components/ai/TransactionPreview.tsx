@@ -63,6 +63,7 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
     liability: t("wealth.add_liability"),
     debt: t("wealth.add_debt"),
     create_pocket: t("budget.add_pocket"),
+    transfer_pocket: t("budget.transfer"),
   };
 
   const actionIcons: Record<string, string> = {
@@ -71,6 +72,7 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
     liability: "📝",
     debt: "💰",
     create_pocket: "👛",
+    transfer_pocket: "🔄",
   };
 
   const label = actionLabels[action] ?? action;
@@ -153,6 +155,40 @@ const TransactionPreview: FC<TransactionPreviewProps> = ({
                 </select>
               </div>
             )}
+          </>
+        )}
+
+        {/* transfer-specific fields */}
+        {action === "transfer_pocket" && (
+          <>
+            {(
+              [
+                { field: "from_pocket", label: t("budget.transfer_from") },
+                { field: "to_pocket", label: t("budget.transfer_to") },
+              ] as const
+            ).map(({ field, label }) => (
+              <div key={field} className="flex items-center justify-between gap-2">
+                <span className="text-xs text-text-muted shrink-0 w-20">
+                  {label}
+                </span>
+                <select
+                  value={(editData[field] as string) ?? ""}
+                  onChange={(e) => updateField(field, e.target.value)}
+                  className="flex-1 bg-surface-alt text-text-primary text-xs rounded-lg px-2.5 py-1.5 border border-border outline-none focus:ring-1 focus:ring-primary/50"
+                >
+                  <option value="">{t("transaction.select_pocket")}</option>
+                  {groupedPockets.map((group) => (
+                    <optgroup key={group.label} label={group.label}>
+                      {group.pockets.map((p) => (
+                        <option key={p.id} value={p.name}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+            ))}
           </>
         )}
 

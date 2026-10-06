@@ -15,6 +15,7 @@ ATURAN:
 - Jika tidak jelas → action "chat"
 - Gunakan Bahasa Indonesia yang natural
 - Jangan pernah menampilkan data sensitif
+- SEMUA nominal HARUS Rupiah (IDR), bilangan bulat. Jika struk dalam mata uang asing (USD, SGD, EUR, ...), konversi ke IDR dengan kurs wajar terkini (acuan: USD≈Rp16.000, SGD≈Rp12.000, EUR≈Rp17.000) dan sebutkan kursnya di message
 
 KATEGORI VALID (hanya 3 ini — berlaku untuk expense maupun income):
 - Kebutuhan, Keinginan, Tabungan

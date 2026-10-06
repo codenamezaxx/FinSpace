@@ -32,6 +32,18 @@ export function sessionTitleFor(text: string, max = 42): string {
   return clean.length > max ? `${clean.slice(0, max)}…` : clean;
 }
 
+/**
+ * True only while the session still carries its auto-generated title —
+ * i.e. the user has NOT renamed it manually. Guards the AI-title pass
+ * from overwriting a deliberate rename.
+ */
+export function shouldApplyAiTitle(
+  currentTitle: string,
+  firstUserText: string
+): boolean {
+  return currentTitle === sessionTitleFor(firstUserText);
+}
+
 interface RawAiResponse {
   action: string;
   message: string;
@@ -76,7 +88,12 @@ export interface UseFinnyChatResult {
   isLoading: boolean;
   isOffline: boolean;
   error: string | null;
-  sendMessage: (text: string, pockets?: PocketInfo[], language?: string) => Promise<void>;
+  sendMessage: (
+    text: string,
+    pockets?: PocketInfo[],
+    language?: string,
+    context?: string
+  ) => Promise<void>;
   clearMessages: () => void;
   dismissError: () => void;
   /** Currently active persisted session id (null while ephemeral). */
@@ -180,6 +197,11 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
     if (!persist || !activeSessionId) return;
     if (seededForRef.current === activeSessionId) return;
     if (stored === undefined || stored.length === 0) return;
+    // liveQuery keeps emitting the PREVIOUS session's rows until the new
+    // subscription resolves — never seed those into this session, or
+    // selecting A would briefly (and, combined with the mark below,
+    // permanently) show B's chat.
+    if (stored.some((r) => r.sessionId !== activeSessionId)) return;
     seededForRef.current = activeSessionId;
     // Only fill an empty view — never clobber a live turn already in state
     // (its messages are persisted separately via persistBatch).
@@ -206,6 +228,53 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
     [persist]
   );
 
+  // Ask the model for a short topic title for a brand-new session.
+  // Fire-and-forget: the truncated user text stays as fallback, and a
+  // manual rename always wins (checked before applying).
+  const requestAiTitle = useCallback(
+    async (
+      sid: string,
+      firstUserText: string,
+      firstAssistantText: string,
+      lang: string | undefined
+    ): Promise<void> => {
+      try {
+        const prompt =
+          lang === "en"
+            ? `Create a very short chat title (max 5 words, no quotation marks) summarizing the topic of this conversation:\nUser: ${firstUserText}\nFinny: ${firstAssistantText}`
+            : `Buatkan judul chat yang sangat singkat (maks 5 kata, tanpa tanda kutip) yang merangkum topik percakapan ini:\nUser: ${firstUserText}\nFinny: ${firstAssistantText}`;
+        const res = await fetch("/api/ai/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [{ role: "user", content: prompt }],
+            pockets: [],
+            language: lang ?? "id",
+          }),
+        });
+        if (!res.ok) return;
+        const text = await res.text();
+        const parsed = parseAiResponse(text);
+        const raw = ((parsed?.message ?? text) || "")
+          .trim()
+          .replace(/^["'“”«»]+|["'“”«».,;:!?]+$/g, "")
+          .trim();
+        if (!raw) return;
+        const { db } = await import("@/lib/db");
+        const sess = await db.finny_sessions.get(sid);
+        if (sess && shouldApplyAiTitle(sess.title, firstUserText)) {
+          await db.finny_sessions.update(sid, {
+            title: sessionTitleFor(raw, 40),
+            updatedAt: Date.now(),
+          });
+        }
+      } catch {
+        // Title upgrade is best-effort only
+      }
+    },
+    []
+  );
+
   // Durably persist each message batch inline (awaited inside sendMessage),
   // so a reload/close can never lose a finished turn. Failures are logged —
   // never swallowed — to keep persistence bugs diagnosable.
@@ -223,7 +292,12 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
   );
 
   const sendMessage = useCallback(
-    async (text: string, pockets?: PocketInfo[], language?: string) => {
+    async (
+      text: string,
+      pockets?: PocketInfo[],
+      language?: string,
+      context?: string
+    ) => {
       if (!text.trim() || isLoading) return;
 
       const userMsg: FinnyMessage = {
@@ -241,6 +315,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
       setError(null);
 
       // Lazily create the persisted session on first send (no-op when ephemeral)
+      const hadSession = !!activeSessionIdRef.current;
       let sid: string | null = null;
       try {
         sid = await ensureSession(text.trim());
@@ -291,6 +366,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
             messages: history,
             pockets: pockets ?? [],
             language: language ?? "id",
+            context: context ?? "",
           }),
           signal: abortRef.current.signal,
         });
@@ -375,6 +451,11 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
           return [...prev, finalMsg];
         });
         await persistBatch(sid, [finalMsg]);
+        // First turn of a brand-new persisted session → upgrade its title
+        // with an AI topic summary in the background (manual renames win).
+        if (sid && !hadSession) {
+          void requestAiTitle(sid, text.trim(), finalMsg.content, language);
+        }
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
         const errorMsg =
@@ -400,7 +481,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
         abortRef.current = null;
       }
     },
-    [messages, isLoading, ensureSession, persistBatch, stamp]
+    [messages, isLoading, ensureSession, persistBatch, requestAiTitle, stamp]
   );
 
   const clearMessages = useCallback(() => {
