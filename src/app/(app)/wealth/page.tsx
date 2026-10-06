@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useLiveQuery, useObservable } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { NetWorthCard } from "@/components/wealth/NetWorthCard";
+import { NetWorthTrend } from "@/components/wealth/NetWorthTrend";
 import { RatioCard } from "@/components/wealth/RatioCard";
 import { Speedometer } from "@/components/wealth/Speedometer";
 import { DebtForm } from "@/components/wealth/DebtForm";
@@ -61,6 +62,16 @@ export default function WealthPage() {
     endTime: endOfMonth,
   });
   const { addTransaction } = useTransactions();
+  // 12-month history for the net worth trend (bounded range query)
+  const historyStart = new Date(
+    now.getFullYear(),
+    now.getMonth() - 11,
+    1
+  ).getTime();
+  const { transactions: historyTransactions } = useTransactions({
+    startTime: historyStart,
+    endTime: endOfMonth,
+  });
   const { pockets, totalBalance: pocketTotalBalance } = usePockets();
 
   const [showDebtForm, setShowDebtForm] = useState(false);
@@ -259,6 +270,14 @@ export default function WealthPage() {
         totalLiabilities={netWorthData.totalLiabilities}
         totalDebts={netWorthData.totalDebts}
         netWorth={netWorthData.netWorth}
+      />
+
+      {/* Net Worth Trend */}
+      <NetWorthTrend
+        assets={assets}
+        liabilities={liabilities}
+        transactions={historyTransactions}
+        debts={debts}
       />
 
       {/* Financial Health Ratios */}
