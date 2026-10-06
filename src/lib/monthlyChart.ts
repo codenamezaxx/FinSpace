@@ -215,3 +215,16 @@ export function computeMonthlyNetWorth(
 
   return result;
 }
+
+/**
+ * Compact Y-axis labels: 1.7jt / 8jt / 10rb / 999 / 0.
+ * No trailing ".0" so ticks stay unambiguous at small sizes.
+ */
+export function formatChartYAxis(value: number): string {
+  const abs = Math.abs(value);
+  const trim = (n: number) => String(Number(n.toFixed(1)));
+  if (abs >= 1_000_000_000) return `${trim(value / 1_000_000_000)}M`;
+  if (abs >= 1_000_000) return `${trim(value / 1_000_000)}jt`;
+  if (abs >= 1_000) return `${Math.round(value / 1_000)}rb`;
+  return String(Math.round(value));
+}

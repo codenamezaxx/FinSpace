@@ -11,7 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { TrendingUp } from "lucide-react";
-import { computeMonthlyNetWorth } from "@/lib/monthlyChart";
+import { computeMonthlyNetWorth, formatChartYAxis } from "@/lib/monthlyChart";
 import {
   formatCurrency,
   type AssetEntry,
@@ -26,14 +26,6 @@ interface NetWorthTrendProps {
   liabilities: LiabilityEntry[];
   transactions: Transaction[];
   debts: DebtEntry[];
-}
-
-function formatCompact(v: number): string {
-  const abs = Math.abs(v);
-  if (abs >= 1_000_000_000) return `${(v / 1_000_000_000).toFixed(1)} M`;
-  if (abs >= 1_000_000) return `${(v / 1_000_000).toFixed(1)} jt`;
-  if (abs >= 1_000) return `${(v / 1_000).toFixed(1)} rb`;
-  return String(Math.round(v));
 }
 
 function TrendTooltip({
@@ -130,7 +122,10 @@ export const NetWorthTrend = memo(function NetWorthTrend({
             interval="preserveStartEnd"
           />
           <YAxis
-            tickFormatter={formatCompact}
+            tickFormatter={formatChartYAxis}
+            domain={[0, "dataMax"]}
+            tickCount={5}
+            allowDecimals={false}
             tick={{ fontSize: 11, fill: "var(--color-text-muted)", fontFamily: "var(--font-jetbrains-mono)" }}
             axisLine={false}
             tickLine={false}

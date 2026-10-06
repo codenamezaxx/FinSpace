@@ -15,6 +15,7 @@ import { formatCurrency } from "@/lib/netWorth";
 import {
   computeCashFlow,
   computeMonthlyNetWorth,
+  formatChartYAxis,
   type CashFlowRange,
   type MonthlyDataPoint,
 } from "@/lib/monthlyChart";
@@ -27,14 +28,6 @@ interface MonthlyChartProps {
   assets: AssetEntry[];
   liabilities: LiabilityEntry[];
   debts?: DebtEntry[];
-}
-
-/* ── Y-axis formatter: 1.5jt / 750rb / 500 ── */
-function formatYAxis(value: number): string {
-  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)}M`;
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}jt`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}rb`;
-  return value.toString();
 }
 
 const INCOME_COLOR = "var(--color-success)";
@@ -241,7 +234,10 @@ export function MonthlyChart({
               />
 
               <YAxis
-                tickFormatter={formatYAxis}
+                tickFormatter={formatChartYAxis}
+                domain={[0, "dataMax"]}
+                tickCount={5}
+                allowDecimals={false}
                 tick={{
                   fontSize: 11,
                   fill: "var(--color-text-muted)",
@@ -322,7 +318,10 @@ export function MonthlyChart({
               />
 
               <YAxis
-                tickFormatter={formatYAxis}
+                tickFormatter={formatChartYAxis}
+                domain={[0, "dataMax"]}
+                tickCount={5}
+                allowDecimals={false}
                 tick={{
                   fontSize: 11,
                   fill: "var(--color-text-muted)",
