@@ -32,14 +32,26 @@ import {
   PiggyBank,
   Wallet,
   TrendingDown,
+  TrendingUp,
+  Landmark,
+  Package,
+  CreditCard,
   Gauge,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { usePockets } from "@/hooks/usePockets";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import type { AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
 import type { HealthStatus } from "@/lib/financialRatios";
 import { useLanguage } from "@/lib/i18n";
+
+const ASSET_META: Record<AssetEntry["type"], { icon: LucideIcon; tint: string; labelKey: string }> = {
+  liquid: { icon: Wallet, tint: "text-primary bg-primary/10", labelKey: "wealth.liquid" },
+  investment: { icon: TrendingUp, tint: "text-success bg-success/10", labelKey: "wealth.investment" },
+  property: { icon: Landmark, tint: "text-accent-secondary bg-accent-secondary/10", labelKey: "wealth.property" },
+  other: { icon: Package, tint: "text-text-muted bg-surface-alt", labelKey: "wealth.other" },
+};
 
 export default function WealthPage() {
   const { t } = useLanguage();
@@ -240,6 +252,17 @@ export default function WealthPage() {
     }
   };
 
+  const openAddItem = useCallback(
+    (defaultType: "asset" | "liability") => {
+      openAssetLiabilityModal({
+        defaultType,
+        onPurchase: handlePurchase,
+        currentBalance: pocketTotalBalance,
+      });
+    },
+    [openAssetLiabilityModal, handlePurchase, pocketTotalBalance]
+  );
+
   return (
     <div className="space-y-6 lg:px-4">
       {/* Header */}
@@ -332,9 +355,14 @@ export default function WealthPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Assets */}
         <div>
-          <h3 className="mb-3 font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
-            {t("wealth.total_assets")}
-          </h3>
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
+              {t("wealth.total_assets")}
+            </h3>
+            <p className="font-mono text-xs text-text-muted">
+              {assets.length} · {formatCurrency(netWorthData.totalAssets)}
+            </p>
+          </div>
           <div className="space-y-2">
             {/* Auto: Recorded Balance */}
             <div className="glass flex items-center justify-between rounded-xl border-l-4 border-l-primary p-3">
@@ -351,45 +379,61 @@ export default function WealthPage() {
               </span>
             </div>
             {assets.length === 0 ? (
-              <p className="font-mono text-sm italic text-text-secondary/70">
-                {t("wealth.no_assets_yet")}
-              </p>
+              <div className="rounded-xl border border-dashed border-border p-6 text-center">
+                <Wallet className="mx-auto h-8 w-8 text-text-muted" />
+                <p className="mt-2 font-mono text-sm italic text-text-secondary/70">
+                  {t("wealth.no_assets_yet")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => openAddItem("asset")}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-all duration-200 hover:bg-primary/20 active:scale-[0.98]"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t("wealth.add_item")}
+                </button>
+              </div>
             ) : (
-              pagedAssets.map((asset) => (
+              pagedAssets.map((asset) => {
+                const meta = ASSET_META[asset.type] ?? ASSET_META.other;
+                const Icon = meta.icon;
+                return (
                 <div
                   key={asset.id}
-                  className="glass flex items-center justify-between rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
+                  className="glass flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
                 >
-                  <div>
-                    <p className="text-sm font-medium text-text-primary">
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${meta.tint}`}>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-text-primary">
                       {asset.name}
                     </p>
-                    <p className="font-mono text-xs capitalize text-text-muted">
-                      {asset.type}
+                    <p className="font-mono text-xs text-text-muted">
+                      {t(meta.labelKey)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm font-semibold text-text-primary">
-                      {formatCurrency(asset.amount)}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => openAssetLiabilityModal({ editItem: asset })}
-                      className="text-text-muted transition-colors duration-200 hover:text-primary"
-                      aria-label={t("wealth.edit_asset")}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAssetToDelete(asset)}
-                      className="text-text-muted transition-colors duration-200 hover:text-danger"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+                  <span className="shrink-0 font-mono text-sm font-semibold text-text-primary">
+                    {formatCurrency(asset.amount)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => openAssetLiabilityModal({ editItem: asset })}
+                    className="shrink-0 p-1 text-text-muted transition-colors duration-200 hover:text-primary"
+                    aria-label={t("wealth.edit_asset")}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAssetToDelete(asset)}
+                    className="shrink-0 p-1 text-text-muted transition-colors duration-200 hover:text-danger"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
-              ))
+                );
+              })
             )}
             <PaginationControls
               page={assetPager.page}
@@ -404,43 +448,60 @@ export default function WealthPage() {
 
         {/* Liabilities */}
         <div>
-          <h3 className="mb-3 font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
-            {t("wealth.total_liabilities")}
-          </h3>
-          {liabilities.length === 0 ? (
-            <p className="font-mono text-sm italic text-text-secondary/70">
-              {t("wealth.no_liabilities_yet")}
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
+              {t("wealth.total_liabilities")}
+            </h3>
+            <p className="font-mono text-xs text-text-muted">
+              {liabilities.length} · {formatCurrency(netWorthData.totalLiabilities)}
             </p>
+          </div>
+          {liabilities.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border p-6 text-center">
+              <CreditCard className="mx-auto h-8 w-8 text-text-muted" />
+              <p className="mt-2 font-mono text-sm italic text-text-secondary/70">
+                {t("wealth.no_liabilities_yet")}
+              </p>
+              <button
+                type="button"
+                onClick={() => openAddItem("liability")}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-all duration-200 hover:bg-primary/20 active:scale-[0.98]"
+              >
+                <Plus className="h-4 w-4" />
+                {t("wealth.add_item")}
+              </button>
+            </div>
           ) : (
             <div className="space-y-2">
               {pagedLiabilities.map((liability) => (
                 <div
                   key={liability.id}
-                  className="glass flex items-center justify-between rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
+                  className="glass flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
                 >
-                  <p className="text-sm font-medium text-text-primary">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-danger/10 text-danger">
+                    <CreditCard className="h-4 w-4" />
+                  </span>
+                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
                     {liability.name}
                   </p>
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm font-semibold text-text-primary">
-                      {formatCurrency(liability.amount)}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => openAssetLiabilityModal({ editItem: liability })}
-                      className="text-text-muted transition-colors duration-200 hover:text-primary"
-                      aria-label={t("wealth.edit_liability")}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLiabilityToDelete(liability)}
-                      className="text-text-muted transition-colors duration-200 hover:text-danger"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+                  <span className="shrink-0 font-mono text-sm font-semibold text-text-primary">
+                    {formatCurrency(liability.amount)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => openAssetLiabilityModal({ editItem: liability })}
+                    className="shrink-0 p-1 text-text-muted transition-colors duration-200 hover:text-primary"
+                    aria-label={t("wealth.edit_liability")}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLiabilityToDelete(liability)}
+                    className="shrink-0 p-1 text-text-muted transition-colors duration-200 hover:text-danger"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               ))}
               <PaginationControls
@@ -459,9 +520,14 @@ export default function WealthPage() {
       {/* ── Debts ── */}
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
-            {t("wealth.total_debts")}
-          </h3>
+          <div>
+            <h3 className="font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
+              {t("wealth.total_debts")}
+            </h3>
+            <p className="mt-0.5 font-mono text-xs text-text-muted">
+              {debts.length} · {formatCurrency(netWorthData.totalDebts)}
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => setShowDebtForm(true)}
@@ -474,6 +540,7 @@ export default function WealthPage() {
         <DebtList
           debts={debts}
           onPay={(debt) => setPayingDebt(debt)}
+          onAdd={() => setShowDebtForm(true)}
           onEdit={(debt) => setEditingDebt(debt)}
           onDelete={(id) => {
             const debt = debts.find((d) => d.id === id);
