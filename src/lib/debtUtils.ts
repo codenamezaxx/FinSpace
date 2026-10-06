@@ -100,3 +100,65 @@ export function calculateMonthlyDebtObligation(debt: DebtEntry): number {
 export function totalMonthlyDebtObligation(debts: DebtEntry[]): number {
   return debts.reduce((sum, d) => sum + calculateMonthlyDebtObligation(d), 0);
 }
+
+export interface PayoffSimulation {
+  months: number;
+  debtFreeDate: number;
+  totalInterest: number;
+  interestSaved: number;
+  feasible: boolean;
+}
+
+/**
+ * Amortize a balance with a fixed monthly payment and optional annual
+ * interest rate (monthly compounding). Caps at 600 iterations.
+ */
+function amortize(
+  remaining: number,
+  monthlyPayment: number,
+  annualRatePct?: number
+): { months: number; totalInterest: number; feasible: boolean } {
+  if (remaining <= 0) return { months: 0, totalInterest: 0, feasible: true };
+  if (monthlyPayment <= 0)
+    return { months: 0, totalInterest: 0, feasible: false };
+  const monthlyRate = (annualRatePct ?? 0) / 100 / 12;
+  let balance = remaining;
+  let totalInterest = 0;
+  let months = 0;
+  while (balance > 0 && months < 600) {
+    const interest = Math.round(balance * monthlyRate);
+    if (monthlyPayment <= interest)
+      return { months, totalInterest, feasible: false };
+    totalInterest += interest;
+    balance = balance + interest - monthlyPayment;
+    months++;
+  }
+  if (balance > 0) return { months, totalInterest, feasible: false };
+  return { months, totalInterest, feasible: true };
+}
+
+/**
+ * Simulate debt payoff with a base monthly installment plus an optional
+ * extra payment. Compares against the baseline (base only) to report
+ * interest saved. Uses the same simple-interest convention as
+ * calcInstallment, compounded monthly.
+ */
+export function simulatePayoff(
+  remaining: number,
+  baseMonthly: number,
+  extraMonthly: number,
+  annualRatePct?: number
+): PayoffSimulation {
+  const withExtra = amortize(remaining, baseMonthly + extraMonthly, annualRatePct);
+  const baseline = amortize(remaining, baseMonthly, annualRatePct);
+  return {
+    months: withExtra.months,
+    debtFreeDate: Date.now() + withExtra.months * 30 * 86400000,
+    totalInterest: withExtra.totalInterest,
+    interestSaved:
+      withExtra.feasible && baseline.feasible
+        ? Math.max(0, baseline.totalInterest - withExtra.totalInterest)
+        : 0,
+    feasible: withExtra.feasible,
+  };
+}

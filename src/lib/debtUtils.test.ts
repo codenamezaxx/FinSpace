@@ -3,6 +3,7 @@ import {
   calcInstallment,
   calculateMonthlyDebtObligation,
   totalMonthlyDebtObligation,
+  simulatePayoff,
 } from "./debtUtils";
 import type { DebtEntry } from "./netWorth";
 
@@ -204,5 +205,46 @@ describe("totalMonthlyDebtObligation", () => {
 
   it("returns 0 for empty array", () => {
     expect(totalMonthlyDebtObligation([])).toBe(0);
+  });
+});
+
+describe("simulatePayoff", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-01T00:00:00Z"));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("pays off exactly with base installment and no interest", () => {
+    const r = simulatePayoff(12000000, 1000000, 0);
+    expect(r.feasible).toBe(true);
+    expect(r.months).toBe(12);
+    expect(r.totalInterest).toBe(0);
+    expect(r.interestSaved).toBe(0);
+  });
+
+  it("accelerates payoff with extra payment", () => {
+    const r = simulatePayoff(12000000, 1000000, 1000000);
+    expect(r.feasible).toBe(true);
+    expect(r.months).toBe(6);
+  });
+
+  it("accrues interest and reports savings vs baseline", () => {
+    const r = simulatePayoff(12000000, 1000000, 1000000, 12);
+    expect(r.feasible).toBe(true);
+    expect(r.months).toBeLessThan(12);
+    expect(r.totalInterest).toBeGreaterThan(0);
+    expect(r.interestSaved).toBeGreaterThan(0);
+  });
+
+  it("marks infeasible when payment cannot cover interest", () => {
+    const r = simulatePayoff(12000000, 50000, 50000, 12);
+    expect(r.feasible).toBe(false);
+  });
+
+  it("returns zero months when nothing remains", () => {
+    const r = simulatePayoff(0, 1000000, 0);
+    expect(r.feasible).toBe(true);
+    expect(r.months).toBe(0);
   });
 });
