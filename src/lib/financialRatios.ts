@@ -148,3 +148,12 @@ export function getStatusLabel(status: HealthStatus, english = false): string {
     case "danger": return "Bahaya";
   }
 }
+
+/**
+ * Month-over-month percent change of current vs previous month.
+ * Returns null when there is no previous-month baseline to compare to.
+ */
+export function calcMoMChange(current: number, previous: number): number | null {
+  if (previous <= 0) return null;
+  return ((current - previous) / previous) * 100;
+}

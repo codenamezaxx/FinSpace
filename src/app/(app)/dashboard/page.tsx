@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import {
   ArrowUpIcon,
   ArrowDownIcon,
+  Minus,
   Plus,
   Wallet,
   Wrench,
@@ -23,6 +24,7 @@ import { useAssetLiabilityModal } from "@/lib/asset-liability-modal-context";
 import {
   calculateAllRatios,
   calculateHealthScore,
+  calcMoMChange,
   getLiquidityStatus,
   getSavingsRateStatus,
   getDebtToIncomeStatus,
@@ -61,6 +63,46 @@ function getGreeting(t: (key: string) => string): string {
   if (hour < 15) return t("topbar.greeting_afternoon");
   if (hour < 18) return t("topbar.greeting_evening");
   return t("topbar.greeting_night");
+}
+
+function formatPctChange(value: number): string {
+  return `${Math.abs(value).toFixed(1).replace(".", ",")}%`;
+}
+
+/* ─── MoM badge: +% vs last month. Wraps below nominal when tight. ─── */
+function MoMBadge({
+  change,
+  invert = false,
+}: {
+  change: number | null;
+  invert?: boolean;
+}) {
+  if (change === null || !Number.isFinite(change)) return null;
+  const up = change > 0.05;
+  const down = change < -0.05;
+  const flat = !up && !down;
+  const good = invert ? down : up;
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[11px] font-semibold ${
+        flat
+          ? "bg-surface-alt text-text-muted"
+          : good
+            ? "bg-success/15 text-success"
+            : "bg-danger/15 text-danger"
+      }`}
+    >
+      {up ? (
+        <ArrowUpIcon className="h-3 w-3" />
+      ) : down ? (
+        <ArrowDownIcon className="h-3 w-3" />
+      ) : (
+        <Minus className="h-3 w-3" />
+      )}
+      {up ? "+" : down ? "−" : ""}
+      {formatPctChange(change)}
+    </span>
+  );
 }
 
 /* ─── Skeletons ─── */
@@ -237,6 +279,31 @@ export default function DashboardPage() {
     };
   }, [transactions, allTransactions, liquidAssets, debtsList]);
 
+  /* ── Previous month totals (derived from loaded data, no extra query) ── */
+  const prevMonthStart = new Date(
+    now.getFullYear(),
+    now.getMonth() - 1,
+    1
+  ).getTime();
+  const prevMonthEnd = startOfMonth - 1;
+  const { prevIncome, prevExpenses } = useMemo(() => {
+    const inPrev = allTransactions.filter(
+      (t) =>
+        !t.transferId && t.timestamp >= prevMonthStart && t.timestamp <= prevMonthEnd
+    );
+    return {
+      prevIncome: inPrev
+        .filter((t) => t.type === "income")
+        .reduce((sum, t) => sum + t.amount, 0),
+      prevExpenses: inPrev
+        .filter((t) => t.type === "expense")
+        .reduce((sum, t) => sum + t.amount, 0),
+    };
+  }, [allTransactions, prevMonthStart, prevMonthEnd]);
+
+  const momIncome = calcMoMChange(income, prevIncome);
+  const momExpenses = calcMoMChange(expenses, prevExpenses);
+
   const overallStatus: HealthStatus = useMemo(() => {
     const statuses = [liquidityStatus, savingsStatus, debtStatus];
     if (statuses.some((s) => s === "danger")) return "danger";
@@ -324,17 +391,23 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4 [&>div]:min-w-0">
-                <div>
+                <div className="min-w-0">
                   <p className="font-mono text-xs text-text-muted">{t("dashboard.income")}</p>
-                  <p className="mt-1 break-words font-mono text-lg font-semibold text-success">
-                    {formatCurrency(income)}
-                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <p className="break-words font-mono text-lg font-semibold text-success">
+                      {formatCurrency(income)}
+                    </p>
+                    <MoMBadge change={momIncome} />
+                  </div>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="font-mono text-xs text-text-muted">{t("dashboard.expense")}</p>
-                  <p className="mt-1 break-words font-mono text-lg font-semibold text-danger">
-                    {formatCurrency(expenses)}
-                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <p className="break-words font-mono text-lg font-semibold text-danger">
+                      {formatCurrency(expenses)}
+                    </p>
+                    <MoMBadge change={momExpenses} invert />
+                  </div>
                 </div>
               </div>
             </div>,
@@ -390,18 +463,24 @@ export default function DashboardPage() {
              </div>
            </div>
            <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
-             <div>
-               <p className="font-mono text-xs text-text-muted">{t("dashboard.income")}</p>
-               <p className="mt-1 font-mono text-lg font-semibold text-success">
-                 {formatCurrency(income)}
-               </p>
-             </div>
-             <div>
-               <p className="font-mono text-xs text-text-muted">{t("dashboard.expense")}</p>
-              <p className="mt-1 font-mono text-lg font-semibold text-danger">
-                {formatCurrency(expenses)}
-              </p>
-            </div>
+              <div className="min-w-0">
+                <p className="font-mono text-xs text-text-muted">{t("dashboard.income")}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <p className="font-mono text-lg font-semibold text-success">
+                    {formatCurrency(income)}
+                  </p>
+                  <MoMBadge change={momIncome} />
+                </div>
+              </div>
+              <div className="min-w-0">
+                <p className="font-mono text-xs text-text-muted">{t("dashboard.expense")}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <p className="font-mono text-lg font-semibold text-danger">
+                    {formatCurrency(expenses)}
+                  </p>
+                  <MoMBadge change={momExpenses} invert />
+                </div>
+              </div>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scoreToStatus, scoreToLabel, scoreToColor } from "./financialRatios";
+import { scoreToStatus, scoreToLabel, scoreToColor, calcMoMChange } from "./financialRatios";
 
 describe("scoreToStatus", () => {
   it("uses >=70 safe, >=40 warning, else danger", () => {
@@ -20,5 +20,18 @@ describe("scoreToStatus", () => {
     expect(scoreToColor(74)).toBe("#22C55E");
     expect(scoreToColor(50)).toBe("#EAB393");
     expect(scoreToColor(10)).toBe("#EF4444");
+  });
+});
+
+describe("calcMoMChange", () => {
+  it("returns percent change vs previous month", () => {
+    expect(calcMoMChange(150, 100)).toBe(50);
+    expect(calcMoMChange(75, 100)).toBe(-25);
+    expect(calcMoMChange(100, 100)).toBe(0);
+  });
+
+  it("returns null when previous month is zero", () => {
+    expect(calcMoMChange(50000, 0)).toBeNull();
+    expect(calcMoMChange(0, 0)).toBeNull();
   });
 });
