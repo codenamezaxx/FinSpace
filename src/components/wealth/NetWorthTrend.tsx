@@ -11,7 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { TrendingUp } from "lucide-react";
-import { computeMonthlyNetWorth, formatChartYAxis } from "@/lib/monthlyChart";
+import { computeMonthlyNetWorth, formatChartYAxis, niceCeil } from "@/lib/monthlyChart";
 import {
   formatCurrency,
   type AssetEntry,
@@ -66,6 +66,13 @@ export const NetWorthTrend = memo(function NetWorthTrend({
   const last = data[data.length - 1]?.value ?? 0;
   const delta = last - first;
   const pct = first !== 0 ? `${delta >= 0 ? "+" : ""}${((delta / Math.abs(first)) * 100).toFixed(1)}%` : null;
+
+  const trendDomain: [number, number] = useMemo(() => {
+    const vals = data.map((d) => d.value);
+    const lo = Math.min(0, ...vals);
+    const hi = Math.max(0, ...vals);
+    return [lo < 0 ? -niceCeil(-lo) : 0, niceCeil(hi)];
+  }, [data]);
 
   if (!nonEmpty) {
     return (
@@ -123,7 +130,7 @@ export const NetWorthTrend = memo(function NetWorthTrend({
           />
           <YAxis
             tickFormatter={formatChartYAxis}
-            domain={[0, "dataMax"]}
+            domain={trendDomain}
             tickCount={5}
             allowDecimals={false}
             tick={{ fontSize: 11, fill: "var(--color-text-muted)", fontFamily: "var(--font-jetbrains-mono)" }}

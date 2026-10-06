@@ -16,6 +16,7 @@ import {
   computeCashFlow,
   computeMonthlyNetWorth,
   formatChartYAxis,
+  niceCeil,
   type CashFlowRange,
   type MonthlyDataPoint,
 } from "@/lib/monthlyChart";
@@ -120,6 +121,23 @@ export function MonthlyChart({
     () => computeMonthlyNetWorth(assets, liabilities, transactions, debts),
     [assets, liabilities, transactions, debts]
   );
+
+  /* Explicit numeric domains — never let tick inference drift from data. */
+  const cashDomain: [number, number] = useMemo(() => {
+    const hi = Math.max(
+      0,
+      ...cashflowData.map((d) => d.income),
+      ...cashflowData.map((d) => d.expense)
+    );
+    return [0, niceCeil(hi)];
+  }, [cashflowData]);
+
+  const nwDomain: [number, number] = useMemo(() => {
+    const vals = netWorthData.map((d) => d.value);
+    const lo = Math.min(0, ...vals);
+    const hi = Math.max(0, ...vals);
+    return [lo < 0 ? -niceCeil(-lo) : 0, niceCeil(hi)];
+  }, [netWorthData]);
 
   const isCashflow = view === "cashflow";
 
@@ -235,7 +253,7 @@ export function MonthlyChart({
 
               <YAxis
                 tickFormatter={formatChartYAxis}
-                domain={[0, "dataMax"]}
+                domain={cashDomain}
                 tickCount={5}
                 allowDecimals={false}
                 tick={{
@@ -319,7 +337,7 @@ export function MonthlyChart({
 
               <YAxis
                 tickFormatter={formatChartYAxis}
-                domain={[0, "dataMax"]}
+                domain={nwDomain}
                 tickCount={5}
                 allowDecimals={false}
                 tick={{

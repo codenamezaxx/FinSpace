@@ -18,3 +18,14 @@ describe("formatChartYAxis", () => {
     expect(formatChartYAxis(2500000000)).toBe("2.5M");
   });
 });
+
+describe("niceCeil", () => {
+  it("rounds up to a nice axis ceiling", async () => {
+    const { niceCeil } = await import("./monthlyChart");
+    expect(niceCeil(0)).toBe(0);
+    expect(niceCeil(1721815)).toBe(2000000);
+    expect(niceCeil(3040000)).toBe(5000000);
+    expect(niceCeil(500)).toBe(500);
+    expect(niceCeil(1001)).toBe(2000);
+  });
+});

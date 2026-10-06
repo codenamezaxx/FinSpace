@@ -228,3 +228,15 @@ export function formatChartYAxis(value: number): string {
   if (abs >= 1_000) return `${Math.round(value / 1_000)}rb`;
   return String(Math.round(value));
 }
+
+/**
+ * Round up to a nice axis ceiling (1/2/2.5/5 × 10^k) so the top tick
+ * always sits just above the data max. Returns 0 for non-positive input.
+ */
+export function niceCeil(value: number): number {
+  if (value <= 0) return 0;
+  const power = 10 ** Math.floor(Math.log10(value));
+  const n = value / power;
+  const m = n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10;
+  return m * power;
+}
