@@ -8,9 +8,8 @@ import {
   ArrowDownIcon,
   Minus,
   Plus,
-  Wallet,
-  Wrench,
   Banknote,
+  Bot,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -501,55 +500,30 @@ export default function DashboardPage() {
 
       {/* ── Quick Actions ── */}
       <div className="glass rounded-2xl p-4 lg:p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex w-full flex-col lg:flex-row gap-3">
-            <button
-              type="button"
-              onClick={() => openAddTransaction()}
-              className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-4 text-sm font-bold text-on-primary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
-            >
-              <Plus className="h-5 w-5" />
-              {t("dashboard.new_transaction")}
-            </button>
-            <button
-              type="button"
-              onClick={() => openAssetLiabilityModal()}
-              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3 text-sm font-semibold text-primary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-accent-secondary/15"
-            >
-              <Banknote className="h-5 w-5" />
-              {t("dashboard.add_asset_liability")}
-            </button>
-          </div>
-
-          <div className="flex items-center justify-center gap-3 lg:gap-4">
-            <Link
-              href="/budget"
-              className="flex min-w-0 flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
-            >
-              <Wallet className="h-5 w-5 text-primary" />
-              <span className="text-[11px] font-semibold text-text-secondary">
-                {t("nav.budget")}
-              </span>
-            </Link>
-            <Link
-              href="/wealth"
-              className="flex min-w-0 flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
-            >
-              <Banknote className="h-5 w-5 text-success" />
-              <span className="text-[11px] font-semibold text-text-secondary">
-                {t("nav.wealth")}
-              </span>
-            </Link>
-            <Link
-              href="/tools"
-              className="flex min-w-0 flex-col items-center gap-1 rounded-xl border border-border w-full bg-surface-alt px-4 py-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 lg:flex-row lg:gap-2 lg:px-5 lg:py-2.5 lg:h-full"
-            >
-              <Wrench className="h-5 w-5 text-text-secondary" />
-              <span className="text-[11px] font-semibold text-text-secondary">
-                {t("nav.tools")}
-              </span>
-            </Link>
-          </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <button
+            type="button"
+            onClick={() => openAddTransaction()}
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-on-primary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
+          >
+            <Plus className="h-5 w-5" />
+            {t("dashboard.new_transaction")}
+          </button>
+          <button
+            type="button"
+            onClick={() => openAssetLiabilityModal()}
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3.5 text-sm font-semibold text-primary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-accent-secondary/15"
+          >
+            <Banknote className="h-5 w-5" />
+            {t("dashboard.add_asset_liability")}
+          </button>
+          <Link
+            href="/finny"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-accent-secondary/40 bg-accent-secondary/10 px-6 py-3.5 text-sm font-semibold text-accent-secondary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-secondary hover:shadow-lg hover:shadow-accent-secondary/15"
+          >
+            <Bot className="h-5 w-5" />
+            {t("dashboard.chat_finny")}
+          </Link>
         </div>
       </div>
 
