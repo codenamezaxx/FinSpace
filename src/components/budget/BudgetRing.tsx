@@ -10,6 +10,7 @@ interface BudgetRingProps {
   sublabel?: string;
   remaining?: string;
   isOverBudget?: boolean;
+  metSavingsGoal?: boolean;
 }
 
 export const BudgetRing = memo(function BudgetRing({
@@ -20,6 +21,7 @@ export const BudgetRing = memo(function BudgetRing({
   sublabel,
   remaining,
   isOverBudget = false,
+  metSavingsGoal = false
 }: BudgetRingProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -27,6 +29,7 @@ export const BudgetRing = memo(function BudgetRing({
   const offset = circumference - (clampedPct / 100) * circumference;
 
   const getColor = () => {
+    if (metSavingsGoal) return "var(--color-success)";
     if (isOverBudget) return "var(--color-danger)";
     if (percentage > 80) return "var(--color-warning)";
     return "var(--color-primary)";
