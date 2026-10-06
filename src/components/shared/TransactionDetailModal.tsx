@@ -1,10 +1,11 @@
 "use client";
 
-import { Pencil, Trash2, ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { Pencil, Printer, Trash2, ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { ResponsiveModal } from "./ResponsiveModal";
 import { usePockets } from "@/hooks/usePockets";
 import { useLanguage } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/netWorth";
+import { printReceiptHtml } from "@/lib/printReceipt";
 import type { Transaction } from "@/lib/db";
 
 interface TransactionDetailModalProps {
@@ -111,6 +112,14 @@ export function TransactionDetailModal({
           >
             <Pencil className="h-4 w-4" />
             {t("common.edit")}
+          </button>
+          <button
+            type="button"
+            onClick={() => printReceiptHtml(transaction, t)}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-surface-alt px-4 py-3 text-sm font-semibold text-text-secondary transition-all duration-200 hover:bg-surface hover:text-text-primary active:scale-[0.97]"
+          >
+            <Printer className="h-4 w-4" />
+            {t("receipt.print_button")}
           </button>
           <button
             type="button"

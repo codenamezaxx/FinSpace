@@ -5,7 +5,6 @@ import { Cloud, Settings } from "lucide-react";
 import { LoanCalculator } from "@/components/tools/LoanCalculator";
 import { SavingsGoal } from "@/components/tools/SavingsGoal";
 import { ExportCSV } from "@/components/tools/ExportCSV";
-import ReceiptGenerator from "@/components/tools/ReceiptGenerator";
 import { useLanguage } from "@/lib/i18n";
 
 export default function ToolsPage() {
@@ -23,11 +22,8 @@ export default function ToolsPage() {
         <SavingsGoal />
       </div>
 
-      {/* Struk + Ekspor CSV */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <ReceiptGenerator />
-        <ExportCSV />
-      </div>
+      {/* Laporan Bulanan + Ekspor CSV */}
+      <ExportCSV />
     </div>
   );
 }
