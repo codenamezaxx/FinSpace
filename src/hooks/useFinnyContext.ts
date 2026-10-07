@@ -6,10 +6,37 @@ import { db } from "@/lib/db";
 import { usePockets } from "./usePockets";
 import { useTransactions } from "./useTransactions";
 import { calculateNetWorth } from "@/lib/netWorth";
+import { getBudgetCategory } from "@/lib/budgetRules";
 import {
   buildFinnySnapshotText,
   toSnapshotTx,
 } from "@/lib/ai/contextSnapshot";
+
+const ALLOCATION_KEY = "finspace-budget-allocation";
+
+function readAllocation(): { needs: number; wants: number; savings: number } {
+  try {
+    if (typeof window === "undefined") return { needs: 50, wants: 30, savings: 20 };
+    const raw = localStorage.getItem(ALLOCATION_KEY);
+    if (raw) {
+      const p = JSON.parse(raw) as {
+        needs?: unknown;
+        wants?: unknown;
+        savings?: unknown;
+      };
+      if (
+        typeof p.needs === "number" &&
+        typeof p.wants === "number" &&
+        typeof p.savings === "number"
+      ) {
+        return { needs: p.needs, wants: p.wants, savings: p.savings };
+      }
+    }
+  } catch {
+    // corrupted storage — fall through to defaults
+  }
+  return { needs: 50, wants: 30, savings: 20 };
+}
 
 /**
  * Builds the compact financial snapshot text shipped with every Finny
@@ -42,10 +69,36 @@ export function useFinnyContext(): string {
       debts
     ).netWorth;
 
+    // Budget buckets (same rules as the budget page)
+    const alloc = readAllocation();
+    let needsSpent = 0;
+    let wantsSpent = 0;
+    for (const t of mine) {
+      if (t.type !== "expense") continue;
+      const bucket = getBudgetCategory(t.category);
+      if (bucket === "needs") needsSpent += t.amount;
+      else if (bucket === "wants") wantsSpent += t.amount;
+    }
+    // Same rule as the savings ring: any Tabungan-category transaction counts
+    const savingsDeposits = mine
+      .filter((t) => t.category === "Tabungan")
+      .reduce((s, t) => s + t.amount, 0);
+
     return buildFinnySnapshotText({
       monthLabel,
       income,
       expenses,
+      budget: {
+        needsPct: alloc.needs,
+        wantsPct: alloc.wants,
+        savingsPct: alloc.savings,
+        needsAlloc: Math.round((income * alloc.needs) / 100),
+        wantsAlloc: Math.round((income * alloc.wants) / 100),
+        savingsAlloc: Math.round((income * alloc.savings) / 100),
+        needsSpent,
+        wantsSpent,
+        savingsDeposits,
+      },
       pockets: pockets.map((p) => ({ name: p.name, balance: balances[p.id] ?? 0 })),
       pocketTotal: totalBalance,
       netWorth,

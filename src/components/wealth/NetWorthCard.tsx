@@ -20,6 +20,11 @@ interface NetWorthCardProps {
   className?: string;
   style?: React.CSSProperties;
   collapsible?: boolean;
+  /**
+   * When provided, the detail toggle / nominal breakdown is replaced by
+   * three item-count segments (assets, liabilities, debts).
+   */
+  counts?: { assets: number; liabilities: number; debts: number };
 }
 
 export function NetWorthCard({
@@ -32,6 +37,7 @@ export function NetWorthCard({
   className = "",
   style,
   collapsible = false,
+  counts,
 }: NetWorthCardProps) {
   const { t } = useLanguage();
   const title = titleProp ?? t("wealth.net_worth");
@@ -67,7 +73,35 @@ export function NetWorthCard({
         </div>
       </div>
 
-      {collapsible ? (
+      {counts ? (
+        <>
+          {/* Item counts (dashboard) — counts, not nominals */}
+          <div className="mt-5 grid grid-cols-3 gap-2 border-t border-border pt-4">
+            {(
+              [
+                { label: t("dashboard.count_assets"), value: counts.assets },
+                {
+                  label: t("dashboard.count_liabilities"),
+                  value: counts.liabilities,
+                },
+                { label: t("dashboard.count_debts"), value: counts.debts },
+              ] as const
+            ).map((s) => (
+              <div
+                key={s.label}
+                className="min-w-0 rounded-xl bg-surface-alt/50 px-2 py-3 text-center"
+              >
+                <p className="truncate font-mono text-xl font-bold text-text-primary">
+                  {s.value}
+                </p>
+                <p className="mt-1 truncate text-[11px] font-medium text-text-muted">
+                  {s.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : collapsible ? (
         <>
           {/* Toggle detail button */}
           <button

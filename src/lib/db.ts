@@ -59,6 +59,8 @@ export interface FinnyChatRow {
   data?: Record<string, unknown>;
   missingFields?: string[];
   confidence?: string;
+  /** 1 = its action preview was already saved/dismissed (never show again). */
+  handled?: number;
   createdAt: number;
 }
 

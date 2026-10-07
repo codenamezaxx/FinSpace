@@ -1,12 +1,14 @@
 "use client";
 
-import { TrendingUp, TrendingDown, Receipt } from "lucide-react";
+import Link from "next/link";
+import { TrendingUp, TrendingDown, Receipt, ArrowRight } from "lucide-react";
 import { formatCurrency } from "@/lib/netWorth";
 import type { Transaction } from "@/lib/db";
 import { useLanguage } from "@/lib/i18n";
 
 interface TransactionHistoryProps {
   transactions: Transaction[];
+  viewAllHref?: string;
 }
 
 function relativeTime(timestamp: number, t: (key: string, params?: Record<string, string>) => string): string {
@@ -23,7 +25,7 @@ function relativeTime(timestamp: number, t: (key: string, params?: Record<string
   return t("common.just_now");
 }
 
-export function TransactionHistory({ transactions }: TransactionHistoryProps) {
+export function TransactionHistory({ transactions, viewAllHref }: TransactionHistoryProps) {
   const { t } = useLanguage();
 
   if (transactions.length === 0) {
@@ -53,13 +55,22 @@ export function TransactionHistory({ transactions }: TransactionHistoryProps) {
   return (
     <div className="glass min-w-0 rounded-2xl p-5">
       <div className="flex items-center gap-2.5 mb-4">
-        <Receipt className="h-4 w-4 text-text-muted" />
-        <h2 className="text-sm font-semibold text-text-primary">
+        <Receipt className="h-4 w-4 shrink-0 text-text-muted" />
+        <h2 className="truncate text-sm font-semibold text-text-primary">
           {t("dashboard.recent")}
         </h2>
-        <span className="ml-auto font-mono text-[10px] text-text-muted">
+        <span className="ml-auto shrink-0 font-mono text-[10px] text-text-muted">
           {t("common.transaction_count", { count: String(transactions.length) })}
         </span>
+        {viewAllHref && (
+          <Link
+            href={viewAllHref}
+            className="inline-flex shrink-0 items-center gap-0.5 text-[11px] font-semibold text-primary transition-colors hover:text-primary-hover"
+          >
+            {t("wealth.view_all")}
+            <ArrowRight className="h-3 w-3" />
+          </Link>
+        )}
       </div>
 
       <div className="divide-y divide-border">

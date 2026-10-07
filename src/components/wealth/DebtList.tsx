@@ -20,8 +20,8 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 interface DebtListProps {
   debts: DebtEntry[];
-  onPay: (debt: DebtEntry) => void;
-  onDelete: (id: string) => void;
+  onPay?: (debt: DebtEntry) => void;
+  onDelete?: (id: string) => void;
   onEdit?: (debt: DebtEntry) => void;
   onAdd?: () => void;
 }
@@ -72,8 +72,8 @@ export function DebtList({ debts, onPay, onDelete, onEdit, onAdd }: DebtListProp
             remaining={remaining}
             progress={progress}
             installment={installment}
-            onPay={() => onPay(debt)}
-            onDelete={() => onDelete(debt.id)}
+            onPay={onPay ? () => onPay(debt) : undefined}
+            onDelete={onDelete ? () => onDelete(debt.id) : undefined}
             onEdit={onEdit ? () => onEdit(debt) : undefined}
             t={t}
             lang={lang}
@@ -107,8 +107,8 @@ function DebtItem({
   remaining: number;
   progress: number;
   installment: InstallmentResult;
-  onPay: () => void;
-  onDelete: () => void;
+  onPay?: () => void;
+  onDelete?: () => void;
   onEdit?: () => void;
   t: (key: string, vars?: Record<string, string | number>) => string;
   lang: string;
@@ -217,7 +217,7 @@ function DebtItem({
           {t("debt.due_date", { date: dueDateText })}
         </p>
         <div className="flex shrink-0 items-center gap-1.5">
-          {!paidOff && (
+          {onPay && !paidOff && (
             <button
               type="button"
               onClick={onPay}
@@ -237,13 +237,15 @@ function DebtItem({
               <Pencil className="h-4 w-4" />
             </button>
           )}
-          <button
-            type="button"
-            onClick={onDelete}
-            className="p-1.5 text-text-muted transition-colors hover:text-danger"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="p-1.5 text-text-muted transition-colors hover:text-danger"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>

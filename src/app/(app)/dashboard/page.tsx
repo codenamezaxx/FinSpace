@@ -612,17 +612,19 @@ export default function DashboardPage() {
 
       {/* ── Row: Transaction History + Top Holdings ── */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <TransactionHistory transactions={transactions} />
+        <TransactionHistory transactions={transactions} viewAllHref="/budget" />
         <TopHoldingsCard
           assets={assetsList}
           liabilities={liabilitiesList}
           assetEmptyText={t("dashboard.no_data_yet")}
           liabilityEmptyText={t("dashboard.no_data_yet")}
+          viewAllHref="/wealth/assets"
         />
       </div>
 
       {/* ── Row: Health Score + Top Debts ── */}
       <div className="grid gap-6 lg:grid-cols-2">
+        <DebtSnapshotCard debts={debtsList} viewAllHref="/wealth/debts" />
         <SmartInsights
           ratios={ratioData}
           healthScore={healthScore}
@@ -631,7 +633,6 @@ export default function DashboardPage() {
           debtStatus={debtStatus}
           overallStatus={overallStatus}
         />
-        <DebtSnapshotCard debts={debtsList} />
       </div>
     </div>
   );

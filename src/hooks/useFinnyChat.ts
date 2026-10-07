@@ -18,8 +18,29 @@ export interface FinnyMessage {
   data?: Record<string, unknown>;
   missingFields?: string[];
   confidence?: string;
+  /** True once its action preview was saved or dismissed — never show again. */
+  handled?: boolean;
   /** Monotonic timestamp used for stable ordering of persisted history. */
   createdAt?: number;
+}
+
+/**
+ * Whether an assistant message should pop its action preview.
+ * Handled messages (already saved/dismissed) never re-trigger —
+ * otherwise every revisit would resurrect the confirmation modal
+ * (and re-saving would duplicate the transaction).
+ */
+export function isActionableMessage(
+  m: FinnyMessage
+): m is FinnyMessage & { action: string; data: Record<string, unknown> } {
+  return (
+    m.role === "assistant" &&
+    !!m.action &&
+    m.action !== "chat" &&
+    m.action !== "clarify" &&
+    !!m.data &&
+    !m.handled
+  );
 }
 
 function generateId(): string {
@@ -112,6 +133,7 @@ function toRow(sessionId: string, m: FinnyMessage): FinnyChatRow {
     data: m.data,
     missingFields: m.missingFields,
     confidence: m.confidence,
+    handled: m.handled ? 1 : 0,
     createdAt: m.createdAt ?? Date.now(),
   };
 }
@@ -125,6 +147,7 @@ function fromRow(r: FinnyChatRow): FinnyMessage {
     data: r.data,
     missingFields: r.missingFields,
     confidence: r.confidence,
+    handled: r.handled === 1,
     createdAt: r.createdAt,
   };
 }

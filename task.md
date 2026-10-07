@@ -196,7 +196,9 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Cross-device live sync: CSP connect-src now allows wss://*.dexie.cloud (live channel was blocked — updates only arrived on login); autosync fallback pulls on tab-focus/reconnect
 - [x] Roomchat session swap fixed: seed effect ignores stale rows from the previous session (selecting A no longer shows B); covered by A→B→A regression test (proven to fail without the guard)
 - [x] Finny session rename (inline edit per session) + AI topic titles: background title call after first turn (max 5 words, user language); manual renames always win (shouldApplyAiTitle guard, tested)
+- [x] Finny room mobile locked: fixed-height flex layout (overflow-hidden) — page never scrolls, only the chat area does; desktop flow unchanged
 - [x] Finny scroll-to-bottom button (appears when scrolled up, smooth scroll); new messages no longer yank readers away from history
+- [x] Finny live FX rates (open.er-api.com, cached 12h server-side, static fallback) injected into chat + scan prompts — verified live: $5 → Rp89.510 @ Rp17.902
 - [x] Finny capabilities: per-request financial snapshot (balances, monthly totals, 20 recent tx, assets, debts, net worth) so it answers totals/history + gives data-based advice; new transfer_pocket action with preview + execution; FX-to-IDR rule for chat + scan receipts
 - [x] Monthly report PDF excludes pocket transfers from income/expense totals, category breakdowns, top-5 and detail table (single filter at entry via isTransferTransaction)
 - [x] Version bump 1.5.0 → 1.6.0
@@ -209,6 +211,12 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Version bump 1.0.0 → 1.5.0 (package.json + lockfile, landing badge, receipt/PDF footers; About modal follows via APP_VERSION)
 - [x] Scan "unreadable" fix: strict raw-JSON-only prompt rule + temperature 0 + balanced-brace multi-candidate parser (scan-parse.ts, tested) + server logging of unparseable output
 - [x] Asset purchase from balance: pocket selector (with balance + insufficient warning) when "beli dari saldo" checked; expense linked to chosen pocket
+- [x] Finny preview resurrection fixed: handled flag on chat messages (saved/dismissed previews never reopen on revisit — also kills duplicate saves); shared isActionableMessage() helper, tested
+- [x] Wealth subpages: /wealth/assets (full lists + add/edit/delete + pagination) and /wealth/debts (full list + modals + payoff simulator); main page slimmed to top-3 view-only + Lihat Semua links (shared WealthLists rows, useWealthData hook, view-only DebtList)
+- [x] Wealth main add-button restored (text-on-primary) + empty-state add buttons per segment; assets page header button fixed to text-on-primary
+- [x] Sidebar wealth dropdown (desktop): expandable Aset & Liabilitas + Utang sublinks with animated reveal, auto-expands on subroutes
+- [x] Dashboard view-all links: transaction history → budget, holdings → wealth/assets, debts → wealth/debts
+- [x] Dashboard restructure: NetWorthCard detail toggle replaced by asset/liability/debt COUNT segments; top-3 pockets strip; bottom rows reordered to history+holdings and health+debts (new TopHoldingsCard, DebtSnapshotCard)
 
 ## Phase 10: Deployment & Final Acceptance Testing
 - [ ] Build a robust suite of validation test scenarios for simulated offline state.

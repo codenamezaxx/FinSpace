@@ -4,6 +4,18 @@ import FinnySheet from "./FinnySheet";
 
 // Mock useFinnyChat
 vi.mock("@/hooks/useFinnyChat", () => ({
+  isActionableMessage: (m: {
+    role: string;
+    action?: string;
+    data?: unknown;
+    handled?: boolean;
+  }) =>
+    m.role === "assistant" &&
+    !!m.action &&
+    m.action !== "chat" &&
+    m.action !== "clarify" &&
+    !!m.data &&
+    !m.handled,
   useFinnyChat: () => ({
     messages: [],
     isLoading: false,
@@ -24,6 +36,11 @@ vi.mock("@/lib/db", () => ({
     pockets: { toArray: vi.fn().mockResolvedValue([]), orderBy: vi.fn().mockReturnThis(), },
     cloud: { syncState: undefined },
   },
+}));
+
+// Mock useFinnyContext (financial snapshot for AI requests)
+vi.mock("@/hooks/useFinnyContext", () => ({
+  useFinnyContext: () => "",
 }));
 
 // Mock usePockets

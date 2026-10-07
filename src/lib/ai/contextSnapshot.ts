@@ -28,6 +28,18 @@ export interface SnapshotItem {
   extra?: string;
 }
 
+export interface SnapshotBudget {
+  needsPct: number;
+  wantsPct: number;
+  savingsPct: number;
+  needsAlloc: number;
+  wantsAlloc: number;
+  savingsAlloc: number;
+  needsSpent: number;
+  wantsSpent: number;
+  savingsDeposits: number;
+}
+
 export interface FinnySnapshot {
   monthLabel: string;
   income: number;
@@ -39,6 +51,7 @@ export interface FinnySnapshot {
   liabilities: SnapshotItem[];
   debts: SnapshotItem[];
   recent: SnapshotTx[];
+  budget: SnapshotBudget;
 }
 
 const MAX_POCKETS = 12;
@@ -101,6 +114,20 @@ export function buildFinnySnapshotText(s: FinnySnapshot): string {
   items("Aset", s.assets);
   items("Liabilitas", s.liabilities);
   items("Utang", s.debts);
+  const b = s.budget;
+  const rem = (alloc: number, spent: number) => Math.max(0, alloc - spent);
+  lines.push(
+    `BLOK BUDGET (persen custom pengguna ${b.needsPct}/${b.wantsPct}/${b.savingsPct} dari pemasukan ${rp(s.income)}):`
+  );
+  lines.push(
+    `- Kebutuhan: alokasi ${rp(b.needsAlloc)}, terpakai ${rp(b.needsSpent)}, sisa ${rp(rem(b.needsAlloc, b.needsSpent))}`
+  );
+  lines.push(
+    `- Keinginan: alokasi ${rp(b.wantsAlloc)}, terpakai ${rp(b.wantsSpent)}, sisa ${rp(rem(b.wantsAlloc, b.wantsSpent))}`
+  );
+  lines.push(
+    `- Tabungan: target ${rp(b.savingsAlloc)}, terkumpul ${rp(b.savingsDeposits)}, kurang ${rp(rem(b.savingsAlloc, b.savingsDeposits))}`
+  );
   if (s.recent.length === 0) {
     lines.push("Transaksi terakhir: -");
   } else {

@@ -1,6 +1,7 @@
 import { google } from "@ai-sdk/google";
 import { streamText } from "ai";
 import { buildSystemPrompt } from "@/lib/ai/prompts";
+import { getFxContext } from "@/lib/ai/fxRates";
 
 export async function POST(req: Request) {
   let language: string | undefined;
@@ -26,12 +27,16 @@ export async function POST(req: Request) {
       pocketNames.length > 0 ? pocketNames : undefined,
       language
     );
+    // Live FX rates (cached 12h server-side; static fallback on failure)
+    const fx = await getFxContext();
     const result = streamText({
       model: google("gemini-2.5-flash"),
       system:
-        typeof context === "string" && context.length > 0
-          ? `${system}\n\n${context}`
-          : system,
+        system +
+        (typeof context === "string" && context.length > 0
+          ? `\n\n${context}`
+          : "") +
+        `\n\n${fx}`,
       messages,
     });
 

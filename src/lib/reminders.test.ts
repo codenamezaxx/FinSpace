@@ -45,16 +45,22 @@ describe("reminders", () => {
   });
 
   it("fired flags are per day and slot", () => {
-    const day = new Date(2026, 9, 4, 15, 0, 0);
+    // Relative to today: fixed historical dates would be pruned as stale
+    const now = new Date();
+    const day = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 15, 0, 0);
+    const otherDay = new Date(day.getTime() - 86400000);
     const slot = { hour: 12, minute: 0 };
     expect(wasFired(day, slot)).toBe(false);
     markFired(day, slot);
     expect(wasFired(day, slot)).toBe(true);
     // different day → not fired
-    expect(wasFired(new Date(2026, 9, 5, 9, 0, 0), slot)).toBe(false);
+    expect(wasFired(otherDay, slot)).toBe(false);
     // different slot → not fired
     expect(wasFired(day, { hour: 17, minute: 0 })).toBe(false);
-    expect(firedKeyFor(day, slot)).toContain("20261004:1200");
+    const pad = (n: number) => String(n).padStart(2, "0");
+    expect(firedKeyFor(day, slot)).toContain(
+      `${day.getFullYear()}${pad(day.getMonth() + 1)}${pad(day.getDate())}:1200`
+    );
   });
 
   it("is enabled by default and toggles persistently", () => {

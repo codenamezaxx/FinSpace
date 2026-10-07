@@ -27,6 +27,17 @@ const BASE: FinnySnapshot = {
       date: "2026-10-04",
     },
   ],
+  budget: {
+    needsPct: 50,
+    wantsPct: 30,
+    savingsPct: 20,
+    needsAlloc: 2500000,
+    wantsAlloc: 1500000,
+    savingsAlloc: 1000000,
+    needsSpent: 1000000,
+    wantsSpent: 500000,
+    savingsDeposits: 250000,
+  },
 };
 
 describe("buildFinnySnapshotText", () => {
@@ -44,6 +55,13 @@ describe("buildFinnySnapshotText", () => {
     const text = buildFinnySnapshotText({ ...BASE, assets: [], recent: [] });
     expect(text).toContain("Aset: -");
     expect(text).toContain("Transaksi terakhir: -");
+  });
+
+  it("renders the budget block with remainders", () => {
+    const text = buildFinnySnapshotText(BASE);
+    expect(text).toContain("BLOK BUDGET");
+    expect(text).toContain("sisa Rp1.500.000");
+    expect(text).toContain("kurang Rp750.000");
   });
 
   it("caps list lengths for token budget", () => {

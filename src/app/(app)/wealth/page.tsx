@@ -1,19 +1,18 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
-import { useLiveQuery, useObservable } from "dexie-react-hooks";
-import { db } from "@/lib/db";
+import { useMemo, useState, useCallback } from "react";
+import Link from "next/link";
 import { NetWorthCard } from "@/components/wealth/NetWorthCard";
 import { AssetAllocation } from "@/components/wealth/AssetAllocation";
-import { PayoffSimulator } from "@/components/wealth/PayoffSimulator";
 import { RatioCard } from "@/components/wealth/RatioCard";
 import { Speedometer } from "@/components/wealth/Speedometer";
 import { DebtForm } from "@/components/wealth/DebtForm";
-import { PayDebtModal } from "@/components/wealth/PayDebtModal";
 import { DebtList } from "@/components/wealth/DebtList";
+import { AssetRow, LiabilityRow } from "@/components/wealth/WealthLists";
 import { useTransactions } from "@/hooks/useTransactions";
-import { calculateNetWorth, formatCurrency } from "@/lib/netWorth";
+import { useWealthData } from "@/hooks/useWealthData";
 import { useAssetLiabilityModal } from "@/lib/asset-liability-modal-context";
+import { calculateNetWorth, formatCurrency } from "@/lib/netWorth";
 import {
   calculateAllRatios,
   calculateHealthScore,
@@ -22,45 +21,37 @@ import {
   getDebtToIncomeStatus,
   scoreToStatus,
 } from "@/lib/financialRatios";
-import { totalMonthlyDebtObligation } from "@/lib/debtUtils";
-import { ConfirmModal } from "@/components/shared/ConfirmModal";
+import { totalMonthlyDebtObligation, remainingAmount } from "@/lib/debtUtils";
 import {
-  Plus,
-  Trash2,
-  Pencil,
+  ArrowRight,
   PiggyBank,
+  Plus,
   Wallet,
   TrendingDown,
-  TrendingUp,
-  Landmark,
-  Package,
-  CreditCard,
   Gauge,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { usePockets } from "@/hooks/usePockets";
-import { usePagination } from "@/hooks/usePagination";
-import { PaginationControls } from "@/components/shared/PaginationControls";
-import type { AssetEntry, LiabilityEntry, DebtEntry } from "@/lib/netWorth";
+import type { DebtEntry } from "@/lib/netWorth";
 import type { HealthStatus } from "@/lib/financialRatios";
 import { useLanguage } from "@/lib/i18n";
+import { db } from "@/lib/db";
 
-const ASSET_META: Record<AssetEntry["type"], { icon: LucideIcon; tint: string; labelKey: string }> = {
-  liquid: { icon: Wallet, tint: "text-primary bg-primary/10", labelKey: "wealth.liquid" },
-  investment: { icon: TrendingUp, tint: "text-success bg-success/10", labelKey: "wealth.investment" },
-  property: { icon: Landmark, tint: "text-accent-secondary bg-accent-secondary/10", labelKey: "wealth.property" },
-  other: { icon: Package, tint: "text-text-muted bg-surface-alt", labelKey: "wealth.other" },
-};
+function ViewAllLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex shrink-0 items-center gap-1 font-mono text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+    >
+      {label}
+      <ArrowRight className="h-3.5 w-3.5" />
+    </Link>
+  );
+}
 
 export default function WealthPage() {
   const { t } = useLanguage();
-  const { openAssetLiabilityModal } = useAssetLiabilityModal();
   const now = new Date();
-  const startOfMonth = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    1
-  ).getTime();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
   const endOfMonth = new Date(
     now.getFullYear(),
     now.getMonth() + 1,
@@ -74,50 +65,44 @@ export default function WealthPage() {
     startTime: startOfMonth,
     endTime: endOfMonth,
   });
-  const { addTransaction } = useTransactions();
-  // 12-month history for the net worth trend (bounded range query)
-  const historyStart = new Date(
-    now.getFullYear(),
-    now.getMonth() - 11,
-    1
-  ).getTime();
-  const { transactions: historyTransactions } = useTransactions({
-    startTime: historyStart,
-    endTime: endOfMonth,
-  });
   const { pockets, totalBalance: pocketTotalBalance } = usePockets();
+  const { assets, liabilities, debts } = useWealthData();
+  const { openAssetLiabilityModal } = useAssetLiabilityModal();
+  const { addTransaction } = useTransactions();
 
   const [showDebtForm, setShowDebtForm] = useState(false);
-  const [payingDebt, setPayingDebt] = useState<DebtEntry | null>(null);
-  const [assetToDelete, setAssetToDelete] = useState<AssetEntry | null>(null);
-  const [liabilityToDelete, setLiabilityToDelete] =
-    useState<LiabilityEntry | null>(null);
-  const [debtToDelete, setDebtToDelete] = useState<DebtEntry | null>(null);
-  const [editingDebt, setEditingDebt] = useState<DebtEntry | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
-  // Force re-render when cloud sync completes (fixes stale data after sync)
-  const syncState = useObservable(db.cloud.syncState);
-  const [syncTick, setSyncTick] = useState(0);
-  useEffect(() => {
-    if (syncState?.phase === "pushing" || syncState?.phase === "pulling") return;
-    setSyncTick((n) => n + 1);
-  }, [syncState?.phase]);
-
-  const assets = useLiveQuery(() => db.assets.toArray(), [syncTick]) ?? [];
-  const liabilities = useLiveQuery(() => db.liabilities.toArray(), [syncTick]) ?? [];
-  const debts = useLiveQuery(() => db.debts.toArray(), [syncTick]) ?? [];
-
-  const assetPager = usePagination(assets.length, 15, assets.length);
-  const liabilityPager = usePagination(liabilities.length, 15, liabilities.length);
-  const pagedAssets = assets.slice(
-    (assetPager.page - 1) * assetPager.pageSize,
-    assetPager.page * assetPager.pageSize
+  const handlePurchase = useCallback(
+    (data: { name: string; amount: number; pocketId?: string }) => {
+      const pocket =
+        pockets.find((p) => p.id === data.pocketId) ??
+        pockets.find((p) => p.name === "Tunai");
+      addTransaction({
+        amount: data.amount,
+        type: "expense",
+        category: "Pembelian",
+        merchant: `Pembelian: ${data.name}`,
+        payment_method: pocket?.name ?? "Tunai",
+        pocketId: pocket?.id ?? null,
+      });
+    },
+    [addTransaction, pockets]
   );
-  const pagedLiabilities = liabilities.slice(
-    (liabilityPager.page - 1) * liabilityPager.pageSize,
-    liabilityPager.page * liabilityPager.pageSize
+
+  const openAddItem = useCallback(
+    (defaultType?: "asset" | "liability") => {
+      openAssetLiabilityModal({
+        defaultType,
+        onPurchase: handlePurchase,
+        currentBalance: pocketTotalBalance,
+      });
+    },
+    [openAssetLiabilityModal, handlePurchase, pocketTotalBalance]
   );
+
+  const handleAddDebt = useCallback(async (debt: DebtEntry) => {
+    await db.debts.put(debt);
+  }, []);
 
   const netWorthData = useMemo(
     () => calculateNetWorth(assets, liabilities, pocketTotalBalance, debts),
@@ -159,128 +144,37 @@ export default function WealthPage() {
     [healthScore]
   );
 
-  const handleAddDebt = useCallback(
-    async (debt: DebtEntry) => {
-      await db.debts.put(debt);
-    },
-    []
+  // Overview shows only the 3 largest of each — full management lives in subpages
+  const topAssets = useMemo(
+    () => [...assets].sort((a, b) => b.amount - a.amount).slice(0, 3),
+    [assets]
   );
-
-  const handlePayDebt = useCallback(
-    async (debtId: string, amount: number, debtName: string) => {
-      const debt = await db.debts.get(debtId);
-      if (debt) {
-        await db.debts.put({
-          ...debt,
-          paidAmount: (debt.paidAmount || 0) + amount,
-        });
-      }
-      addTransaction({
-        amount,
-        type: "expense",
-        category: "Cicilan",
-        merchant: debtName,
-        payment_method: "Tunai",
-      });
-    },
-    [addTransaction]
+  const topLiabilities = useMemo(
+    () => [...liabilities].sort((a, b) => b.amount - a.amount).slice(0, 3),
+    [liabilities]
   );
-
-  const handleDeleteDebt = useCallback(
-    async (debtId: string) => {
-      await db.debts.delete(debtId);
-    },
-    []
-  );
-
-  const handlePurchase = useCallback(
-    (data: { name: string; amount: number; pocketId?: string }) => {
-      const pocket =
-        pockets.find((p) => p.id === data.pocketId) ??
-        pockets.find((p) => p.name === "Tunai");
-      addTransaction({
-        amount: data.amount,
-        type: "expense",
-        category: "Pembelian",
-        merchant: `Pembelian: ${data.name}`,
-        payment_method: pocket?.name ?? "Tunai",
-        pocketId: pocket?.id ?? null,
-      });
-    },
-    [addTransaction, pockets]
-  );
-
-  async function removeAsset(id: string) {
-    await db.assets.delete(id);
-  }
-
-  async function removeLiability(id: string) {
-    await db.liabilities.delete(id);
-  }
-
-  const handleConfirmDeleteAsset = async () => {
-    if (!assetToDelete) return;
-    setDeleting(true);
-    try {
-      await removeAsset(assetToDelete.id);
-      setAssetToDelete(null);
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const handleConfirmDeleteLiability = async () => {
-    if (!liabilityToDelete) return;
-    setDeleting(true);
-    try {
-      await removeLiability(liabilityToDelete.id);
-      setLiabilityToDelete(null);
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const handleConfirmDeleteDebt = async () => {
-    if (!debtToDelete) return;
-    setDeleting(true);
-    try {
-      await handleDeleteDebt(debtToDelete.id);
-      setDebtToDelete(null);
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const openAddItem = useCallback(
-    (defaultType: "asset" | "liability") => {
-      openAssetLiabilityModal({
-        defaultType,
-        onPurchase: handlePurchase,
-        currentBalance: pocketTotalBalance,
-      });
-    },
-    [openAssetLiabilityModal, handlePurchase, pocketTotalBalance]
+  const topDebts = useMemo(
+    () =>
+      [...debts]
+        .sort((a, b) => remainingAmount(a) - remainingAmount(b))
+        .slice(0, 3),
+    [debts]
   );
 
   return (
     <div className="space-y-6 lg:px-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">{t("wealth.title")}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl font-bold text-text-primary">{t("wealth.title")}</h1>
           <p className="mt-2 text-sm text-text-muted">
             {t("wealth.financial_health")}
           </p>
         </div>
         <button
           type="button"
-          onClick={() =>
-            openAssetLiabilityModal({
-              onPurchase: handlePurchase,
-              currentBalance: pocketTotalBalance,
-            })
-          }
-          className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
+          onClick={() => openAddItem()}
+          className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" />
           {t("wealth.add_item")}
@@ -299,207 +193,91 @@ export default function WealthPage() {
       {/* Asset Allocation */}
       <AssetAllocation assets={assets} />
 
-      {/* Assets & Liabilities Lists */}
+      {/* Assets & Liabilities Top 3 */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Assets */}
         <div>
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h3 className="truncate font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
               {t("wealth.total_assets")}
             </h3>
-            <p className="font-mono text-xs text-text-muted">
-              {assets.length} · {formatCurrency(netWorthData.totalAssets)}
-            </p>
+            <ViewAllLink href="/wealth/assets" label={t("wealth.view_all")} />
           </div>
           <div className="space-y-2">
-            {/* Auto: Recorded Balance */}
-            <div className="glass flex items-center justify-between rounded-xl border-l-4 border-l-primary p-3">
-              <div>
-                <p className="text-sm font-medium text-text-primary">
-                  {t("wealth.recorded_balance")}
-                </p>
-                <p className="font-mono text-xs text-text-muted">
-                  {t("wealth.auto_from_transactions")}
-                </p>
-              </div>
-              <span className="font-mono text-sm font-semibold text-success">
-                {formatCurrency(pocketTotalBalance)}
-              </span>
-            </div>
             {assets.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border p-6 text-center">
-                <Wallet className="mx-auto h-8 w-8 text-text-muted" />
-                <p className="mt-2 font-mono text-sm italic text-text-secondary/70">
+              <div>
+                <p className="font-mono text-sm italic text-text-secondary/70">
                   {t("wealth.no_assets_yet")}
                 </p>
                 <button
                   type="button"
                   onClick={() => openAddItem("asset")}
-                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-all duration-200 hover:bg-primary/20 active:scale-[0.98]"
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-all duration-200 hover:bg-primary/20 active:scale-[0.98]"
                 >
                   <Plus className="h-4 w-4" />
                   {t("wealth.add_item")}
                 </button>
               </div>
             ) : (
-              pagedAssets.map((asset) => {
-                const meta = ASSET_META[asset.type] ?? ASSET_META.other;
-                const Icon = meta.icon;
-                return (
-                <div
-                  key={asset.id}
-                  className="glass flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
-                >
-                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${meta.tint}`}>
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-text-primary">
-                      {asset.name}
-                    </p>
-                    <p className="font-mono text-xs text-text-muted">
-                      {t(meta.labelKey)}
-                    </p>
-                  </div>
-                  <span className="shrink-0 font-mono text-sm font-semibold text-text-primary">
-                    {formatCurrency(asset.amount)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => openAssetLiabilityModal({ editItem: asset })}
-                    className="shrink-0 p-1 text-text-muted transition-colors duration-200 hover:text-primary"
-                    aria-label={t("wealth.edit_asset")}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAssetToDelete(asset)}
-                    className="shrink-0 p-1 text-text-muted transition-colors duration-200 hover:text-danger"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-                );
-              })
+              topAssets.map((asset) => <AssetRow key={asset.id} asset={asset} />)
             )}
-            <PaginationControls
-              page={assetPager.page}
-              totalPages={assetPager.totalPages}
-              onPrev={assetPager.prev}
-              onNext={assetPager.next}
-              pageSize={assetPager.pageSize}
-              onPageSizeChange={assetPager.setPageSize}
-            />
           </div>
         </div>
 
         {/* Liabilities */}
         <div>
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h3 className="truncate font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
               {t("wealth.total_liabilities")}
             </h3>
-            <p className="font-mono text-xs text-text-muted">
-              {liabilities.length} · {formatCurrency(netWorthData.totalLiabilities)}
-            </p>
+            <ViewAllLink href="/wealth/assets" label={t("wealth.view_all")} />
           </div>
-          {liabilities.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border p-6 text-center">
-              <CreditCard className="mx-auto h-8 w-8 text-text-muted" />
-              <p className="mt-2 font-mono text-sm italic text-text-secondary/70">
-                {t("wealth.no_liabilities_yet")}
-              </p>
-              <button
-                type="button"
-                onClick={() => openAddItem("liability")}
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-all duration-200 hover:bg-primary/20 active:scale-[0.98]"
-              >
-                <Plus className="h-4 w-4" />
-                {t("wealth.add_item")}
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {pagedLiabilities.map((liability) => (
-                <div
-                  key={liability.id}
-                  className="glass flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
+          <div className="space-y-2">
+            {liabilities.length === 0 ? (
+              <div>
+                <p className="font-mono text-sm italic text-text-secondary/70">
+                  {t("wealth.no_liabilities_yet")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => openAddItem("liability")}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-all duration-200 hover:bg-primary/20 active:scale-[0.98]"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-danger/10 text-danger">
-                    <CreditCard className="h-4 w-4" />
-                  </span>
-                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
-                    {liability.name}
-                  </p>
-                  <span className="shrink-0 font-mono text-sm font-semibold text-text-primary">
-                    {formatCurrency(liability.amount)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => openAssetLiabilityModal({ editItem: liability })}
-                    className="shrink-0 p-1 text-text-muted transition-colors duration-200 hover:text-primary"
-                    aria-label={t("wealth.edit_liability")}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLiabilityToDelete(liability)}
-                    className="shrink-0 p-1 text-text-muted transition-colors duration-200 hover:text-danger"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-              <PaginationControls
-                page={liabilityPager.page}
-                totalPages={liabilityPager.totalPages}
-                onPrev={liabilityPager.prev}
-                onNext={liabilityPager.next}
-                pageSize={liabilityPager.pageSize}
-                onPageSizeChange={liabilityPager.setPageSize}
-              />
-            </div>
-          )}
+                  <Plus className="h-4 w-4" />
+                  {t("wealth.add_item")}
+                </button>
+              </div>
+            ) : (
+              topLiabilities.map((liability) => (
+                <LiabilityRow key={liability.id} liability={liability} />
+              ))
+            )}
+          </div>
         </div>
       </div>
 
-      {/* ── Debts ── */}
+      {/* Debts Top 3 */}
       <div>
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <h3 className="font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h3 className="truncate font-mono text-xs font-semibold uppercase tracking-wide text-text-muted">
               {t("wealth.total_debts")}
             </h3>
             <p className="mt-0.5 font-mono text-xs text-text-muted">
               {debts.length} · {formatCurrency(netWorthData.totalDebts)}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowDebtForm(true)}
-            className="flex items-center gap-2 rounded-lg bg-primary/10 px-5 py-3 text-sm font-semibold text-primary shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            {t("wealth.add_debt")}
-          </button>
+          <ViewAllLink href="/wealth/debts" label={t("wealth.view_all")} />
         </div>
-        <DebtList
-          debts={debts}
-          onPay={(debt) => setPayingDebt(debt)}
-          onAdd={() => setShowDebtForm(true)}
-          onEdit={(debt) => setEditingDebt(debt)}
-          onDelete={(id) => {
-            const debt = debts.find((d) => d.id === id);
-            if (debt) setDebtToDelete(debt);
-          }}
-        />
+        <DebtList debts={topDebts} onAdd={() => setShowDebtForm(true)} />
       </div>
 
-      {/* Payoff Simulator */}
-      <PayoffSimulator debts={debts} />
-      
+      <DebtForm
+        isOpen={showDebtForm}
+        onClose={() => setShowDebtForm(false)}
+        onSave={handleAddDebt}
+      />
+
       {/* Financial Health Ratios */}
       <div>
         <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-text-primary">
@@ -542,50 +320,6 @@ export default function WealthPage() {
           status={overallStatus}
         />
       </div>
-
-
-      {/* Modals */}
-      <DebtForm
-        isOpen={showDebtForm || !!editingDebt}
-        onClose={() => { setShowDebtForm(false); setEditingDebt(null); }}
-        onSave={handleAddDebt}
-        initialDebt={editingDebt ?? undefined}
-      />
-      <PayDebtModal
-        isOpen={!!payingDebt}
-        debt={payingDebt}
-        onClose={() => setPayingDebt(null)}
-        onPay={handlePayDebt}
-      />
-
-      {/* Delete Confirmation Modals */}
-      <ConfirmModal
-        isOpen={!!assetToDelete}
-        onClose={() => setAssetToDelete(null)}
-        onConfirm={handleConfirmDeleteAsset}
-        title={t("confirm.delete_asset")}
-        message={t("confirm.delete_message", { item: assetToDelete?.name ?? "" })}
-        confirmLabel={t("confirm.confirm")}
-        isLoading={deleting}
-      />
-      <ConfirmModal
-        isOpen={!!liabilityToDelete}
-        onClose={() => setLiabilityToDelete(null)}
-        onConfirm={handleConfirmDeleteLiability}
-        title={t("confirm.delete_liability")}
-        message={t("confirm.delete_message", { item: liabilityToDelete?.name ?? "" })}
-        confirmLabel={t("confirm.confirm")}
-        isLoading={deleting}
-      />
-      <ConfirmModal
-        isOpen={!!debtToDelete}
-        onClose={() => setDebtToDelete(null)}
-        onConfirm={handleConfirmDeleteDebt}
-        title={t("confirm.delete_debt")}
-        message={t("confirm.delete_message", { item: debtToDelete?.name ?? "" })}
-        confirmLabel={t("confirm.confirm")}
-        isLoading={deleting}
-      />
     </div>
   );
 }

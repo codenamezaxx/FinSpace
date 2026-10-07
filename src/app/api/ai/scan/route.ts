@@ -2,6 +2,7 @@ import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
 import { buildScanPrompt } from "@/lib/ai/scan-prompt";
 import { parseScanResponse } from "@/lib/ai/scan-parse";
+import { getFxContext } from "@/lib/ai/fxRates";
 
 // Vision calls can take a while — allow up to 60s where the platform permits.
 export const maxDuration = 60;
@@ -45,11 +46,14 @@ export async function POST(req: Request) {
       ? pockets.map((p: { name?: string }) => p.name ?? "").filter(Boolean)
       : [];
 
+    const fx = await getFxContext();
     const result = await generateText({
       model: google("gemini-2.5-flash"),
       // Deterministic output: same receipt → same JSON, less prose drift
       temperature: 0,
-      system: buildScanPrompt(pocketNames.length > 0 ? pocketNames : undefined, language),
+      system:
+        buildScanPrompt(pocketNames.length > 0 ? pocketNames : undefined, language) +
+        `\n\n${fx}`,
       messages: [
         {
           role: "user",

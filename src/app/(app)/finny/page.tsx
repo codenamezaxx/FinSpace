@@ -13,12 +13,11 @@ import {
   X,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
-import { useFinnyChat, type PocketInfo } from "@/hooks/useFinnyChat";
+import { useFinnyChat, isActionableMessage, type PocketInfo } from "@/hooks/useFinnyChat";
 import { useFinnySave } from "@/hooks/useFinnySave";
 import { useFinnyContext } from "@/hooks/useFinnyContext";
 import { usePockets } from "@/hooks/usePockets";
 import FinnyChatArea from "@/components/ai/FinnyChatArea";
-import type { FinnyMessage } from "@/components/ai/FinnyChatArea";
 import FinnyInput from "@/components/ai/FinnyInput";
 import TransactionPreview from "@/components/ai/TransactionPreview";
 import ScanResultModal from "@/components/ai/ScanResultModal";
@@ -164,17 +163,20 @@ export default function FinnyRoomPage() {
     setShowPreview(false);
   }, [effectiveId]);
 
-  // Find the last AI message with actionable data
-  const lastParsedMsg = [...messages]
-    .reverse()
-    .find(
-      (m): m is FinnyMessage & { action: string; data: Record<string, unknown> } =>
-        m.role === "assistant" &&
-        !!m.action &&
-        m.action !== "chat" &&
-        m.action !== "clarify" &&
-        !!m.data
-    );
+  // Find the last AI message with actionable data (skipping handled ones)
+  const lastParsedMsg = [...messages].reverse().find(isActionableMessage);
+
+  // Mark an action message handled (saved or dismissed) so its preview
+  // never resurrects on revisit — re-saving would duplicate the item.
+  const markHandled = useCallback(async (id: string) => {
+    try {
+      const { db } = await import("@/lib/db");
+      await db.finny_messages.update(id, { handled: 1 });
+      setShowPreview(false);
+    } catch {
+      setShowPreview(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (lastParsedMsg) setShowPreview(true);
@@ -184,13 +186,19 @@ export default function FinnyRoomPage() {
     async (action: string, data: Record<string, unknown>) => {
       try {
         await saveData(action, data);
-        setShowPreview(false);
+        if (lastParsedMsg) await markHandled(lastParsedMsg.id);
+        else setShowPreview(false);
       } catch (err) {
         console.error("Save error:", err);
       }
     },
-    [saveData]
+    [saveData, lastParsedMsg, markHandled]
   );
+
+  const handleCancelPreview = useCallback(() => {
+    if (lastParsedMsg) void markHandled(lastParsedMsg.id);
+    else setShowPreview(false);
+  }, [lastParsedMsg, markHandled]);
 
   const handleNewChat = useCallback(() => {
     setSelectedId(null);
@@ -302,9 +310,9 @@ export default function FinnyRoomPage() {
   );
 
   return (
-    <div className="space-y-4 lg:px-4">
+    <div className="flex h-[calc(100dvh-12rem)] flex-col gap-4 overflow-hidden lg:h-auto lg:overflow-visible lg:px-4">
       {/* Header */}
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <button
           type="button"
           onClick={() => setListOpen(true)}
@@ -322,7 +330,7 @@ export default function FinnyRoomPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
         {/* Session list — desktop static */}
         <aside className="hidden min-h-0 rounded-2xl border border-border bg-surface-alt p-3 lg:block lg:h-[calc(100dvh-11rem)]">
           {sessionList}
@@ -365,8 +373,8 @@ export default function FinnyRoomPage() {
             document.body
           )}
 
-        {/* Chat column */}
-        <div className="flex h-[calc(100dvh-13rem)] min-h-[60dvh] min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-surface-alt lg:h-[calc(100dvh-11rem)]">
+        {/* Chat column — fills the fixed room height on mobile */}
+        <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-surface-alt lg:h-[calc(100dvh-11rem)]">
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <FinnyChatArea messages={messages} isLoading={isLoading} />
             {showPreview && lastParsedMsg && (
@@ -376,7 +384,7 @@ export default function FinnyRoomPage() {
                   data={lastParsedMsg.data}
                   pockets={pocketInfo}
                   onSave={handleSave}
-                  onCancel={() => setShowPreview(false)}
+                  onCancel={handleCancelPreview}
                 />
               </div>
             )}

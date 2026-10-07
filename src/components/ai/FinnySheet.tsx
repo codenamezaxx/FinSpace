@@ -3,14 +3,13 @@
 import React, { useState, useCallback, useMemo, useEffect, type FC } from "react";
 import { Bot, X, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
-import { useFinnyChat, type PocketInfo } from "@/hooks/useFinnyChat";
+import { useFinnyChat, isActionableMessage, type PocketInfo } from "@/hooks/useFinnyChat";
 import { useFinnySave } from "@/hooks/useFinnySave";
 import { useFinnyContext } from "@/hooks/useFinnyContext";
 import { usePockets } from "@/hooks/usePockets";
 import FinnyChatArea from "./FinnyChatArea";
 import FinnyInput from "./FinnyInput";
 import TransactionPreview from "./TransactionPreview";
-import type { FinnyMessage } from "./FinnyChatArea";
 
 interface FinnySheetProps {
   isOpen: boolean;
@@ -58,34 +57,39 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
     [sendMessage, pocketInfo, lang, finnyContext]
   );
 
-  // Find the last AI message with transaction data
-  const lastParsedMsg = [...messages]
-    .reverse()
-    .find(
-      (m): m is FinnyMessage & { action: string; data: Record<string, unknown> } =>
-        m.role === "assistant" &&
-        !!m.action &&
-        m.action !== "chat" &&
-        m.action !== "clarify" &&
-        !!m.data
-    );
+  // Find the last AI message with transaction data (skipping handled ones)
+  const lastParsedMsg = [...messages].reverse().find(isActionableMessage);
+
+  // Mark an action message handled (saved or dismissed) so its preview
+  // never resurrects on revisit — re-saving would duplicate the item.
+  const markHandled = useCallback(async (id: string) => {
+    try {
+      const { db } = await import("@/lib/db");
+      await db.finny_messages.update(id, { handled: 1 });
+      setShowPreview(false);
+    } catch {
+      setShowPreview(false);
+    }
+  }, []);
 
   const handleSave = useCallback(
     async (action: string, data: Record<string, unknown>) => {
       try {
         await saveData(action, data);
-        setShowPreview(false);
+        if (lastParsedMsg) await markHandled(lastParsedMsg.id);
+        else setShowPreview(false);
         onClose();
       } catch (err) {
         console.error("Save error:", err);
       }
     },
-    [saveData, onClose]
+    [saveData, onClose, lastParsedMsg, markHandled]
   );
 
   const handleCancel = useCallback(() => {
-    setShowPreview(false);
-  }, []);
+    if (lastParsedMsg) void markHandled(lastParsedMsg.id);
+    else setShowPreview(false);
+  }, [lastParsedMsg, markHandled]);
 
   // Show preview when a parsed message arrives
   React.useEffect(() => {

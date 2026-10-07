@@ -1,6 +1,7 @@
 "use client";
 
-import { Trophy } from "lucide-react";
+import Link from "next/link";
+import { Trophy, ArrowRight } from "lucide-react";
 import { formatCurrency } from "@/lib/netWorth";
 import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
 import { useLanguage } from "@/lib/i18n";
@@ -10,6 +11,7 @@ interface TopHoldingsCardProps {
   liabilities: LiabilityEntry[];
   assetEmptyText?: string;
   liabilityEmptyText?: string;
+  viewAllHref?: string;
 }
 
 function TopList({
@@ -59,6 +61,7 @@ export function TopHoldingsCard({
   liabilities,
   assetEmptyText,
   liabilityEmptyText,
+  viewAllHref,
 }: TopHoldingsCardProps) {
   const { t } = useLanguage();
   const topAssets = [...assets].sort((a, b) => b.amount - a.amount).slice(0, 5);
@@ -73,6 +76,15 @@ export function TopHoldingsCard({
         <h2 className="truncate text-sm font-semibold text-text-primary">
           {t("dashboard.top_holdings")}
         </h2>
+        {viewAllHref && (
+          <Link
+            href={viewAllHref}
+            className="ml-auto inline-flex shrink-0 items-center gap-0.5 text-[11px] font-semibold text-primary transition-colors hover:text-primary-hover"
+          >
+            {t("wealth.view_all")}
+            <ArrowRight className="h-3 w-3" />
+          </Link>
+        )}
       </div>
       <div className="grid grid-row-2 gap-5 sm:gap-4">
         <TopList

@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   Bot,
   Camera,
+  ChevronDown,
   Info,
   LayoutDashboard,
   Wallet,
@@ -38,6 +39,20 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
     { href: "/wealth", label: t("nav.wealth"), icon: TrendingUp },
     { href: "/tools", label: t("nav.tools"), icon: Wrench },
   ], [t]);
+
+  // ─── Wealth subpages (desktop dropdown) ───
+  const wealthSubItems = useMemo(() => [
+    { href: "/wealth/assets", label: t("wealth.assets_page_title") },
+    { href: "/wealth/debts", label: t("wealth.debts_page_title") },
+  ], [t]);
+  // Starts closed on first paint (SSR-safe); the effect below opens it
+  // immediately on mount when already on a wealth route.
+  const [wealthOpen, setWealthOpen] = useState(false);
+
+  // Auto-expand when navigating to a wealth subpage
+  useEffect(() => {
+    if (pathname.startsWith("/wealth")) setWealthOpen(true);
+  }, [pathname]);
 
   // ─── Mobile indicator logic ───
   const navRef = useRef<HTMLDivElement>(null);
@@ -192,6 +207,89 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             const Icon = item.icon;
+            // Wealth gets an expandable subpage dropdown (desktop only)
+            if (item.href === "/wealth") {
+              return (
+                <div key={item.href}>
+                  <div
+                    className={`flex items-center rounded-lg text-xs font-medium transition-all duration-200 ${
+                      isCollapsed
+                        ? "justify-center px-0 py-3"
+                        : "gap-1 py-3 pl-4 pr-2"
+                    } ${
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-text-muted hover:bg-surface hover:text-text-secondary"
+                    }`}
+                    title={isCollapsed ? item.label : undefined}
+                  >
+                    <Link
+                      href={item.href}
+                      className="flex min-w-0 flex-1 items-center gap-3"
+                    >
+                      <Icon
+                        className={`h-5 w-5 shrink-0 ${
+                          isActive ? "text-primary" : "text-text-muted"
+                        }`}
+                      />
+                      <span
+                        className={`truncate overflow-hidden transition-all duration-300 ${
+                          isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                        }`}
+                      >
+                        {item.label}
+                      </span>
+                    </Link>
+                    {!isCollapsed && (
+                      <button
+                        type="button"
+                        onClick={() => setWealthOpen((o) => !o)}
+                        aria-expanded={wealthOpen}
+                        aria-label={item.label}
+                        className="shrink-0 rounded-md p-1.5 text-text-muted transition-colors hover:bg-surface-alt hover:text-text-primary"
+                      >
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform duration-300 ${
+                            wealthOpen ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+                    )}
+                  </div>
+                  {!isCollapsed && (
+                    <div
+                      className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+                      style={{
+                        gridTemplateRows: wealthOpen ? "1fr" : "0fr",
+                      }}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="ml-6 mt-1 space-y-1 border-l border-border pl-3">
+                          {wealthSubItems.map((sub) => {
+                            const subActive =
+                              pathname === sub.href ||
+                              pathname.startsWith(sub.href + "/");
+                            return (
+                              <Link
+                                key={sub.href}
+                                href={sub.href}
+                                className={`block truncate rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                                  subActive
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-text-muted hover:bg-surface hover:text-text-secondary"
+                                }`}
+                              >
+                                {sub.label}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            }
             return (
               <Link
                 key={item.href}
