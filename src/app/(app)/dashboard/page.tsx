@@ -10,12 +10,15 @@ import {
   Plus,
   Banknote,
   Bot,
+  Wallet,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { SmartInsights } from "@/components/dashboard/SmartInsights";
 import { MobileCardSwitcher } from "@/components/dashboard/MobileCardSwitcher";
 import { TransactionHistory } from "@/components/dashboard/TransactionHistory";
+import { TopHoldingsCard } from "@/components/dashboard/TopHoldingsCard";
+import { DebtSnapshotCard } from "@/components/dashboard/DebtSnapshotCard";
 import { NetWorthCard } from "@/components/wealth/NetWorthCard";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionModal } from "@/lib/transaction-modal-context";
@@ -226,7 +229,28 @@ export default function DashboardPage() {
   const assetsList = useLiveQuery(() => db.assets.toArray(), []) ?? [];
   const liabilitiesList = useLiveQuery(() => db.liabilities.toArray(), []) ?? [];
   const debtsList = useLiveQuery(() => db.debts.toArray(), []) ?? [];
-  const { totalBalance: pocketTotalBalance } = usePockets();
+  const {
+    pockets,
+    balances,
+    totalBalance: pocketTotalBalance,
+  } = usePockets();
+
+  /* ── Top 3 pockets by balance ── */
+  const topPockets = useMemo(() => {
+    const list = pockets ?? [];
+    return [...list]
+      .sort((a, b) => (balances[b.id] ?? 0) - (balances[a.id] ?? 0))
+      .slice(0, 3);
+  }, [pockets, balances]);
+
+  const netWorthCounts = useMemo(
+    () => ({
+      assets: assetsList.length,
+      liabilities: liabilitiesList.length,
+      debts: debtsList.length,
+    }),
+    [assetsList, liabilitiesList, debtsList]
+  );
 
   /* ── Derived values ── */
   const liquidAssets = useMemo(
@@ -379,10 +403,15 @@ export default function DashboardPage() {
               }}
             >
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-                {t("dashboard.total_balance")}
+                {t("dashboard.total_balance")} &nbsp;-&nbsp;
+                {now.toLocaleDateString(lang === "id" ? "id-ID" : "en-US", {
+                  day: "numeric",
+                  month: "numeric",
+                  year: "numeric",
+                })}
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-                <p className="min-w-0 break-words text-2xl font-bold text-text-primary sm:text-3xl">
+                <p className="min-w-0 wrap-break-word text-2xl font-bold text-text-primary sm:text-3xl">
                   {formatCurrency(Math.abs(balance))}
                 </p>
                 <div
@@ -430,6 +459,7 @@ export default function DashboardPage() {
               totalLiabilities={netWorthData.totalLiabilities}
               totalDebts={netWorthData.totalDebts}
               netWorth={netWorthData.netWorth}
+            counts={netWorthCounts}
               collapsible
               className="border-0 border-b-8 border-accent-secondary"
               style={{
@@ -501,6 +531,7 @@ export default function DashboardPage() {
           totalLiabilities={netWorthData.totalLiabilities}
           totalDebts={netWorthData.totalDebts}
           netWorth={netWorthData.netWorth}
+          counts={netWorthCounts}
           className="border-l-8 border-l-accent-secondary"
           collapsible
           style={{
@@ -508,6 +539,39 @@ export default function DashboardPage() {
               }}
         />
       </div>
+
+      {/* ── Top Pockets ── */}
+      {topPockets.length > 0 && (
+        <div className="glass min-w-0 rounded-2xl p-4 lg:p-5">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="flex min-w-0 items-center gap-2 truncate text-sm font-semibold text-text-primary">
+              <Wallet className="h-5 w-5 shrink-0 text-primary" />
+              {t("dashboard.top_pockets")}
+            </h2>
+            <Link
+              href="/budget"
+              className="shrink-0 font-mono text-xs font-medium text-primary transition-colors hover:text-text-primary"
+            >
+              {t("dashboard.see_all")} →
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            {topPockets.map((p) => (
+              <div
+                key={p.id}
+                className="min-w-0 rounded-xl border border-border/60 bg-surface-alt/40 px-2 py-3 text-center sm:px-3"
+              >
+                <p className="truncate text-xs font-medium text-text-secondary">
+                  {p.name}
+                </p>
+                <p className="mt-1 truncate font-mono text-xs font-bold text-text-primary sm:text-sm">
+                  {formatCurrency(balances[p.id] ?? 0)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Quick Actions ── */}
       <div className="glass rounded-2xl p-4 lg:p-5">
@@ -546,7 +610,18 @@ export default function DashboardPage() {
         debts={debtsList}
       />
 
-      {/* ── Bottom: Smart Insights + Transaction History ── */}
+      {/* ── Row: Transaction History + Top Holdings ── */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <TransactionHistory transactions={transactions} />
+        <TopHoldingsCard
+          assets={assetsList}
+          liabilities={liabilitiesList}
+          assetEmptyText={t("dashboard.no_data_yet")}
+          liabilityEmptyText={t("dashboard.no_data_yet")}
+        />
+      </div>
+
+      {/* ── Row: Health Score + Top Debts ── */}
       <div className="grid gap-6 lg:grid-cols-2">
         <SmartInsights
           ratios={ratioData}
@@ -556,7 +631,7 @@ export default function DashboardPage() {
           debtStatus={debtStatus}
           overallStatus={overallStatus}
         />
-        <TransactionHistory transactions={transactions} />
+        <DebtSnapshotCard debts={debtsList} />
       </div>
     </div>
   );
