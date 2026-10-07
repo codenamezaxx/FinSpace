@@ -225,7 +225,9 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
                   >
                     <Link
                       href={item.href}
-                      className="flex min-w-0 flex-1 items-center gap-3"
+                      className={`flex min-w-0 items-center ${
+                        isCollapsed ? "justify-center" : "flex-1 gap-3"
+                      }`}
                     >
                       <Icon
                         className={`h-5 w-5 shrink-0 ${
