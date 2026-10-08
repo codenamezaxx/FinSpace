@@ -16,7 +16,7 @@ interface PocketCardProps {
   onTransfer: () => void;
 }
 
-const CATEGORY_CONFIG: Record<Pocket["category"], { icon: typeof Wallet; tint: string; bg: string }> = {
+export const CATEGORY_CONFIG: Record<Pocket["category"], { icon: typeof Wallet; tint: string; bg: string }> = {
   tunai: { icon: Wallet, tint: "text-accent", bg: "bg-accent/10" },
   ewallet: { icon: CreditCard, tint: "text-primary", bg: "bg-primary/10" },
   rekening: { icon: Landmark, tint: "text-accent-secondary", bg: "bg-accent-secondary/10" },

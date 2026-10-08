@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState, Suspense, useEffect, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
-import { Plus, Settings } from "lucide-react";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { Plus, Settings, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { TransactionList } from "@/components/shared/TransactionList";
 import { BudgetRing } from "@/components/budget/BudgetRing";
+import { CATEGORY_CONFIG } from "@/components/budget/PocketCard";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionModal } from "@/lib/transaction-modal-context";
 import {
@@ -14,37 +15,32 @@ import {
   getBudgetCategory,
 } from "@/lib/budgetRules";
 import { usePockets } from "@/hooks/usePockets";
-import { PocketGrid } from "@/components/budget/PocketGrid";
-import { PocketFormModal } from "@/components/budget/PocketFormModal";
-import type { Pocket } from "@/lib/pocket";
-import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
-import { TransferModal } from "@/components/budget/TransferModal";
 import { BudgetSettingsModal } from "@/components/budget/BudgetSettingsModal";
+import { formatCurrency } from "@/lib/netWorth";
 
-function BudgetPageInner() {
+function ViewAllLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex shrink-0 items-center gap-1 font-mono text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+    >
+      {label}
+      <ArrowRight className="h-3.5 w-3.5" />
+    </Link>
+  );
+}
+
+export default function BudgetPage() {
   const { t } = useLanguage();
   const { openAddTransaction } = useTransactionModal();
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
   const { transactions } = useTransactions({ startTime: startOfMonth });
+  const { pockets, balances } = usePockets();
 
-  const {
-    pockets, balances, totalBalance: pocketBalance,
-    addPocket, renamePocket, deletePocket,
-    pocketFilter, setPocketFilter,
-    transferBetweenPockets,
-  } = usePockets();
-
-  const [showPocketForm, setShowPocketForm] = useState(false);
-  const [editingPocket, setEditingPocket] = useState<Pocket | null>(null);
-  const [pocketToDelete, setPocketToDelete] = useState<Pocket | null>(null);
-  const [showTransfer, setShowTransfer] = useState(false);
-  const [transferFrom, setTransferFrom] = useState<Pocket | null>(null);
   const [showBudgetSettings, setShowBudgetSettings] = useState(false);
   const [customAllocation, setCustomAllocation] = useState<{ needs: number; wants: number; savings: number } | null>(null);
-  const searchParams = useSearchParams();
-  const searchQuery = searchParams.get("q") || undefined;
 
   // Load custom allocation from localStorage
   useEffect(() => {
@@ -113,14 +109,6 @@ function BudgetPageInner() {
   const savingsStatus = checkBudgetStatus(savingsDeposits, allocation.savings);
   const savingsComplete = allocation.savings > 0 && savingsDeposits >= allocation.savings;
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-
   return (
     <div className="space-y-8 lg:px-4">
       {/* Header */}
@@ -157,7 +145,7 @@ function BudgetPageInner() {
 
       {/* 50/30/20 Budget Overview */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {/* Needs (50%) */}
+        {/* Needs */}
         <div className="glass min-w-0 rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={needsStatus.percentage}
@@ -172,7 +160,7 @@ function BudgetPageInner() {
           />
         </div>
 
-        {/* Wants (30%) */}
+        {/* Wants */}
         <div className="glass min-w-0 rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={wantsStatus.percentage}
@@ -187,7 +175,7 @@ function BudgetPageInner() {
           />
         </div>
 
-        {/* Savings (20%) */}
+        {/* Savings */}
         <div className="glass min-w-0 rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={savingsStatus.percentage}
@@ -204,98 +192,59 @@ function BudgetPageInner() {
         </div>
       </div>
 
-      {/* Pocket Cards */}
-      <PocketGrid
-        pockets={pockets}
-        balances={balances}
-        selectedId={pocketFilter}
-        onSelect={setPocketFilter}
-        onAdd={() => setShowPocketForm(true)}
-        onRename={(p) => setEditingPocket(p)}
-        onDelete={(p) => setPocketToDelete(p)}
-        onTransfer={(p) => {
-          if (p) setTransferFrom(p); else setShowTransfer(true);
-        }}
-      />
-
-      {/* Transaction List */}
+      {/* Pockets — balances only, management lives in the subpage */}
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-primary">
-          {t("budget.recent_transactions")}
-        </h2>
-        <TransactionList pocketFilter={pocketFilter} pockets={pockets} searchQuery={searchQuery} />
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <h2 className="truncate text-lg font-semibold text-primary">
+            {t("budget.pockets_title")}
+          </h2>
+          <ViewAllLink href="/budget/pockets" label={t("budget.manage_pockets")} />
+        </div>
+        {pockets.length === 0 ? (
+          <p className="font-mono text-sm italic text-text-secondary/70">
+            {t("budget.no_pockets")}
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {pockets.map((p) => {
+              const config = CATEGORY_CONFIG[p.category] ?? CATEGORY_CONFIG.tunai;
+              const Icon = config.icon;
+              return (
+                <div
+                  key={p.id}
+                  className="flex min-w-0 items-center gap-2.5 rounded-2xl border border-border/60 bg-surface-alt/40 px-3 py-3 sm:px-4"
+                >
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${config.bg}`}>
+                    <Icon className={`h-4 w-4 ${config.tint}`} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-medium text-text-secondary sm:text-sm">
+                      {p.name}
+                    </p>
+                    <p className="mt-0.5 truncate font-mono text-sm font-bold text-text-primary sm:text-base">
+                      {formatCurrency(balances[p.id] ?? 0)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-
-      <PocketFormModal
-        isOpen={showPocketForm}
-        onClose={() => setShowPocketForm(false)}
-        onSave={async (name, category, initialBalance) => {
-          const pocketId = await addPocket(name, category);
-          if (initialBalance && initialBalance > 0) {
-            const { db } = await import("@/lib/db");
-            await db.transactions.add({
-              id: `trn_${Date.now()}`,
-              type: "income",
-              amount: initialBalance,
-              category: "Lainnya",
-              merchant: `Saldo awal ${name}`,
-              payment_method: "Lainnya",
-              pocketId,
-              timestamp: Date.now(),
-            });
-          }
-        }}
-        title={t("budget.add_pocket")}
-      />
-      <PocketFormModal
-        isOpen={!!editingPocket}
-        onClose={() => setEditingPocket(null)}
-        onSave={(name) => { if (editingPocket) renamePocket(editingPocket.id, name); }}
-        initialName={editingPocket?.name}
-        title={t("budget.rename_pocket")}
-      />
-
-      {/* Delete Pocket Confirmation */}
-      <ResponsiveModal
-        isOpen={!!pocketToDelete}
-        onClose={() => setPocketToDelete(null)}
-        title={t("budget.delete_pocket_title")}
-      >
-        <p className="text-sm text-text-secondary mb-4">
-          {t("budget.delete_pocket_message", { name: pocketToDelete?.name ?? "" })}
-        </p>
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => setPocketToDelete(null)}
-            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-alt transition-colors"
-          >
-            {t("common.cancel")}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (pocketToDelete) {
-                deletePocket(pocketToDelete.id);
-                setPocketToDelete(null);
-              }
-            }}
-            className="rounded-lg bg-danger px-4 py-2 text-sm font-semibold text-white hover:bg-danger/90 transition-colors"
-          >
-            {t("common.delete")}
-          </button>
+      {/* Recent Transactions (latest 10, view-only) */}
+      <div>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <h2 className="truncate text-lg font-semibold text-primary">
+            {t("budget.recent_transactions")}
+          </h2>
+          <ViewAllLink
+            href="/budget/transactions"
+            label={t("budget.view_all_transactions")}
+          />
         </div>
-      </ResponsiveModal>
-
-      <TransferModal
-        isOpen={showTransfer || !!transferFrom}
-        onClose={() => { setShowTransfer(false); setTransferFrom(null); }}
-        pockets={pockets}
-        balances={balances}
-        preSelectedFrom={transferFrom?.id}
-        onTransfer={transferBetweenPockets}
-      />
+        <TransactionList pockets={pockets} compact limit={10} />
+      </div>
 
       <BudgetSettingsModal
         isOpen={showBudgetSettings}
@@ -307,12 +256,3 @@ function BudgetPageInner() {
     </div>
   );
 }
-
-export default function BudgetPage() {
-  return (
-    <Suspense fallback={null}>
-      <BudgetPageInner />
-    </Suspense>
-  );
-}
-
