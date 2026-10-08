@@ -8,7 +8,7 @@ import { useFinnySave } from "@/hooks/useFinnySave";
 import { useFinnyContext } from "@/hooks/useFinnyContext";
 import { usePockets } from "@/hooks/usePockets";
 import FinnyChatArea from "./FinnyChatArea";
-import FinnyInput from "./FinnyInput";
+import FinnyInput, { type FinnyInputHandle } from "./FinnyInput";
 import TransactionPreview from "./TransactionPreview";
 
 interface FinnySheetProps {
@@ -21,8 +21,23 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
   const { lang, t } = useLanguage();
   // persist: true — every floating chat is saved as a resumable session.
   // A fresh session starts each time the sheet opens (see effect below).
-  const { messages, isLoading, isOffline, sendMessage, startNewSession } =
-    useFinnyChat({ persist: true });
+  const {
+    messages,
+    isLoading,
+    isOffline,
+    sendMessage,
+    startNewSession,
+    unsendMessage,
+  } = useFinnyChat({ persist: true });
+  const inputRef = React.useRef<FinnyInputHandle>(null);
+
+  const handleUnsend = useCallback(
+    async (id: string) => {
+      const text = await unsendMessage(id);
+      if (text != null) inputRef.current?.insertText(text);
+    },
+    [unsendMessage]
+  );
   const {
     pockets: pocketEnts,
     addPocket,
@@ -147,7 +162,11 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
 
         {/* Chat Area */}
         <div className="flex-1 overflow-hidden flex flex-col">
-          <FinnyChatArea messages={messages} isLoading={isLoading} />
+          <FinnyChatArea
+            messages={messages}
+            isLoading={isLoading}
+            onUnsend={handleUnsend}
+          />
 
           {/* Transaction Preview */}
           {showPreview && lastParsedMsg && (
@@ -165,6 +184,7 @@ const FinnySheet: FC<FinnySheetProps> = ({ isOpen, onClose, onScan }) => {
 
         {/* Input */}
         <FinnyInput
+          ref={inputRef}
           onSend={handleSend}
           isLoading={isLoading}
           isOffline={isOffline}

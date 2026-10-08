@@ -111,7 +111,7 @@ html {
   --color-primary: #141414;
   --color-primary-hover: #404040;
   --color-accent: #a3a3a3;
-  --color-accent-secondary: #737373;
+  --color-accent-secondary: #525252;
   --glow-primary: rgba(0, 0, 0, 0.08);
   --glow-accent: rgba(0, 0, 0, 0.06);
   --gradient-card-purple: rgba(212, 212, 212, 0.9);
@@ -133,7 +133,7 @@ html {
   --color-primary-hover: #dddddd;
   --color-on-primary: #0A0A0A;
   --color-accent: #a3a3a3;
-  --color-accent-secondary: #525252;
+  --color-accent-secondary: #737373;
   --glass-bg: rgba(26, 26, 26, 0.55);
   --glass-border: rgba(255, 255, 255, 0.06);
   --glow-primary: rgba(255, 255, 255, 0.04);

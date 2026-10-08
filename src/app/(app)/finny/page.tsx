@@ -18,7 +18,7 @@ import { useFinnySave } from "@/hooks/useFinnySave";
 import { useFinnyContext } from "@/hooks/useFinnyContext";
 import { usePockets } from "@/hooks/usePockets";
 import FinnyChatArea from "@/components/ai/FinnyChatArea";
-import FinnyInput from "@/components/ai/FinnyInput";
+import FinnyInput, { type FinnyInputHandle } from "@/components/ai/FinnyInput";
 import TransactionPreview from "@/components/ai/TransactionPreview";
 import ScanResultModal from "@/components/ai/ScanResultModal";
 import CameraOverlay from "@/components/shared/CameraOverlay";
@@ -68,12 +68,30 @@ export default function FinnyRoomPage() {
       []
     ) ?? [];
 
-  const { messages, isLoading, isOffline, sendMessage, activeSessionId } =
-    useFinnyChat({
-      sessionId: selectedId,
-      persist: true,
-      onSessionCreated: setSelectedId,
-    });
+  const {
+    messages,
+    isLoading,
+    isOffline,
+    sendMessage,
+    activeSessionId,
+    unsendMessage,
+  } = useFinnyChat({
+    sessionId: selectedId,
+    persist: true,
+    onSessionCreated: setSelectedId,
+    onSessionDeleted: (id) => {
+      setSelectedId((prev) => (prev === id ? null : prev));
+    },
+  });
+  const inputRef = useRef<FinnyInputHandle>(null);
+
+  const handleUnsend = useCallback(
+    async (id: string) => {
+      const text = await unsendMessage(id);
+      if (text != null) inputRef.current?.insertText(text);
+    },
+    [unsendMessage]
+  );
 
   const {
     pockets: pocketEnts,
@@ -376,7 +394,11 @@ export default function FinnyRoomPage() {
         {/* Chat column — fills the fixed room height on mobile */}
         <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-surface-alt lg:h-[calc(100dvh-11rem)]">
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <FinnyChatArea messages={messages} isLoading={isLoading} />
+            <FinnyChatArea
+              messages={messages}
+              isLoading={isLoading}
+              onUnsend={handleUnsend}
+            />
             {showPreview && lastParsedMsg && (
               <div className="shrink-0 pb-3">
                 <TransactionPreview
@@ -391,6 +413,7 @@ export default function FinnyRoomPage() {
           </div>
           <div className="shrink-0 border-t border-border">
             <FinnyInput
+              ref={inputRef}
               onSend={handleSend}
               isLoading={isLoading}
               isOffline={isOffline}

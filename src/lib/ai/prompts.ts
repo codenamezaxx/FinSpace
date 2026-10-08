@@ -198,6 +198,9 @@ Response: {"action":"chat","message":"Halo! Ada yang bisa aku bantu? Kamu bisa b
  * @param language — user's language code ("id" or "en"). Appends a language instruction.
  */
 export function buildSystemPrompt(pocketNames?: string[], language?: string): string {
+  // `language` carries the DETECTED language of the user's latest message
+  // (the client detects it per message, falling back to the app setting),
+  // so a strict directive here reliably yields same-language replies.
   const langInstruction =
     language === "en"
       ? "\n\nIMPORTANT: You MUST respond in English. The 'message' field in your JSON response must be in English. All user-facing text must be in English."

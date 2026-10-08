@@ -212,6 +212,9 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Scan "unreadable" fix: strict raw-JSON-only prompt rule + temperature 0 + balanced-brace multi-candidate parser (scan-parse.ts, tested) + server logging of unparseable output
 - [x] Asset purchase from balance: pocket selector (with balance + insufficient warning) when "beli dari saldo" checked; expense linked to chosen pocket
 - [x] Finny preview resurrection fixed: handled flag on chat messages (saved/dismissed previews never reopen on revisit — also kills duplicate saves); shared isActionableMessage() helper, tested
+- [x] Finny per-message language: replies follow the user's message language (client detection + strict per-request directive); AI titles follow too; offline/error fallbacks localized the same way
+- [x] Version bump 1.6.0 → 1.7.0
+- [x] Finny unsend: undo button on user bubbles aborts in-flight replies, removes both bubbles (state + Dexie), refills input for editing; emptied sessions deleted; seed guards against resurrecting unsent rows (verified live in browser)
 - [x] Wealth subpages: /wealth/assets (full lists + add/edit/delete + pagination) and /wealth/debts (full list + modals + payoff simulator); main page slimmed to top-3 view-only + Lihat Semua links (shared WealthLists rows, useWealthData hook, view-only DebtList)
 - [x] Wealth main add-button restored (text-on-primary) + empty-state add buttons per segment; assets page header button fixed to text-on-primary
 - [x] Sidebar wealth dropdown (desktop): expandable Aset & Liabilitas + Utang sublinks with animated reveal, auto-expands on subroutes

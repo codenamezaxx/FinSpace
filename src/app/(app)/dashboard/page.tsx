@@ -594,7 +594,7 @@ export default function DashboardPage() {
           </button>
           <Link
             href="/finny"
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-accent-secondary bg-accent-secondary/10 px-6 py-3.5 text-sm font-semibold text-primary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-secondary hover:shadow-lg hover:shadow-accent-secondary/15"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3.5 text-sm font-semibold text-primary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-accent-secondary/15"
           >
             <Bot className="h-5 w-5" />
             {t("dashboard.chat_finny")}

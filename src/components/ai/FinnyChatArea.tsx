@@ -19,11 +19,12 @@ export interface FinnyMessage {
 interface FinnyChatAreaProps {
   messages: FinnyMessage[];
   isLoading: boolean;
+  onUnsend?: (id: string) => void;
 }
 
 const NEAR_BOTTOM_PX = 120;
 
-const FinnyChatArea: FC<FinnyChatAreaProps> = ({ messages, isLoading }) => {
+const FinnyChatArea: FC<FinnyChatAreaProps> = ({ messages, isLoading, onUnsend }) => {
   const { t } = useLanguage();
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -86,7 +87,13 @@ const FinnyChatArea: FC<FinnyChatAreaProps> = ({ messages, isLoading }) => {
     <div className="relative flex min-h-0 flex-1 flex-col">
       <div ref={scrollRef} onScroll={handleScroll} className="min-h-0 flex-1 overflow-y-auto p-4">
         {messages.map((msg) => (
-          <MessageBubble key={msg.id} role={msg.role} content={msg.content} />
+          <MessageBubble
+            key={msg.id}
+            id={msg.id}
+            role={msg.role}
+            content={msg.content}
+            onUnsend={onUnsend}
+          />
         ))}
         {isLoading && <TypingIndicator />}
         <div ref={bottomRef} />

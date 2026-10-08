@@ -151,4 +151,57 @@ describe("persist scratch", () => {
     await db.finny_sessions.bulkDelete(["fnn_swap_A", "fnn_swap_B"]);
     db.close();
   }, 30000);
+
+  it("unsends a user message: removes bubbles, refills text, cleans the db", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: streamOf(
+        JSON.stringify({ action: "chat", message: "ok noted", confidence: "high" })
+      ),
+    }) as unknown as typeof fetch;
+    Object.defineProperty(navigator, "onLine", { value: true, configurable: true });
+
+    await db.open();
+    const deleted: string[] = [];
+    const { result } = renderHook(() =>
+      useFinnyChat({
+        persist: true,
+        onSessionDeleted: (id) => deleted.push(id),
+      })
+    );
+    await act(async () => {
+      await result.current.sendMessage("tolong batalkan ini");
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.messages).toHaveLength(2);
+    const sid = result.current.activeSessionId!;
+
+    let refilled: string | null | undefined;
+    await act(async () => {
+      refilled = await result.current.unsendMessage(result.current.messages[0].id);
+    });
+
+    // bubbles gone, text returned for the input
+    expect(refilled).toBe("tolong batalkan ini");
+    expect(result.current.messages).toHaveLength(0);
+    // db rows gone, emptied session row deleted + reported
+    expect(
+      await db.finny_messages.where("sessionId").equals(sid).count()
+    ).toBe(0);
+    expect(await db.finny_sessions.get(sid)).toBeUndefined();
+    expect(deleted).toEqual([sid]);
+    expect(result.current.activeSessionId).toBeNull();
+    db.close();
+  }, 30000);
+
+  it("unsend returns null for unknown ids", async () => {
+    await db.open();
+    const { result } = renderHook(() => useFinnyChat({ persist: true }));
+    let out: string | null | undefined;
+    await act(async () => {
+      out = await result.current.unsendMessage("nope");
+    });
+    expect(out).toBeNull();
+    db.close();
+  }, 30000);
 });

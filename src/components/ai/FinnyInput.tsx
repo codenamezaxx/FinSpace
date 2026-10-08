@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useCallback, useRef, type FC, type KeyboardEvent } from "react";
+import {
+  useState,
+  useCallback,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+  type KeyboardEvent,
+} from "react";
 import { Send, WifiOff, Camera } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
@@ -11,9 +18,17 @@ interface FinnyInputProps {
   onScan?: () => void;
 }
 
+export interface FinnyInputHandle {
+  /** Refill the input (e.g. with an unsent message) and focus it. */
+  insertText: (text: string) => void;
+}
+
 const MAX_HEIGHT = 160;
 
-const FinnyInput: FC<FinnyInputProps> = ({ onSend, isLoading, isOffline, onScan }) => {
+const FinnyInput = forwardRef<FinnyInputHandle, FinnyInputProps>(function FinnyInput(
+  { onSend, isLoading, isOffline, onScan },
+  ref
+) {
   const { t } = useLanguage();
   const [text, setText] = useState("");
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -51,6 +66,20 @@ const FinnyInput: FC<FinnyInputProps> = ({ onSend, isLoading, isOffline, onScan 
       }
     },
     [handleSend]
+  );
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      insertText: (value: string) => {
+        setText(value);
+        requestAnimationFrame(() => {
+          autoresize();
+          taRef.current?.focus();
+        });
+      },
+    }),
+    [autoresize]
   );
 
   const canSend = text.trim().length > 0 && !isLoading;
@@ -94,6 +123,6 @@ const FinnyInput: FC<FinnyInputProps> = ({ onSend, isLoading, isOffline, onScan 
       </button>
     </div>
   );
-};
+});
 
 export default FinnyInput;

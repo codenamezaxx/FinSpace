@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, type FinnyChatRow } from "@/lib/db";
+import { detectMessageLanguage } from "@/lib/ai/detectLanguage";
 import {
   newAiQueueId,
   newFinnyAssistantMessageId,
@@ -102,6 +103,8 @@ export interface UseFinnyChatOptions {
   persist?: boolean;
   /** Called with the new id the first time a session row is created. */
   onSessionCreated?: (id: string) => void;
+  /** Called with the id when its session row is deleted (emptied via unsend). */
+  onSessionDeleted?: (id: string) => void;
 }
 
 export interface UseFinnyChatResult {
@@ -121,6 +124,12 @@ export interface UseFinnyChatResult {
   activeSessionId: string | null;
   /** Discard current state and start a fresh (ephemeral until first send) session. */
   startNewSession: () => void;
+  /**
+   * Unsend a user message: aborts an in-flight reply, removes the bubble
+   * plus its assistant reply (state + Dexie), and returns the text so the
+   * input can be refilled for editing. An emptied session row is deleted.
+   */
+  unsendMessage: (id: string) => Promise<string | null>;
 }
 
 function toRow(sessionId: string, m: FinnyMessage): FinnyChatRow {
@@ -164,11 +173,18 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
   const abortRef = useRef<AbortController | null>(null);
 
   // Refs mirroring state for use inside async flows/effects
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
+  // Ids removed via unsend: a late liveQuery emission must never resurrect
+  // them through the seed effect below.
+  const deletedIdsRef = useRef<Set<string>>(new Set());
   const activeSessionIdRef = useRef<string | null>(activeSessionId);
   const seededForRef = useRef<string | null>(null);
   const tsRef = useRef(0);
   const onSessionCreatedRef = useRef(options?.onSessionCreated);
   onSessionCreatedRef.current = options?.onSessionCreated;
+  const onSessionDeletedRef = useRef(options?.onSessionDeleted);
+  onSessionDeletedRef.current = options?.onSessionDeleted;
 
   /** Monotonic timestamp so persisted history keeps exact send order. */
   const stamp = useCallback((): number => {
@@ -227,8 +243,13 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
     if (stored.some((r) => r.sessionId !== activeSessionId)) return;
     seededForRef.current = activeSessionId;
     // Only fill an empty view — never clobber a live turn already in state
-    // (its messages are persisted separately via persistBatch).
-    setMessages((prev) => (prev.length === 0 ? stored.map(fromRow) : prev));
+    // (its messages are persisted separately via persistBatch). Rows removed
+    // via unsend are filtered so a stale emission can't resurrect them.
+    setMessages((prev) =>
+      prev.length === 0
+        ? stored.filter((r) => !deletedIdsRef.current.has(r.id)).map(fromRow)
+        : prev
+    );
   }, [persist, activeSessionId, stored]);
 
   const ensureSession = useCallback(
@@ -322,6 +343,11 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
       context?: string
     ) => {
       if (!text.trim() || isLoading) return;
+      // Reply language follows THIS message (not just the app setting)
+      const msgLang = detectMessageLanguage(
+        text,
+        language === "en" ? "en" : "id"
+      );
 
       const userMsg: FinnyMessage = {
         id: generateId(),
@@ -363,7 +389,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
         const offlineMsg: FinnyMessage = {
           id: generateId(),
           role: "assistant",
-          content: language === "en"
+          content: msgLang === "en"
             ? "Your message has been queued. I'll process it when you're back online! 🙏"
             : "Pesanmu sudah masuk antrean. Aku akan proses saat online kembali ya! 🙏",
           action: "chat",
@@ -388,7 +414,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
           body: JSON.stringify({
             messages: history,
             pockets: pockets ?? [],
-            language: language ?? "id",
+            language: msgLang,
             context: context ?? "",
           }),
           signal: abortRef.current.signal,
@@ -420,7 +446,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
           throw new Error(
             typeof errData.error === "string"
               ? errData.error
-              : language === "en"
+              : msgLang === "en"
                 ? "Failed to connect to Finny"
                 : "Gagal terhubung ke Finny"
           );
@@ -456,7 +482,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
           role: "assistant",
           content:
             (parsed?.message ?? fullContent) ||
-            (language === "en"
+            (msgLang === "en"
               ? "Sorry, something went wrong. Please ask again! 🙏"
               : "Maaf, sepertinya ada gangguan. Coba tanya lagi ya! 🙏"),
           action: parsed?.action,
@@ -477,13 +503,13 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
         // First turn of a brand-new persisted session → upgrade its title
         // with an AI topic summary in the background (manual renames win).
         if (sid && !hadSession) {
-          void requestAiTitle(sid, text.trim(), finalMsg.content, language);
+          void requestAiTitle(sid, text.trim(), finalMsg.content, msgLang);
         }
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
         const errorMsg =
           (err as Error).message ||
-          (language === "en"
+          (msgLang === "en"
             ? "Sorry, connection issue. Please try again!"
             : "Maaf, ada masalah koneksi. Coba lagi ya!");
         setError(errorMsg);
@@ -491,7 +517,7 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
         const errAiMsg: FinnyMessage = {
           id: asstId,
           role: "assistant",
-          content: language === "en"
+          content: msgLang === "en"
             ? "Sorry, I'm having trouble. Please try again! 🙏"
             : "Maaf, aku lagi bermasalah. Coba lagi ya! 🙏",
           action: "chat",
@@ -526,6 +552,71 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
     setError(null);
   }, []);
 
+  const unsendMessage = useCallback(
+    async (id: string): Promise<string | null> => {
+      const target = messagesRef.current.find(
+        (m) => m.id === id && m.role === "user"
+      );
+      if (!target) return null;
+      // Stop Finny mid-reply; the aborted send exits quietly via AbortError
+      abortRef.current?.abort();
+      abortRef.current = null;
+      const content = target.content;
+
+      // Derive the cut from the ref snapshot (not inside the updater):
+      // updater execution timing vs the awaits below is not guaranteed,
+      // but the bulkDelete MUST cover exactly what the user unsent.
+      const snapshot = messagesRef.current;
+      const cutAt = snapshot.findIndex((m) => m.id === id);
+      const removedIds =
+        cutAt === -1
+          ? []
+          : [
+              snapshot[cutAt],
+              ...(snapshot[cutAt + 1]?.role === "assistant"
+                ? [snapshot[cutAt + 1]]
+                : []),
+            ].map((m) => m.id);
+      removedIds.forEach((rid) => deletedIdsRef.current.add(rid));
+      setMessages((prev) => {
+        const idx = prev.findIndex((m) => m.id === id);
+        if (idx === -1) return prev;
+        const cut = [prev[idx]];
+        if (prev[idx + 1]?.role === "assistant") cut.push(prev[idx + 1]);
+        return [...prev.slice(0, idx), ...prev.slice(idx + cut.length)];
+      });
+      setIsLoading(false);
+      setError(null);
+
+      if (persist) {
+        try {
+          const { db } = await import("@/lib/db");
+          if (removedIds.length > 0) {
+            await db.finny_messages.bulkDelete(removedIds);
+          }
+          const sid = activeSessionIdRef.current;
+          if (sid) {
+            const left = await db.finny_messages
+              .where("sessionId")
+              .equals(sid)
+              .count();
+            if (left === 0) {
+              await db.finny_sessions.delete(sid);
+              activeSessionIdRef.current = null;
+              seededForRef.current = null;
+              setActiveSessionId(null);
+              onSessionDeletedRef.current?.(sid);
+            }
+          }
+        } catch (e) {
+          console.error("[Finny] unsend cleanup failed:", e);
+        }
+      }
+      return content;
+    },
+    [persist]
+  );
+
   return {
     messages,
     isLoading,
@@ -536,5 +627,6 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
     dismissError,
     activeSessionId,
     startNewSession,
+    unsendMessage,
   };
 }
