@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Plus } from "lucide-react";
 import { db } from "@/lib/db";
 import { useWealthData } from "@/hooks/useWealthData";
@@ -16,7 +17,7 @@ import type { DebtEntry } from "@/lib/netWorth";
 import { usePockets } from "@/hooks/usePockets";
 import { useLanguage } from "@/lib/i18n";
 
-export default function WealthDebtsPage() {
+function WealthDebtsInner() {
   const { t } = useLanguage();
   const { debts, assets, liabilities } = useWealthData();
   const { addTransaction } = useTransactions();
@@ -27,6 +28,10 @@ export default function WealthDebtsPage() {
   const [debtToDelete, setDebtToDelete] = useState<DebtEntry | null>(null);
   const [editingDebt, setEditingDebt] = useState<DebtEntry | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Deep-link from global search
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get("highlight") ?? undefined;
 
   const totalDebts = calculateNetWorth(
     assets,
@@ -101,6 +106,7 @@ export default function WealthDebtsPage() {
 
       <DebtList
         debts={debts}
+        highlightId={highlightId}
         onPay={(debt) => setPayingDebt(debt)}
         onEdit={(debt) => setEditingDebt(debt)}
         onDelete={(id) => {
@@ -136,5 +142,13 @@ export default function WealthDebtsPage() {
         isLoading={deleting}
       />
     </div>
+  );
+}
+
+export default function WealthDebtsPage() {
+  return (
+    <Suspense fallback={null}>
+      <WealthDebtsInner />
+    </Suspense>
   );
 }

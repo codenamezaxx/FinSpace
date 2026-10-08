@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Pencil, Trash2, Wallet, TrendingUp, Landmark, Package } from "lucide-react";
 import { formatCurrency } from "@/lib/netWorth";
 import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
@@ -20,16 +21,27 @@ export function AssetRow({
   asset,
   onEdit,
   onDelete,
+  highlighted = false,
 }: {
   asset: AssetEntry;
   onEdit?: () => void;
   onDelete?: () => void;
+  highlighted?: boolean;
 }) {
   const { t } = useLanguage();
   const meta = ASSET_META[asset.type] ?? ASSET_META.other;
   const Icon = meta.icon;
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (highlighted) ref.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+  }, [highlighted]);
   return (
-    <div className="glass flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20">
+    <div
+      ref={ref}
+      className={`glass flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 ${
+        highlighted ? "ring-2 ring-primary" : ""
+      }`}
+    >
       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${meta.tint}`}>
         <Icon className="h-4 w-4" />
       </span>
@@ -72,14 +84,25 @@ export function LiabilityRow({
   liability,
   onEdit,
   onDelete,
+  highlighted = false,
 }: {
   liability: LiabilityEntry;
   onEdit?: () => void;
   onDelete?: () => void;
+  highlighted?: boolean;
 }) {
   const { t } = useLanguage();
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (highlighted) ref.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+  }, [highlighted]);
   return (
-    <div className="glass flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20">
+    <div
+      ref={ref}
+      className={`glass flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 ${
+        highlighted ? "ring-2 ring-primary" : ""
+      }`}
+    >
       <p className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
         {liability.name}
       </p>

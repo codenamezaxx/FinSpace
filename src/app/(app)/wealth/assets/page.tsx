@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Plus, Wallet, CreditCard } from "lucide-react";
 import { db } from "@/lib/db";
 import { useWealthData } from "@/hooks/useWealthData";
@@ -16,7 +17,7 @@ import { calculateNetWorth, formatCurrency } from "@/lib/netWorth";
 import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
 import { useLanguage } from "@/lib/i18n";
 
-export default function WealthAssetsPage() {
+function WealthAssetsInner() {
   const { t } = useLanguage();
   const { assets, liabilities } = useWealthData();
   const { pockets, totalBalance: pocketTotalBalance } = usePockets();
@@ -38,6 +39,23 @@ export default function WealthAssetsPage() {
     (liabilityPager.page - 1) * liabilityPager.pageSize,
     liabilityPager.page * liabilityPager.pageSize
   );
+
+  // Deep-link from global search: jump to the page holding the match
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get("highlight") ?? undefined;
+  useEffect(() => {
+    if (!highlightId) return;
+    const ai = assets.findIndex((a) => a.id === highlightId);
+    if (ai >= 0) {
+      assetPager.setPage(Math.floor(ai / assetPager.pageSize) + 1);
+      return;
+    }
+    const li = liabilities.findIndex((l) => l.id === highlightId);
+    if (li >= 0) {
+      liabilityPager.setPage(Math.floor(li / liabilityPager.pageSize) + 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightId, assets, liabilities]);
 
   const totalAssets = calculateNetWorth(assets, liabilities, pocketTotalBalance, []).totalAssets;
   const totalLiabilities = calculateNetWorth(assets, liabilities, pocketTotalBalance, []).totalLiabilities;
@@ -163,6 +181,7 @@ export default function WealthAssetsPage() {
                 <AssetRow
                   key={asset.id}
                   asset={asset}
+                  highlighted={highlightId === asset.id}
                   onEdit={() => openAssetLiabilityModal({ editItem: asset })}
                   onDelete={() => setAssetToDelete(asset)}
                 />
@@ -205,6 +224,7 @@ export default function WealthAssetsPage() {
                 <LiabilityRow
                   key={liability.id}
                   liability={liability}
+                  highlighted={highlightId === liability.id}
                   onEdit={() => openAssetLiabilityModal({ editItem: liability })}
                   onDelete={() => setLiabilityToDelete(liability)}
                 />
@@ -241,5 +261,13 @@ export default function WealthAssetsPage() {
         isLoading={deleting}
       />
     </div>
+  );
+}
+
+export default function WealthAssetsPage() {
+  return (
+    <Suspense fallback={null}>
+      <WealthAssetsInner />
+    </Suspense>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import {
   Trash2,
   HandCoins,
@@ -24,15 +25,23 @@ interface DebtListProps {
   onDelete?: (id: string) => void;
   onEdit?: (debt: DebtEntry) => void;
   onAdd?: () => void;
+  highlightId?: string;
 }
 
-export function DebtList({ debts, onPay, onDelete, onEdit, onAdd }: DebtListProps) {
+export function DebtList({ debts, onPay, onDelete, onEdit, onAdd, highlightId }: DebtListProps) {
   const { t, lang } = useLanguage();
-  const { page, totalPages, pageSize, setPageSize, next, prev } = usePagination(
+  const { page, totalPages, pageSize, setPageSize, setPage, next, prev } = usePagination(
     debts.length,
     15,
     debts.length
   );
+  // Deep-link: jump to the page holding the highlighted item
+  useEffect(() => {
+    if (!highlightId) return;
+    const idx = debts.findIndex((d) => d.id === highlightId);
+    if (idx >= 0) setPage(Math.floor(idx / pageSize) + 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightId, debts]);
   const paged = debts.slice((page - 1) * pageSize, page * pageSize);
 
   if (debts.length === 0) {
@@ -69,6 +78,7 @@ export function DebtList({ debts, onPay, onDelete, onEdit, onAdd }: DebtListProp
           <DebtItem
             key={debt.id}
             debt={debt}
+            highlighted={highlightId === debt.id}
             remaining={remaining}
             progress={progress}
             installment={installment}
@@ -100,6 +110,7 @@ function DebtItem({
   onPay,
   onDelete,
   onEdit,
+  highlighted = false,
   t,
   lang,
 }: {
@@ -110,10 +121,15 @@ function DebtItem({
   onPay?: () => void;
   onDelete?: () => void;
   onEdit?: () => void;
+  highlighted?: boolean;
   t: (key: string, vars?: Record<string, string | number>) => string;
   lang: string;
 }) {
   const locale = lang === "id" ? "id-ID" : "en-US";
+  const itemRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (highlighted) itemRef.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+  }, [highlighted]);
   const paidOff = remaining <= 0;
   const daysLeft = Math.ceil((debt.dueDate - Date.now()) / 86400000);
   const dueSoon = !paidOff && !installment.overdue && daysLeft <= 30;
@@ -150,7 +166,12 @@ function DebtItem({
         : "bg-surface-alt text-text-muted";
 
   return (
-    <div className="glass rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20">
+    <div
+      ref={itemRef}
+      className={`glass rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 ${
+        highlighted ? "ring-2 ring-primary" : ""
+      }`}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-1 items-start gap-2.5">
           <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${statusTone}`}>

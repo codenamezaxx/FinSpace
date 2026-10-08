@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Clock, Banknote, CreditCard, TrendingDown, Wrench } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { buildSearchResultUrl } from "@/lib/searchNav";
 import type { SearchResults, TransactionResult, AssetResult, LiabilityResult, DebtResult, ToolResult } from "@/hooks/useSearch";
 
 interface SearchDropdownProps {
@@ -126,18 +127,11 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
     }
   }
 
-  const getUrl = useCallback((item: FlatItem): string => {
-    switch (item.kind) {
-      case "transaction":
-        return `/budget?q=${encodeURIComponent(item.data.merchant)}`;
-      case "asset":
-      case "liability":
-      case "debt":
-        return "/wealth";
-      case "tool":
-        return "/tools";
-    }
-  }, []);
+  const getUrl = useCallback(
+    (item: FlatItem): string =>
+      buildSearchResultUrl(item.kind, item.data.id, getItemName(item)),
+    []
+  );
 
   // Fix 1: Shared keyboard handler (works with both React.SyntheticEvent and native KeyboardEvent)
   const handleKeyboardNav = useCallback(
@@ -274,7 +268,7 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
             <button
               key={q}
               type="button"
-              onClick={() => navigate(`/budget?q=${encodeURIComponent(q)}`)}
+              onClick={() => navigate(`/budget/transactions?q=${encodeURIComponent(q)}`)}
               className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-alt transition-colors text-left"
             >
               <Clock className="h-4 w-4 shrink-0 text-text-muted" />

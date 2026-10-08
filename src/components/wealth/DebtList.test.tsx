@@ -50,4 +50,18 @@ describe("DebtList", () => {
     expect(screen.getByText("debt.paid_off")).toBeDefined();
     expect(screen.queryByText("debt.pay")).toBeNull();
   });
+
+  it("rings the highlighted debt", () => {
+    const { container } = render(
+      <DebtList debts={[baseDebt]} onPay={() => {}} onDelete={() => {}} highlightId="d1" />
+    );
+    expect(container.querySelector(".ring-primary")).not.toBeNull();
+  });
+
+  it("does not ring without highlight", () => {
+    const { container } = render(
+      <DebtList debts={[baseDebt]} onPay={() => {}} onDelete={() => {}} />
+    );
+    expect(container.querySelector(".ring-primary")).toBeNull();
+  });
 });

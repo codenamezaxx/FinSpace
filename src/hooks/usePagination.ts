@@ -31,6 +31,7 @@ export function usePagination(
       page: safePage,
       totalPages,
       pageSize,
+      setPage: (n: number) => setPage(n),
       setPageSize: (n: number) => {
         setPageSize(n);
         setPage(1);

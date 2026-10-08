@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDownUp, Eye, Search } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/i18n";
 import { TransactionCard } from "./TransactionCard";
 import { TransactionDetailModal } from "./TransactionDetailModal";
@@ -31,6 +31,12 @@ function formatAmount(amount: number, locale: string): string {
   }).format(amount);
 }
 
+/** True when a timestamp falls inside the given month (0-11) and year. */
+export function isInMonthYear(ts: number, month: number, year: number): boolean {
+  const d = new Date(ts);
+  return d.getFullYear() === year && d.getMonth() === month;
+}
+
 type SortField = "timestamp" | "amount";
 type SortDir = "asc" | "desc";
 
@@ -38,12 +44,22 @@ interface TransactionListProps {
   pocketFilter?: string | null;
   pockets?: Pocket[];
   searchQuery?: string; // from global search
+  focusTxId?: string; // from global search: auto-open this item's detail
+  /**
+   * Compact mode (overview pages): hides the search/filter bar and
+   * pagination, caps rows at `limit`, and opens details view-only.
+   */
+  compact?: boolean;
+  limit?: number;
 }
 
 export function TransactionList({
   pocketFilter = null,
   pockets = [],
   searchQuery,
+  focusTxId,
+  compact = false,
+  limit,
 }: TransactionListProps) {
   const { t, lang } = useLanguage();
   const { transactions, loading, deleteTransaction, updateTransaction } =
@@ -62,12 +78,38 @@ export function TransactionList({
     "all"
   );
   const [hideTransfers, setHideTransfers] = useState(false);
+  // Month scope ("" = all time). Applies on the full page only, never in
+  // compact/overview mode.
+  const [filterMonth, setFilterMonth] = useState<string>("");
+  const [filterYear, setFilterYear] = useState<number>(() =>
+    new Date().getFullYear()
+  );
+
+  const availableYears = useMemo(() => {
+    const set = new Set<number>();
+    for (const t of transactions) set.add(new Date(t.timestamp).getFullYear());
+    set.add(new Date().getFullYear());
+    return [...set].sort((a, b) => b - a);
+  }, [transactions]);
+
+  const monthLocale = lang === "id" ? "id-ID" : "en-US";
+  const monthName = (m: number) =>
+    new Date(2000, m).toLocaleDateString(monthLocale, { month: "long" });
 
   // Detail / Edit / Delete modal state
   const [detailTx, setDetailTx] = useState<Transaction | null>(null);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [deleteTx, setDeleteTx] = useState<Transaction | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Deep-link from global search: open the focused item once data loads
+  const focusDone = useRef(false);
+  useEffect(() => {
+    if (!focusTxId || focusDone.current || transactions.length === 0) return;
+    focusDone.current = true;
+    const found = transactions.find((t) => t.id === focusTxId);
+    if (found) setDetailTx(found);
+  }, [focusTxId, transactions]);
 
   const filtered = useMemo(() => {
     let result = [...transactions];
@@ -82,6 +124,11 @@ export function TransactionList({
 
     if (hideTransfers) {
       result = result.filter((t) => !t.transferId);
+    }
+
+    if (!compact && filterMonth !== "") {
+      const m = Number(filterMonth);
+      result = result.filter((t) => isInMonthYear(t.timestamp, m, filterYear));
     }
 
     if (debouncedSearch.trim()) {
@@ -110,12 +157,15 @@ export function TransactionList({
     typeFilter,
     pocketFilter,
     hideTransfers,
+    compact,
+    filterMonth,
+    filterYear,
   ]);
 
   const { page, totalPages, pageSize, setPageSize, next, prev } = usePagination(
     filtered.length,
     15,
-    `${debouncedSearch}|${sortField}|${sortDir}|${typeFilter}|${pocketFilter}|${hideTransfers}`
+    `${debouncedSearch}|${sortField}|${sortDir}|${typeFilter}|${pocketFilter}|${hideTransfers}|${compact}|${filterMonth}|${filterYear}`
   );
   const paged = useMemo(
     () => filtered.slice((page - 1) * pageSize, page * pageSize),
@@ -155,18 +205,13 @@ export function TransactionList({
     );
   }
 
-  if (filtered.length === 0) {
-    return (
-      <div className="flex flex-col items-center gap-2 py-12 text-text-muted">
-        <Search className="h-8 w-8" />
-        <p className="text-sm">{t("search.no_results")}</p>
-      </div>
-    );
-  }
+  const visible =
+    compact && limit != null ? filtered.slice(0, limit) : paged;
 
   return (
     <div className="space-y-4">
-      {/* Search & Filter Bar */}
+      {/* Search & Filter Bar (hidden in compact mode) */}
+      {!compact && (
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
@@ -206,12 +251,46 @@ export function TransactionList({
           >
             {hideTransfers ? t("transaction.show_transfers") : t("transaction.hide_transfers")}
           </button>
+          <select
+            value={filterMonth}
+            onChange={(e) => setFilterMonth(e.target.value)}
+            aria-label={t("transaction.filter_month")}
+            className="shrink-0 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text-secondary outline-none transition-colors hover:bg-surface-alt focus:border-primary"
+          >
+            <option value="">{t("common.all")}</option>
+            {Array.from({ length: 12 }, (_, m) => (
+              <option key={m} value={m}>
+                {monthName(m)}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterYear}
+            onChange={(e) => setFilterYear(Number(e.target.value))}
+            disabled={filterMonth === ""}
+            aria-label={t("transaction.filter_year")}
+            className="shrink-0 rounded-lg border border-border bg-surface px-2.5 py-1.5 font-mono text-xs font-medium text-text-secondary outline-none transition-colors hover:bg-surface-alt focus:border-primary disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {availableYears.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
+      )}
 
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 py-12 text-text-muted">
+          <Search className="h-8 w-8" />
+          <p className="text-sm">{t("search.no_results")}</p>
+        </div>
+      ) : (
+        <>
       {/* Mobile: Card List */}
       <div className="space-y-3 md:hidden">
-        {paged.map((t) => (
+        {visible.map((t) => (
           <TransactionCard
             key={t.id}
             transaction={t}
@@ -263,7 +342,7 @@ export function TransactionList({
             </tr>
           </thead>
           <tbody>
-            {paged.map((tx) => (
+            {visible.map((tx) => (
               <tr
                 key={tx.id}
                 onClick={() => setDetailTx(tx)}
@@ -319,43 +398,51 @@ export function TransactionList({
         </table>
       </div>
 
-      <PaginationControls
-        page={page}
-        totalPages={totalPages}
-        onPrev={prev}
-        onNext={next}
-        pageSize={pageSize}
-        onPageSizeChange={setPageSize}
-      />
+      {!compact && (
+        <PaginationControls
+          page={page}
+          totalPages={totalPages}
+          onPrev={prev}
+          onNext={next}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+        />
+      )}
+        </>
+      )}
 
-      {/* Detail Modal */}
+      {/* Detail Modal (view-only in compact mode) */}
       <TransactionDetailModal
         isOpen={!!detailTx}
         onClose={() => setDetailTx(null)}
         transaction={detailTx}
-        onEdit={(tx) => setEditTx(tx)}
-        onDelete={(tx) => setDeleteTx(tx)}
+        onEdit={compact ? undefined : (tx) => setEditTx(tx)}
+        onDelete={compact ? undefined : (tx) => setDeleteTx(tx)}
       />
 
-      {/* Edit Modal */}
-      <TransactionEditModal
-        isOpen={!!editTx}
-        onClose={() => setEditTx(null)}
-        transaction={editTx}
-        onSave={updateTransaction}
-      />
+      {!compact && (
+        <>
+          {/* Edit Modal */}
+          <TransactionEditModal
+            isOpen={!!editTx}
+            onClose={() => setEditTx(null)}
+            transaction={editTx}
+            onSave={updateTransaction}
+          />
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmModal
-        isOpen={!!deleteTx}
-        onClose={() => setDeleteTx(null)}
-        onConfirm={handleConfirmDelete}
-        title={t("confirm.delete_title")}
-        message={t("confirm.delete_message", { item: `Transaksi "${deleteTx?.merchant}"` })}
-        confirmLabel={t("confirm.confirm")}
-        confirmVariant="danger"
-        isLoading={deleting}
-      />
+          {/* Delete Confirmation Modal */}
+          <ConfirmModal
+            isOpen={!!deleteTx}
+            onClose={() => setDeleteTx(null)}
+            onConfirm={handleConfirmDelete}
+            title={t("confirm.delete_title")}
+            message={t("confirm.delete_message", { item: `Transaksi "${deleteTx?.merchant}"` })}
+            confirmLabel={t("confirm.confirm")}
+            confirmVariant="danger"
+            isLoading={deleting}
+          />
+        </>
+      )}
     </div>
   );
 }
