@@ -216,8 +216,12 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Version bump 1.6.0 → 1.7.0
 - [x] Finny unsend: undo button on user bubbles aborts in-flight replies, removes both bubbles (state + Dexie), refills input for editing; emptied sessions deleted; seed guards against resurrecting unsent rows (verified live in browser)
 - [x] Wealth subpages: /wealth/assets (full lists + add/edit/delete + pagination) and /wealth/debts (full list + modals + payoff simulator); main page slimmed to top-3 view-only + Lihat Semua links (shared WealthLists rows, useWealthData hook, view-only DebtList)
+- [x] Budget subpages mirror: /budget/pockets (full pocket management incl. pocket→transactions deep-link filter) and /budget/transactions (full list + filters + ?q= search target); main page slimmed to rings + balance strip + recent-10 + links; sidebar budget dropdown added (shared DropdownNavItem)
 - [x] Wealth main add-button restored (text-on-primary) + empty-state add buttons per segment; assets page header button fixed to text-on-primary
 - [x] Sidebar wealth dropdown (desktop): expandable Aset & Liabilitas + Utang sublinks with animated reveal, auto-expands on subroutes
+- [x] Transaction month/year filter (full list only): month + year dropdowns with dynamic year options, pagination-safe, tested via isInMonthYear()
+- [x] Empty-result fix: filter bar + pagination stay mounted when a filter yields zero rows (only the table area shows empty)
+- [x] Version bump 1.7.0 → 1.8.0
 - [x] Dashboard view-all links: transaction history → budget, holdings → wealth/assets, debts → wealth/debts
 - [x] Dashboard restructure: NetWorthCard detail toggle replaced by asset/liability/debt COUNT segments; top-3 pockets strip; bottom rows reordered to history+holdings and health+debts (new TopHoldingsCard, DebtSnapshotCard)
 

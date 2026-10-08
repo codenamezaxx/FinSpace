@@ -27,6 +27,119 @@ interface NavigationBarProps {
   onScan?: () => void;
 }
 
+interface SubItem {
+  href: string;
+  label: string;
+}
+
+/** Sidebar row with an expandable subpage dropdown (desktop only). */
+function DropdownNavItem({
+  href,
+  label,
+  Icon,
+  isActive,
+  isCollapsed,
+  open,
+  onToggle,
+  subs,
+  pathname,
+}: {
+  href: string;
+  label: string;
+  Icon: React.ComponentType<{ className?: string }>;
+  isActive: boolean;
+  isCollapsed: boolean;
+  open: boolean;
+  onToggle: () => void;
+  subs: SubItem[];
+  pathname: string;
+}) {
+  return (
+    <div>
+      <div
+        className={`flex items-center rounded-lg text-xs font-medium transition-all duration-200 ${
+          isCollapsed
+            ? "justify-center px-0 py-3"
+            : "gap-1 py-3 pl-4 pr-2"
+        } ${
+          isActive
+            ? "bg-primary/10 text-primary"
+            : "text-text-muted hover:bg-surface hover:text-text-secondary"
+        }`}
+        title={isCollapsed ? label : undefined}
+      >
+        <Link
+          href={href}
+          className={`flex min-w-0 items-center ${
+            isCollapsed ? "justify-center" : "flex-1 gap-3"
+          }`}
+        >
+          <Icon
+            className={`h-5 w-5 shrink-0 ${
+              isActive ? "text-primary" : "text-text-muted"
+            }`}
+          />
+          <span
+            className={`truncate overflow-hidden transition-all duration-300 ${
+              isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+            }`}
+          >
+            {label}
+          </span>
+        </Link>
+        {!isCollapsed && (
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={open}
+            aria-label={label}
+            className="shrink-0 rounded-md p-1.5 text-text-muted transition-colors hover:bg-surface-alt hover:text-text-primary"
+          >
+            <ChevronDown
+              className={`h-4 w-4 transition-transform duration-300 ${
+                open ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        )}
+      </div>
+      {!isCollapsed && (
+        <div
+          className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+          style={{
+            gridTemplateRows: open ? "1fr" : "0fr",
+          }}
+        >
+          <div className="overflow-hidden">
+                        <div className="ml-6 mt-1 space-y-1 border-l border-border pl-3">
+                          {subs.map((sub) => {
+                            const subActive =
+                              pathname === sub.href ||
+                              pathname.startsWith(sub.href + "/");
+                            return (
+                              <Link
+                                key={sub.href}
+                                href={sub.href}
+                                className={`block truncate rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                                  subActive
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-text-muted hover:bg-surface hover:text-text-secondary"
+                                }`}
+                              >
+                                {sub.label}
+                              </Link>
+                            );
+                          })}
+                        </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+
 export function NavigationBar({ isCollapsed = false, onToggle, onScan }: NavigationBarProps) {
   const pathname = usePathname();
   const { openAddTransaction } = useTransactionModal();
@@ -45,6 +158,12 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
     { href: "/wealth/assets", label: t("wealth.assets_page_title") },
     { href: "/wealth/debts", label: t("wealth.debts_page_title") },
   ], [t]);
+  // ─── Budget subpages (desktop dropdown) ───
+  const budgetSubItems = useMemo(() => [
+    { href: "/budget/pockets", label: t("budget.pockets_title") },
+    { href: "/budget/transactions", label: t("budget.transactions_title") },
+  ], [t]);
+  const [budgetOpen, setBudgetOpen] = useState(false);
   // Starts closed on first paint (SSR-safe); the effect below opens it
   // immediately on mount when already on a wealth route.
   const [wealthOpen, setWealthOpen] = useState(false);
@@ -52,6 +171,11 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
   // Auto-expand when navigating to a wealth subpage
   useEffect(() => {
     if (pathname.startsWith("/wealth")) setWealthOpen(true);
+  }, [pathname]);
+
+  // Auto-expand on the budget section and its subpages
+  useEffect(() => {
+    if (pathname.startsWith("/budget")) setBudgetOpen(true);
   }, [pathname]);
 
   // ─── Mobile indicator logic ───
@@ -207,89 +331,37 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             const Icon = item.icon;
-            // Wealth gets an expandable subpage dropdown (desktop only)
+            // Wealth & Budget get expandable subpage dropdowns (desktop only)
             if (item.href === "/wealth") {
               return (
-                <div key={item.href}>
-                  <div
-                    className={`flex items-center rounded-lg text-xs font-medium transition-all duration-200 ${
-                      isCollapsed
-                        ? "justify-center px-0 py-3"
-                        : "gap-1 py-3 pl-4 pr-2"
-                    } ${
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-text-muted hover:bg-surface hover:text-text-secondary"
-                    }`}
-                    title={isCollapsed ? item.label : undefined}
-                  >
-                    <Link
-                      href={item.href}
-                      className={`flex min-w-0 items-center ${
-                        isCollapsed ? "justify-center" : "flex-1 gap-3"
-                      }`}
-                    >
-                      <Icon
-                        className={`h-5 w-5 shrink-0 ${
-                          isActive ? "text-primary" : "text-text-muted"
-                        }`}
-                      />
-                      <span
-                        className={`truncate overflow-hidden transition-all duration-300 ${
-                          isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                        }`}
-                      >
-                        {item.label}
-                      </span>
-                    </Link>
-                    {!isCollapsed && (
-                      <button
-                        type="button"
-                        onClick={() => setWealthOpen((o) => !o)}
-                        aria-expanded={wealthOpen}
-                        aria-label={item.label}
-                        className="shrink-0 rounded-md p-1.5 text-text-muted transition-colors hover:bg-surface-alt hover:text-text-primary"
-                      >
-                        <ChevronDown
-                          className={`h-4 w-4 transition-transform duration-300 ${
-                            wealthOpen ? "rotate-180" : ""
-                          }`}
-                        />
-                      </button>
-                    )}
-                  </div>
-                  {!isCollapsed && (
-                    <div
-                      className="grid transition-[grid-template-rows] duration-300 ease-in-out"
-                      style={{
-                        gridTemplateRows: wealthOpen ? "1fr" : "0fr",
-                      }}
-                    >
-                      <div className="overflow-hidden">
-                        <div className="ml-6 mt-1 space-y-1 border-l border-border pl-3">
-                          {wealthSubItems.map((sub) => {
-                            const subActive =
-                              pathname === sub.href ||
-                              pathname.startsWith(sub.href + "/");
-                            return (
-                              <Link
-                                key={sub.href}
-                                href={sub.href}
-                                className={`block truncate rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
-                                  subActive
-                                    ? "bg-primary/10 text-primary"
-                                    : "text-text-muted hover:bg-surface hover:text-text-secondary"
-                                }`}
-                              >
-                                {sub.label}
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <DropdownNavItem
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  Icon={Icon}
+                  isActive={isActive}
+                  isCollapsed={isCollapsed}
+                  open={wealthOpen}
+                  onToggle={() => setWealthOpen((o) => !o)}
+                  subs={wealthSubItems}
+                  pathname={pathname}
+                />
+              );
+            }
+            if (item.href === "/budget") {
+              return (
+                <DropdownNavItem
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  Icon={Icon}
+                  isActive={isActive}
+                  isCollapsed={isCollapsed}
+                  open={budgetOpen}
+                  onToggle={() => setBudgetOpen((o) => !o)}
+                  subs={budgetSubItems}
+                  pathname={pathname}
+                />
               );
             }
             return (
