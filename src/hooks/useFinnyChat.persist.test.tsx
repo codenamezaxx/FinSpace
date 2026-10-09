@@ -194,6 +194,47 @@ describe("persist scratch", () => {
     db.close();
   }, 30000);
 
+  it("unsend removes the message and its entire tail below", async () => {
+    const replies = ["satu", "dua"];
+    let call = 0;
+    global.fetch = vi.fn().mockImplementation(async () => ({
+      ok: true,
+      body: streamOf(
+        JSON.stringify({
+          action: "chat",
+          message: replies[call++ % replies.length],
+          confidence: "high",
+        })
+      ),
+    })) as unknown as typeof fetch;
+    Object.defineProperty(navigator, "onLine", { value: true, configurable: true });
+
+    await db.open();
+    const { result } = renderHook(() => useFinnyChat({ persist: true }));
+    await act(async () => {
+      await result.current.sendMessage("pertama");
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await act(async () => {
+      await result.current.sendMessage("kedua");
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.messages).toHaveLength(4);
+    const sid = result.current.activeSessionId!;
+
+    // Unsend the FIRST user message → whole thread below goes with it
+    await act(async () => {
+      await result.current.unsendMessage(result.current.messages[0].id);
+    });
+    expect(result.current.messages).toHaveLength(0);
+    expect(
+      await db.finny_messages.where("sessionId").equals(sid).count()
+    ).toBe(0);
+    expect(await db.finny_sessions.get(sid)).toBeUndefined();
+
+    db.close();
+  }, 30000);
+
   it("unsend returns null for unknown ids", async () => {
     await db.open();
     const { result } = renderHook(() => useFinnyChat({ persist: true }));

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Download, FileDown, FileText } from "lucide-react";
+import { Download, FileDown, FileText, Calendar } from "lucide-react";
 import { useTransactions } from "@/hooks/useTransactions";
 import { generateMonthlyReportPdf } from "@/lib/monthlyReportPdf";
 import { useLanguage } from "@/lib/i18n";
@@ -98,9 +98,12 @@ export function ExportCSV() {
 
   return (
     <div className="glass rounded-2xl p-5">
-      <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-        {t("tools.monthly_report")}
-      </h2>
+      <div className="mb-4 flex items-center gap-2">
+        <Calendar className="h-4 w-4 text-accent-secondary" />
+        <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+          {t("tools.monthly_report")}
+        </p>
+      </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         {/* Month */}

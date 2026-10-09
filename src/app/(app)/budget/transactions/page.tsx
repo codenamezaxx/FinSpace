@@ -14,8 +14,8 @@ function BudgetTransactionsInner() {
   const { pockets } = usePockets();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") || undefined;
-  const focusTxId = searchParams.get("tx") || undefined;
   const pocketId = searchParams.get("pocket") || undefined;
+  const openTxId = searchParams.get("tx") || undefined;
   const pocketName = pockets.find((p) => p.id === pocketId)?.name;
 
   return (
@@ -52,7 +52,7 @@ function BudgetTransactionsInner() {
         pocketFilter={pocketId ?? null}
         pockets={pockets}
         searchQuery={searchQuery}
-        focusTxId={focusTxId}
+        openTxId={openTxId}
       />
     </div>
   );

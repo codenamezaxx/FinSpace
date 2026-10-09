@@ -606,7 +606,7 @@ export default function LandingPage() {
             <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
               <p className="text-xs text-text-muted">{t("landing.footer_copyright")}</p>
               <span className="inline-flex items-center rounded-full border border-border bg-surface-alt/80 px-2.5 py-0.5 text-[10px] font-medium text-text-muted">
-                v1.8
+                v1.8.1
               </span>
             </div>
           </div>

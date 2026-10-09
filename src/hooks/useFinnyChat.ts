@@ -566,24 +566,19 @@ export function useFinnyChat(options?: UseFinnyChatOptions): UseFinnyChatResult 
       // Derive the cut from the ref snapshot (not inside the updater):
       // updater execution timing vs the awaits below is not guaranteed,
       // but the bulkDelete MUST cover exactly what the user unsent.
+      // Unsend removes the message AND its entire tail: later turns may
+      // reference it, so partial removal would leave a broken thread.
       const snapshot = messagesRef.current;
       const cutAt = snapshot.findIndex((m) => m.id === id);
       const removedIds =
         cutAt === -1
           ? []
-          : [
-              snapshot[cutAt],
-              ...(snapshot[cutAt + 1]?.role === "assistant"
-                ? [snapshot[cutAt + 1]]
-                : []),
-            ].map((m) => m.id);
+          : snapshot.slice(cutAt).map((m) => m.id);
       removedIds.forEach((rid) => deletedIdsRef.current.add(rid));
       setMessages((prev) => {
         const idx = prev.findIndex((m) => m.id === id);
         if (idx === -1) return prev;
-        const cut = [prev[idx]];
-        if (prev[idx + 1]?.role === "assistant") cut.push(prev[idx + 1]);
-        return [...prev.slice(0, idx), ...prev.slice(idx + cut.length)];
+        return prev.slice(0, idx);
       });
       setIsLoading(false);
       setError(null);

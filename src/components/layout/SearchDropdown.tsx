@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import { Search, Clock, Banknote, CreditCard, TrendingDown, Wrench } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { buildSearchResultUrl } from "@/lib/searchNav";
+import {
+  getRecentSearches,
+  addRecentSearch,
+  clearRecentSearches,
+  type RecentEntry,
+} from "@/lib/searchHistory";
 import type { SearchResults, TransactionResult, AssetResult, LiabilityResult, DebtResult, ToolResult } from "@/hooks/useSearch";
 
 interface SearchDropdownProps {
@@ -13,36 +19,6 @@ interface SearchDropdownProps {
   loading: boolean;
   onClose: () => void;
   onNavigate?: () => void;
-}
-
-const RECENT_KEY = "finspace_recent_searches";
-const MAX_RECENT = 5;
-
-function getRecent(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function addRecent(q: string) {
-  try {
-    const list = getRecent().filter((s) => s !== q);
-    list.unshift(q);
-    if (list.length > MAX_RECENT) list.pop();
-    localStorage.setItem(RECENT_KEY, JSON.stringify(list));
-  } catch {
-    // Silently fail — localStorage may be full or unavailable
-  }
-}
-
-function clearRecent() {
-  try {
-    localStorage.removeItem(RECENT_KEY);
-  } catch {
-    // Silently fail
-  }
 }
 
 function formatAmount(amount: number): string {
@@ -66,7 +42,8 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
   const { t } = useLanguage();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [recentSearches, setRecentSearches] = useState<string[]>(getRecent);
+  const [recentSearches, setRecentSearches] =
+    useState<RecentEntry[]>(getRecentSearches);
 
   const flatItems = useMemo(() => {
     if (!results) return [];
@@ -108,8 +85,21 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
     : 0;
 
   const navigate = useCallback(
-    (url: string, saveToRecent?: string) => {
-      if (saveToRecent) addRecent(saveToRecent);
+    (url: string, saveToRecent?: RecentEntry) => {
+      if (saveToRecent) setRecentSearches(addRecentSearch(saveToRecent));
+      onClose();
+      onNavigate?.();
+      router.push(url);
+    },
+    [router, onClose, onNavigate]
+  );
+
+  /** Revisit a history entry on the correct page for its item kind. */
+  const navigateRecent = useCallback(
+    (entry: RecentEntry) => {
+      const url = entry.id
+        ? buildSearchResultUrl(entry.kind, entry.id, entry.q)
+        : `/budget/transactions?q=${encodeURIComponent(entry.q)}`;
       onClose();
       onNavigate?.();
       router.push(url);
@@ -157,7 +147,11 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
       if (e.key === "Enter" && highlightedIndex >= 0 && highlightedIndex < flatItems.length) {
         e.preventDefault();
         const item = flatItems[highlightedIndex];
-        navigate(getUrl(item), getItemName(item));
+        navigate(getUrl(item), {
+          q: getItemName(item),
+          kind: item.kind,
+          id: item.data.id,
+        });
       }
     },
     [flatItems, highlightedIndex, navigate, getUrl, onClose]
@@ -258,21 +252,24 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
             <span>{t("search.recent_searches")}</span>
             <button
               type="button"
-              onClick={() => { clearRecent(); setRecentSearches([]); }}
+              onClick={() => { clearRecentSearches(); setRecentSearches([]); }}
               className="text-xs text-text-muted hover:text-text-primary transition-colors"
             >
               {t("common.delete")}
             </button>
           </div>
-          {recentSearches.map((q) => (
+          {recentSearches.map((entry) => (
             <button
-              key={q}
+              key={`${entry.kind}:${entry.id || entry.q}`}
               type="button"
-              onClick={() => navigate(`/budget/transactions?q=${encodeURIComponent(q)}`)}
+              onClick={() => navigateRecent(entry)}
               className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-alt transition-colors text-left"
             >
               <Clock className="h-4 w-4 shrink-0 text-text-muted" />
-              <span>{q}</span>
+              <span className="min-w-0 flex-1 truncate">{entry.q}</span>
+              <span className="shrink-0 rounded-full bg-surface-alt px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-muted">
+                {entry.kind}
+              </span>
             </button>
           ))}
         </>
@@ -295,7 +292,13 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
                     type="button"
                     role="option"
                     aria-selected={highlightedIndex === flatIdx}
-                    onClick={() => navigate(getUrl({ kind: "transaction", data: tx }), tx.merchant)}
+                    onClick={() =>
+                      navigate(getUrl({ kind: "transaction", data: tx }), {
+                        q: tx.merchant,
+                        kind: "transaction",
+                        id: tx.id,
+                      })
+                    }
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
                         ? "bg-primary/10 ring-1 ring-primary/30"
@@ -330,7 +333,13 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
                     type="button"
                     role="option"
                     aria-selected={highlightedIndex === flatIdx}
-                    onClick={() => navigate(getUrl({ kind: "asset", data: a }), a.name)}
+                    onClick={() =>
+                      navigate(getUrl({ kind: "asset", data: a }), {
+                        q: a.name,
+                        kind: "asset",
+                        id: a.id,
+                      })
+                    }
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
                         ? "bg-primary/10 ring-1 ring-primary/30"
@@ -361,7 +370,13 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
                     type="button"
                     role="option"
                     aria-selected={highlightedIndex === flatIdx}
-                    onClick={() => navigate(getUrl({ kind: "liability", data: l }), l.name)}
+                    onClick={() =>
+                      navigate(getUrl({ kind: "liability", data: l }), {
+                        q: l.name,
+                        kind: "liability",
+                        id: l.id,
+                      })
+                    }
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
                         ? "bg-primary/10 ring-1 ring-primary/30"
@@ -392,7 +407,13 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
                     type="button"
                     role="option"
                     aria-selected={highlightedIndex === flatIdx}
-                    onClick={() => navigate(getUrl({ kind: "debt", data: d }), d.name)}
+                    onClick={() =>
+                      navigate(getUrl({ kind: "debt", data: d }), {
+                        q: d.name,
+                        kind: "debt",
+                        id: d.id,
+                      })
+                    }
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
                         ? "bg-primary/10 ring-1 ring-primary/30"
@@ -423,7 +444,13 @@ export function SearchDropdown({ query, results, loading, onClose, onNavigate }:
                     type="button"
                     role="option"
                     aria-selected={highlightedIndex === flatIdx}
-                    onClick={() => navigate(getUrl({ kind: "tool", data: t }), t.name)}
+                    onClick={() =>
+                      navigate(getUrl({ kind: "tool", data: t }), {
+                        q: t.name,
+                        kind: "tool",
+                        id: t.id,
+                      })
+                    }
                     className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left ${
                       highlightedIndex === flatIdx
                         ? "bg-primary/10 ring-1 ring-primary/30"

@@ -78,13 +78,13 @@ export function DebtList({ debts, onPay, onDelete, onEdit, onAdd, highlightId }:
           <DebtItem
             key={debt.id}
             debt={debt}
-            highlighted={highlightId === debt.id}
             remaining={remaining}
             progress={progress}
             installment={installment}
             onPay={onPay ? () => onPay(debt) : undefined}
             onDelete={onDelete ? () => onDelete(debt.id) : undefined}
             onEdit={onEdit ? () => onEdit(debt) : undefined}
+            highlighted={highlightId === debt.id}
             t={t}
             lang={lang}
           />

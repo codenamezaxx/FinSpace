@@ -46,6 +46,27 @@ export default function BudgetPocketsPage() {
         </p>
       </div>
 
+      <div className="glass flex items-center justify-between gap-3 rounded-2xl p-4 sm:p-5">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-text-muted">
+            {t("budget.total_balance")}
+          </p>
+          <p className="mt-1 truncate font-mono text-2xl font-bold text-text-primary">
+            {new Intl.NumberFormat("id-ID", {
+              style: "currency",
+              currency: "IDR",
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            }).format(
+              pockets.reduce((s, p) => s + (balances[p.id] ?? 0), 0)
+            )}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 font-mono text-xs font-semibold text-primary">
+          {t("budget.pocket_count", { count: pockets.length })}
+        </span>
+      </div>
+
       <PocketGrid
         pockets={pockets}
         balances={balances}

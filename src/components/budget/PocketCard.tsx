@@ -22,6 +22,12 @@ export const CATEGORY_CONFIG: Record<Pocket["category"], { icon: typeof Wallet; 
   rekening: { icon: Landmark, tint: "text-accent-secondary", bg: "bg-accent-secondary/10" },
 };
 
+const categoryLabelKey: Record<Pocket["category"], string> = {
+  tunai: "transaction.cash",
+  ewallet: "transaction.ewallet",
+  rekening: "transaction.bank_account",
+};
+
 export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onDelete, onTransfer }: PocketCardProps) {
   const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -45,8 +51,8 @@ export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onD
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
-      className={`relative flex shrink-0 flex-col items-start gap-1.5 rounded-2xl p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 w-36 ${
-        isSelected ? "ring-2 ring-primary bg-surface" : "bg-surface/80"
+      className={`relative flex min-w-0 w-full flex-col items-start gap-2 rounded-2xl border border-border/50 bg-surface/80 p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 ${
+        isSelected ? "ring-2 ring-primary bg-surface" : ""
       }`}
     >
       {/* ⋮ menu */}
@@ -88,11 +94,18 @@ export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onD
         )}
       </div>
 
-      <div className={`flex h-9 w-9 items-center justify-center rounded-full ${config.bg}`}>
-        <Icon className={`h-4 w-4 ${config.tint}`} />
+      <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${config.bg}`}>
+        <Icon className={`h-5 w-5 ${config.tint}`} />
       </div>
-      <p className="text-xs font-semibold text-text-primary truncate w-full pr-4">{pocket.name}</p>
-      <p className="font-mono text-sm font-bold text-text-primary">{formatCurrency(balance)}</p>
+      <div className="min-w-0 w-full">
+        <p className="truncate text-sm font-semibold text-text-primary pr-4">{pocket.name}</p>
+        <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-text-muted">
+          {t(categoryLabelKey[pocket.category])}
+        </p>
+      </div>
+      <p className="mt-1 w-full truncate font-mono text-base font-bold text-text-primary">
+        {formatCurrency(balance)}
+      </p>
     </div>
   );
 }

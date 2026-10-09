@@ -38,7 +38,7 @@ export function PocketGrid({
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none md:flex-wrap md:overflow-visible">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
         {pockets.map((pocket) => (
           <PocketCard
             key={pocket.id}
@@ -54,9 +54,9 @@ export function PocketGrid({
         <button
           type="button"
           onClick={onAdd}
-          className="flex shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border p-4 text-text-muted transition-all duration-200 hover:border-primary hover:text-primary hover:bg-primary/5 w-36"
+          className="flex min-h-44 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border p-4 text-text-muted transition-all duration-200 hover:border-primary hover:text-primary hover:bg-primary/5"
         >
-          <Plus className="h-5 w-5" />
+          <Plus className="h-6 w-6" />
           <span className="text-xs font-semibold">{t("pockets.add_pocket")}</span>
         </button>
       </div>
