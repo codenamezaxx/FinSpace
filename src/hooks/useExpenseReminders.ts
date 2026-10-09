@@ -8,6 +8,7 @@ import {
   isRemindersEnabled,
   wasFired,
   markFired,
+  missedSlots,
   nextOccurrence,
   type ReminderTime,
 } from "@/lib/reminders";
@@ -25,9 +26,20 @@ async function showSystemNotification(
   };
   try {
     if ("serviceWorker" in navigator) {
-      const reg = await navigator.serviceWorker.ready;
-      await reg.showNotification(title, options);
-      return;
+      // Race against a timeout: serviceWorker.ready never settles when no
+      // worker is registered (e.g. SW disabled in dev), which would hang
+      // forever and block the page-context fallback below.
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("sw-timeout")), 3000);
+      });
+      try {
+        const reg = await Promise.race([navigator.serviceWorker.ready, timeout]);
+        await reg.showNotification(title, options);
+        return;
+      } finally {
+        if (timer !== undefined) clearTimeout(timer);
+      }
     }
   } catch {
     // fall through to the page-context Notification
@@ -67,6 +79,10 @@ export function useExpenseReminders(): void {
         if (delay <= 0 || delay > 0x7fffffff) continue;
         timers.push(window.setTimeout(() => void fire(rt), delay));
       }
+      // Catch-up: fire the latest slot missed while the app was closed.
+      // fire() re-checks permission, fired flags and today's expenses.
+      const missed = missedSlots(now);
+      if (missed.length > 0) void fire(missed[missed.length - 1]);
     };
 
     const fire = async (rt: ReminderTime) => {

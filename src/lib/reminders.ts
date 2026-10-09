@@ -104,3 +104,22 @@ export function nextOccurrence(now: Date, t: ReminderTime): Date {
   if (d.getTime() <= now.getTime()) d.setDate(d.getDate() + 1);
   return d;
 }
+
+/**
+ * Today's slots whose time already passed and that have not fired yet.
+ * Used for catch-up when the app opens after a missed slot.
+ */
+export function missedSlots(now: Date): ReminderTime[] {
+  return REMINDER_TIMES.filter((t) => {
+    const slot = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      t.hour,
+      t.minute,
+      0,
+      0
+    );
+    return slot.getTime() <= now.getTime() && !wasFired(now, t);
+  });
+}

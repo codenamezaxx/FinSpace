@@ -7,6 +7,7 @@ import {
   markFired,
   isRemindersEnabled,
   setRemindersEnabled,
+  missedSlots,
 } from "./reminders";
 
 describe("reminders", () => {
@@ -69,5 +70,30 @@ describe("reminders", () => {
     expect(isRemindersEnabled()).toBe(false);
     setRemindersEnabled(true);
     expect(isRemindersEnabled()).toBe(true);
+  });
+});
+
+describe("missedSlots", () => {
+  function at(hour: number): Date {
+    const d = new Date();
+    d.setHours(hour, 0, 0, 0);
+    return d;
+  }
+
+  it("returns past slots that have not fired", () => {
+    expect(missedSlots(at(13))).toEqual([{ hour: 12, minute: 0 }]);
+  });
+
+  it("returns empty when all slots are still ahead", () => {
+    expect(missedSlots(at(8))).toEqual([]);
+  });
+
+  it("excludes already-fired slots", () => {
+    const now = at(22);
+    markFired(now, { hour: 12, minute: 0 });
+    expect(missedSlots(now)).toEqual([
+      { hour: 17, minute: 0 },
+      { hour: 21, minute: 0 },
+    ]);
   });
 });
