@@ -64,10 +64,10 @@ export function TopHoldingsCard({
   viewAllHref,
 }: TopHoldingsCardProps) {
   const { t } = useLanguage();
-  const topAssets = [...assets].sort((a, b) => b.amount - a.amount).slice(0, 5);
+  const topAssets = [...assets].sort((a, b) => b.amount - a.amount).slice(0, 3);
   const topLiabilities = [...liabilities]
     .sort((a, b) => b.amount - a.amount)
-    .slice(0, 5);
+    .slice(0, 3);
 
   return (
     <div className="glass min-w-0 rounded-2xl p-5">

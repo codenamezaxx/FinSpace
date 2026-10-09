@@ -74,7 +74,7 @@ export function TransactionHistory({ transactions, viewAllHref }: TransactionHis
       </div>
 
       <div className="divide-y divide-border">
-        {transactions.slice(0, 8).map((tx) => {
+        {transactions.slice(0, 5).map((tx) => {
           const isIncome = tx.type === "income";
           const Icon = isIncome ? TrendingUp : TrendingDown;
 

@@ -549,7 +549,7 @@ export default function DashboardPage() {
               {t("dashboard.top_pockets")}
             </h2>
             <Link
-              href="/budget"
+              href="/budget/pockets"
               className="shrink-0 font-mono text-xs font-medium text-primary transition-colors hover:text-text-primary"
             >
               {t("dashboard.see_all")} →
@@ -612,7 +612,7 @@ export default function DashboardPage() {
 
       {/* ── Row: Transaction History + Top Holdings ── */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <TransactionHistory transactions={transactions} viewAllHref="/budget" />
+        <TransactionHistory transactions={transactions} viewAllHref="/budget/transactions" />
         <TopHoldingsCard
           assets={assetsList}
           liabilities={liabilitiesList}
