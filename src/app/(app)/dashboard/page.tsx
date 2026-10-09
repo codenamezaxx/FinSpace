@@ -605,9 +605,6 @@ export default function DashboardPage() {
       {/* ── Monthly Chart ── */}
       <MonthlyChart
         transactions={chartTransactions}
-        assets={assetsList}
-        liabilities={liabilitiesList}
-        debts={debtsList}
       />
 
       {/* ── Row: Transaction History + Top Holdings ── */}
