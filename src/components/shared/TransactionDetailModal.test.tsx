@@ -43,7 +43,7 @@ describe("TransactionDetailModal print", () => {
     expect(printReceiptHtml).toHaveBeenCalledWith(tx, expect.any(Function));
   });
 
-  it("keeps edit and delete actions", () => {
+  it("keeps edit and delete actions as icon buttons", () => {
     render(
       <TransactionDetailModal
         isOpen
@@ -53,7 +53,7 @@ describe("TransactionDetailModal print", () => {
         onDelete={() => {}}
       />
     );
-    expect(screen.getByText("common.edit")).toBeDefined();
-    expect(screen.getByText("common.delete")).toBeDefined();
+    expect(screen.getByRole("button", { name: "common.edit" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "common.delete" })).toBeDefined();
   });
 });

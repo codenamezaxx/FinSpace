@@ -101,20 +101,7 @@ export function TransactionDetailModal({
         </div>
 
         {/* Actions (edit/delete hidden in view-only/compact mode) */}
-        <div className="flex gap-3 pt-1">
-          {onEdit && (
-            <button
-              type="button"
-              onClick={() => {
-                onEdit(transaction);
-                onClose();
-              }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-on-primary transition-all duration-200 hover:bg-primary-hover active:scale-[0.97]"
-            >
-              <Pencil className="h-4 w-4" />
-              {t("common.edit")}
-            </button>
-          )}
+        <div className="flex gap-2 pt-1">
           <button
             type="button"
             onClick={() => printReceiptHtml(transaction, t)}
@@ -123,6 +110,19 @@ export function TransactionDetailModal({
             <Printer className="h-4 w-4" />
             {t("receipt.print_button")}
           </button>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={() => {
+                onEdit(transaction);
+                onClose();
+              }}
+              aria-label={t("common.edit")}
+              className="flex items-center justify-center rounded-lg bg-primary px-3.5 text-on-primary transition-all duration-200 hover:bg-primary-hover active:scale-[0.97]"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
           {onDelete && (
             <button
               type="button"
@@ -130,10 +130,10 @@ export function TransactionDetailModal({
                 onDelete(transaction);
                 onClose();
               }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-danger px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-danger/90 active:scale-[0.97]"
+              aria-label={t("common.delete")}
+              className="flex items-center justify-center rounded-lg bg-danger px-3.5 text-white transition-all duration-200 hover:bg-danger/90 active:scale-[0.97]"
             >
               <Trash2 className="h-4 w-4" />
-              {t("common.delete")}
             </button>
           )}
         </div>
