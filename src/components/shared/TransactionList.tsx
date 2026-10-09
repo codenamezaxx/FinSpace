@@ -3,6 +3,7 @@
 import { ArrowDownUp, Eye, Search } from "lucide-react";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/i18n";
+import { formatCurrency } from "@/lib/netWorth";
 import { TransactionCard } from "./TransactionCard";
 import { TransactionDetailModal } from "./TransactionDetailModal";
 import { TransactionEditModal } from "./TransactionEditModal";
@@ -20,15 +21,6 @@ function formatDate(ts: number, locale: string): string {
     month: "short",
     year: "numeric",
   });
-}
-
-function formatAmount(amount: number, locale: string): string {
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
 }
 
 /** True when a timestamp falls inside the given month (0-11) and year. */
@@ -371,7 +363,7 @@ export function TransactionList({
                   }`}
                 >
                   {tx.type === "expense" ? "-" : "+"}
-                  {formatAmount(tx.amount, lang === "id" ? "id-ID" : "en-US")}
+                  {formatCurrency(tx.amount)}
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
                   {pockets.find((p) => p.id === tx.pocketId)?.name ??

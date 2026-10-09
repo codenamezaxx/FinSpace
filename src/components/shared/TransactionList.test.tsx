@@ -1,9 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { TransactionList } from "@/components/shared/TransactionList";
+import { useLanguage } from "@/lib/i18n";
 
 vi.mock("@/lib/i18n", () => ({
-  useLanguage: () => ({ t: (k: string) => k, lang: "id" }),
+  useLanguage: vi.fn(() => ({ t: (k: string) => k, lang: "id" })),
 }));
 
 vi.mock("@/hooks/usePockets", () => ({
@@ -41,5 +42,21 @@ describe("TransactionList focusTxId", () => {
   it("does not auto-open without focusTxId", () => {
     render(<TransactionList />);
     expect(screen.queryByText("receipt.print_button")).toBeNull();
+  });
+});
+
+describe("TransactionList currency locale", () => {
+  it("shows Rp (not IDR) in English locale", () => {
+    vi.mocked(useLanguage).mockReturnValue({
+      t: ((k: string) => k) as never,
+      lang: "en",
+    } as never);
+    const { container } = render(<TransactionList />);
+    expect(container.textContent).toContain("Rp");
+    expect(container.textContent).not.toMatch(/IDR\s?\d/);
+    vi.mocked(useLanguage).mockReturnValue({
+      t: ((k: string) => k) as never,
+      lang: "id",
+    } as never);
   });
 });
