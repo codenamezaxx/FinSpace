@@ -36,22 +36,23 @@ interface TransactionListProps {
   pocketFilter?: string | null;
   pockets?: Pocket[];
   searchQuery?: string; // from global search
-  focusTxId?: string; // from global search: auto-open this item's detail
   /**
    * Compact mode (overview pages): hides the search/filter bar and
    * pagination, caps rows at `limit`, and opens details view-only.
    */
   compact?: boolean;
   limit?: number;
+  /** Deep-link: auto-open the detail modal for this transaction id. */
+  openTxId?: string | null;
 }
 
 export function TransactionList({
   pocketFilter = null,
   pockets = [],
   searchQuery,
-  focusTxId,
   compact = false,
   limit,
+  openTxId,
 }: TransactionListProps) {
   const { t, lang } = useLanguage();
   const { transactions, loading, deleteTransaction, updateTransaction } =
@@ -94,14 +95,16 @@ export function TransactionList({
   const [deleteTx, setDeleteTx] = useState<Transaction | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Deep-link from global search: open the focused item once data loads
-  const focusDone = useRef(false);
+  // Deep-link (?tx=id): open the matching detail modal once it loads.
+  // One-shot: marked done on first load so closing the modal (or later
+  // refetches) never reopens it.
+  const openDone = useRef(false);
   useEffect(() => {
-    if (!focusTxId || focusDone.current || transactions.length === 0) return;
-    focusDone.current = true;
-    const found = transactions.find((t) => t.id === focusTxId);
-    if (found) setDetailTx(found);
-  }, [focusTxId, transactions]);
+    if (!openTxId || openDone.current || transactions.length === 0) return;
+    openDone.current = true;
+    const tx = transactions.find((t) => t.id === openTxId);
+    if (tx) setDetailTx(tx);
+  }, [openTxId, transactions]);
 
   const filtered = useMemo(() => {
     let result = [...transactions];

@@ -32,14 +32,14 @@ vi.mock("@/hooks/useTransactions", () => ({
   }),
 }));
 
-describe("TransactionList focusTxId", () => {
+describe("TransactionList openTxId", () => {
   it("auto-opens the detail modal for the focused transaction", () => {
-    render(<TransactionList focusTxId="tx1" />);
+    render(<TransactionList openTxId="tx1" />);
     // print button only exists inside the detail modal
     expect(screen.getByText("receipt.print_button")).toBeDefined();
   });
 
-  it("does not auto-open without focusTxId", () => {
+  it("does not auto-open without openTxId", () => {
     render(<TransactionList />);
     expect(screen.queryByText("receipt.print_button")).toBeNull();
   });
