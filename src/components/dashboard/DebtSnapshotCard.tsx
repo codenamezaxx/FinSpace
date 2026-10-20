@@ -28,7 +28,7 @@ export function DebtSnapshotCard({ debts, viewAllHref }: DebtSnapshotCardProps) 
     .slice(0, 5);
 
   return (
-    <div className="glass min-w-0 rounded-2xl p-5">
+    <div className="surface-card min-w-0 rounded-2xl p-5">
       <div className="mb-4 flex items-center gap-2.5">
         <HandCoins className="h-4 w-4 shrink-0 text-text-muted" />
         <h2 className="truncate text-sm font-semibold text-text-primary">

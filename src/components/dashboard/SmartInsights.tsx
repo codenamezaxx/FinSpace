@@ -93,7 +93,7 @@ export function SmartInsights({
   const topColor = getStatusColor(topInsight.status);
 
   return (
-    <div className="glass min-w-0 rounded-2xl p-6">
+    <div className="surface-card min-w-0 rounded-2xl p-6">
       {/* Health Score Ring */}
       <HealthScoreRing score={healthScore} />
 

@@ -99,6 +99,18 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Fix empty state text contrast in light mode
 - [x] Set `color-scheme` for native form controls per theme
 
+## Phase 5f: AI-Slop Design Audit — Remove Gradient / Glassmorphism / Glow
+Audit desain anti-"AI slop": hilangkan efek generik (gradient kartu, frosted glass, glow berwarna, hover-lift seragam) tanpa mengubah palet, tipografi, kop/i18n, logika, atau test.
+- [x] `globals.css`: hapus token `--glass-*`, `--glow-*`, `--gradient-card-*`; tambah token elevasi netral `--shadow-card` / `--shadow-pop` (light + dark + mono); ganti utilitas `.glass` → `.surface-card` (surface solid + border + shadow halus)
+- [x] Hapus radial glow blobs di `AppShell` (var sudah dihapus)
+- [x] Sweep 42 file: `glass` → `surface-card`; buang `shadow-primary/*`, `shadow-accent-secondary/*`, `ring-4 ring-primary/30`, `hover:-translate-y-*`, `hover:scale-105`, `hover:-mt-6`, `backdrop-blur-md/xl/2xl`, `bg-surface/50|60|65|95` → solid, `border-white/10` → `border-border`, `rounded-3xl` → `rounded-2xl`
+- [x] Dashboard hero cards: gradient inline → `bg-surface` solid + stripe aksen (`border-l/b-8` primary / accent-secondary); `NetWorthCard` solid
+- [x] Landing: kartu mock hero `bg-gradient-to-br` → `bg-primary` / `bg-accent-secondary` solid; hairline gradient → `bg-border`; nav & CTA blur dibersihkan
+- [x] `theme-overrides.css`: buang override `!important` untuk class yang sudah tidak ada (`.bg-surface\/50`, `.bg-surface\/60`, `.shadow-primary\/25`, `.shadow-accent-secondary\/25`, `.hover\:shadow-primary\/30`)
+- [x] Pertahankan yang sah: scrim modal/sheet `backdrop-blur-sm`, `CameraOverlay` gradient scrim, elevasi sheet/dropdown `shadow-2xl`, press feedback `active:scale-*`
+- [x] Verifikasi: `npx tsc --noEmit` bersih, `npx vitest run` 46 file / 235 test lolos, screenshot browser dashboard + landing + budget (light & dark)
+- [x] Fix regressi scrim modal: `--backdrop-bg` sempat jadi bernuansa navy (`rgba(15,23,42,.4)` light / `rgba(2,6,23,.65)` dark) sehingga latar modal terlihat biru — dikembalikan ke hitam netral `rgba(0,0,0,.3)` / `rgba(0,0,0,.6)` (selaras dengan scrim `bg-black/*` lainnya); guard test di `globals-accent.test.ts` + verifikasi browser light & dark
+
 ## Phase 6: Module D & E – Hybrid AI Assistant & Smart Insights
 - [x] Create the static `insights.json` file populated with contextual financial rules.
 - [x] Build the `SmartInsights` component on the main dashboard driven by current ratio states.
@@ -226,6 +238,7 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Pockets subpage UI: 2-col grid on mobile (no slider), roomier cards with category labels, total-balance + count summary strip
 - [x] Version bump 1.7.0 → 1.8.0
 - [x] Version bump 1.8.0 → 1.8.1
+- [x] Version bump 1.8.1 → 1.8.3 (`npm version --no-git-tag-version`; receipt/PDF footer & landing badge kini baca `APP_VERSION` dari `version.ts` — tak perlu hardcode; About modal ikut otomatis)
 - [x] Dashboard view-all links: transaction history → budget, holdings → wealth/assets, debts → wealth/debts
 - [x] Dashboard restructure: NetWorthCard detail toggle replaced by asset/liability/debt COUNT segments; top-3 pockets strip; bottom rows reordered to history+holdings and health+debts (new TopHoldingsCard, DebtSnapshotCard)
 - [x] Live-update fix: Dexie.liveQuery never fires for `.where().between()` range queries — replaced with full orderBy query + client-side time filter in useTransactions; dashboard/budget/pockets/transactions all now update instantly on data change without refresh (verified in browser)

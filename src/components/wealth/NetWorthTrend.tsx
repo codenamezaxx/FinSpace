@@ -76,7 +76,7 @@ export const NetWorthTrend = memo(function NetWorthTrend({
 
   if (!nonEmpty) {
     return (
-      <div className="glass rounded-2xl p-5">
+      <div className="surface-card rounded-2xl p-5">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
           <TrendingUp className="h-5 w-5 shrink-0 text-accent-secondary" />
           {t("wealth.trend_title")}
@@ -91,7 +91,7 @@ export const NetWorthTrend = memo(function NetWorthTrend({
   const up = delta >= 0;
 
   return (
-    <div className="glass min-w-0 rounded-2xl p-5">
+    <div className="surface-card min-w-0 rounded-2xl p-5">
       <div className="mb-4 flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 truncate text-sm font-semibold text-text-primary">
           <TrendingUp className="h-5 w-5 shrink-0 text-accent-secondary" />

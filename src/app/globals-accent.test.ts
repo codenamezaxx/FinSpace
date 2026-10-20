@@ -66,3 +66,36 @@ describe("on-primary button text token", () => {
     expect(monoDark).toContain("--color-on-primary: #0A0A0A;");
   });
 });
+
+describe("modal backdrop token (--backdrop-bg)", () => {
+  const lightBlock = css.slice(
+    css.indexOf("/* ─── Default theme tokens (light) ─── */"),
+    css.indexOf("/* ─── Dark Theme Override ─── */")
+  );
+  const darkBlock = css.slice(
+    css.indexOf("/* ─── Dark Theme Override ─── */"),
+    css.indexOf("/* ─── Accent variant: default (dokumentatif, nilai = baseline) ─── */")
+  );
+
+  const readScrim = (block: string, label: string) => {
+    const m = block.match(/--backdrop-bg:\s*rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/);
+    if (!m) throw new Error(`--backdrop-bg missing or not rgba() in ${label} block`);
+    return { r: +m[1], g: +m[2], b: +m[3], a: +m[4] };
+  };
+
+  // Scrim must be a neutral darkening layer: any chromatic cast tints every
+  // modal behind it (R/G/B must be 0), and it must be genuinely dark (a >= 0.3).
+  it("light scrim is neutral black, not tinted", () => {
+    const { r, g, b, a } = readScrim(lightBlock, "light");
+    expect([r, g, b]).toEqual([0, 0, 0]);
+    expect(a).toBeGreaterThanOrEqual(0.3);
+    expect(a).toBeLessThan(1);
+  });
+
+  it("dark scrim is neutral black, not tinted", () => {
+    const { r, g, b, a } = readScrim(darkBlock, "dark");
+    expect([r, g, b]).toEqual([0, 0, 0]);
+    expect(a).toBeGreaterThanOrEqual(0.3);
+    expect(a).toBeLessThan(1);
+  });
+});

@@ -38,7 +38,7 @@ export function AssetRow({
   return (
     <div
       ref={ref}
-      className={`glass flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 ${
+      className={`surface-card flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:shadow-md hover:shadow-black/20 ${
         highlighted ? "ring-2 ring-primary" : ""
       }`}
     >
@@ -99,7 +99,7 @@ export function LiabilityRow({
   return (
     <div
       ref={ref}
-      className={`glass flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 ${
+      className={`surface-card flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:shadow-md hover:shadow-black/20 ${
         highlighted ? "ring-2 ring-primary" : ""
       }`}
     >

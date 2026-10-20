@@ -11,8 +11,6 @@
 [data-theme="dark"] .bg-track { background-color: #334155 !important; }
 
 /* Background opacity variants */
-[data-theme="dark"] .bg-surface\/50 { background-color: rgba(30, 41, 59, 0.5) !important; }
-[data-theme="dark"] .bg-surface\/60 { background-color: rgba(30, 41, 59, 0.6) !important; }
 [data-theme="dark"] .bg-surface-alt\/50 { background-color: rgba(15, 23, 42, 0.5) !important; }
 [data-theme="dark"] .bg-danger\/10 { background-color: rgba(239, 68, 68, 0.1) !important; }
 [data-theme="dark"] .bg-danger\/15 { background-color: rgba(239, 68, 68, 0.15) !important; }
@@ -43,10 +41,8 @@
 [data-theme="dark"] .ring-primary\/30 { --tw-ring-color: rgba(59, 130, 246, 0.3) !important; }
 
 /* Shadows */
-[data-theme="dark"] .shadow-primary\/25 { --tw-shadow-color: rgba(59, 130, 246, 0.25) !important; }
 [data-theme="dark"] .shadow-success\/25 { --tw-shadow-color: rgba(34, 197, 94, 0.25) !important; }
 [data-theme="dark"] .shadow-danger\/25 { --tw-shadow-color: rgba(239, 68, 68, 0.25) !important; }
-[data-theme="dark"] .shadow-accent-secondary\/25 { --tw-shadow-color: rgba(114, 62, 195, 0.25) !important; }
 [data-theme="dark"] .shadow-black\/20 { --tw-shadow-color: rgba(0, 0, 0, 0.2) !important; }
 
 /* Hover variants */
@@ -58,7 +54,6 @@
   [data-theme="dark"] .hover\:text-text-secondary:hover { color: #94A3B8 !important; }
   [data-theme="dark"] .hover\:border-text-muted:hover { border-color: #64748B !important; }
   [data-theme="dark"] .hover\:shadow-black\/30:hover { --tw-shadow-color: rgba(0,0,0,0.3) !important; }
-  [data-theme="dark"] .hover\:shadow-primary\/30:hover { --tw-shadow-color: rgba(59, 130, 246, 0.3) !important; }
 }
 
 /* Responsive (lg → sidebar breakpoint) */

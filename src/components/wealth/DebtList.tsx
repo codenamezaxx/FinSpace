@@ -168,7 +168,7 @@ function DebtItem({
   return (
     <div
       ref={itemRef}
-      className={`glass rounded-xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 ${
+      className={`surface-card rounded-xl p-3 transition-all duration-200 hover:shadow-md hover:shadow-black/20 ${
         highlighted ? "ring-2 ring-primary" : ""
       }`}
     >
@@ -224,7 +224,7 @@ function DebtItem({
         <div className="h-2 flex-1 overflow-hidden rounded-full bg-border">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
-              paidOff ? "bg-success" : "bg-gradient-to-r from-primary to-accent-secondary"
+              paidOff ? "bg-success" : "bg-primary"
             }`}
             style={{ width: `${Math.min(100, progress)}%` }}
           />
@@ -242,7 +242,7 @@ function DebtItem({
             <button
               type="button"
               onClick={onPay}
-              className="flex cursor-pointer items-center gap-1 rounded-lg bg-primary px-3 py-1.5 font-mono text-xs font-semibold text-on-primary shadow-md shadow-primary/25 transition-all duration-200 hover:bg-primary-hover active:scale-[0.98]"
+              className="flex cursor-pointer items-center gap-1 rounded-lg bg-primary px-3 py-1.5 font-mono text-xs font-semibold text-on-primary shadow-md transition-all duration-200 hover:bg-primary-hover active:scale-[0.98]"
             >
               <HandCoins className="h-3.5 w-3.5" />
               {t("debt.pay")}

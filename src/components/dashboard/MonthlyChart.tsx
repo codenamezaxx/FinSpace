@@ -92,7 +92,7 @@ export function MonthlyChart({ transactions }: MonthlyChartProps) {
   }, [cashflowData]);
 
   return (
-    <div className="glass min-w-0 rounded-2xl p-5">
+    <div className="surface-card min-w-0 rounded-2xl p-5">
       {/* ── Header ── */}
       <div className="mb-4 flex items-center gap-2.5">
         <TrendingUp className="h-5 w-5 shrink-0" style={{ color: "var(--color-primary)" }} />

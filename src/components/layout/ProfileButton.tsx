@@ -62,7 +62,7 @@ export function ProfileButton() {
       {/* Avatar button — guest icon or user initials */}
       <button
         onClick={() => setOpen(!open)}
-        className={`relative h-8 w-8 overflow-hidden rounded-full border-2 border-white/10 bg-surface-alt cursor-pointer transition-all duration-200 hover:border-primary/60 ${
+        className={`relative h-8 w-8 overflow-hidden rounded-full border-2 border-border bg-surface-alt cursor-pointer transition-all duration-200 hover:border-primary/60 ${
           !isLoggedIn ? "bg-surface" : ""
         }`}
         aria-label={t("profile.profile")}
@@ -122,10 +122,10 @@ export function ProfileButton() {
             className="fixed inset-0 z-40"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 top-10 z-50 w-64 animate-fade-scale rounded-2xl border border-white/10 bg-surface/95 p-4 shadow-2xl backdrop-blur-2xl transition-all duration-200 ease-out">
+          <div className="absolute right-0 top-10 z-50 w-64 animate-fade-scale rounded-2xl border border-border bg-surface p-4 shadow-2xl transition-all duration-200 ease-out">
             {/* ── TOP: Login or Profile Info ── */}
             {user ? (
-              <div className="mb-3 flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="mb-3 flex items-center gap-3 border-b border-border pb-3">
                 <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-primary">
                   {user.picture ? (
                     <img
@@ -152,7 +152,7 @@ export function ProfileButton() {
             ) : (
               <button
                 onClick={() => { setOpen(false); login(); }}
-                className="mb-3 flex w-full items-center gap-3 rounded-xl border border-white/10 bg-surface/65 px-4 py-3 text-sm font-semibold text-text-primary backdrop-blur-xl transition-all duration-200 hover:shadow-primary/25"
+                className="mb-3 flex w-full items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-text-primary transition-all duration-200"
               >
                 <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>

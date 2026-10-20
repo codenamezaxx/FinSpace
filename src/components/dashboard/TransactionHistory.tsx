@@ -30,7 +30,7 @@ export function TransactionHistory({ transactions, viewAllHref }: TransactionHis
 
   if (transactions.length === 0) {
     return (
-      <div className="glass min-w-0 rounded-2xl p-5">
+      <div className="surface-card min-w-0 rounded-2xl p-5">
         <div className="flex items-center gap-2.5 mb-4">
           <Receipt className="h-4 w-4 text-text-muted" />
           <h2 className="text-sm font-semibold text-text-primary">
@@ -53,7 +53,7 @@ export function TransactionHistory({ transactions, viewAllHref }: TransactionHis
   }
 
   return (
-    <div className="glass min-w-0 rounded-2xl p-5">
+    <div className="surface-card min-w-0 rounded-2xl p-5">
       <div className="flex items-center gap-2.5 mb-4">
         <Receipt className="h-4 w-4 shrink-0 text-text-muted" />
         <h2 className="truncate text-sm font-semibold text-text-primary">

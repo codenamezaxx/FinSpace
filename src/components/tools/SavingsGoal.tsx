@@ -23,7 +23,7 @@ export function SavingsGoal() {
   const showResult = targetNum > 0 && waktuNum > 0;
 
   return (
-    <div className="glass rounded-2xl p-5">
+    <div className="surface-card rounded-2xl p-5">
       <div className="mb-5 flex items-center gap-2">
         <PiggyBank className="h-4 w-4 text-accent" />
         <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">

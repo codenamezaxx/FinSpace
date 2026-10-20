@@ -207,7 +207,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
       {/* Mobile Bottom Navigation */}
       <nav
         ref={navRef}
-        className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border bg-surface/60 backdrop-blur-xl px-2 py-2 lg:hidden"
+        className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border bg-surface px-2 py-2 lg:hidden"
       >
         {/* Sliding active indicator */}
         <div
@@ -223,7 +223,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
               {i === 2 && onScan && (
                 <button
                   onClick={onScan}
-                  className="flex items-center justify-center w-full max-w-14 h-14 -mt-5 rounded-full bg-primary text-on-primary shadow-lg shadow-primary/30 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/40 active:scale-95 hover:-mt-6"
+                  className="flex items-center justify-center w-full max-w-14 h-14 -mt-5 rounded-full bg-primary text-on-primary shadow-lg cursor-pointer transition-all duration-300 active:scale-95"
                   aria-label={t("nav.scan_receipt")}
                 >
                   <Camera className="w-6 h-6" />
@@ -308,7 +308,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
           <button
             type="button"
             onClick={() => openAddTransaction()}
-            className={`flex items-center justify-center rounded-xl bg-primary text-sm font-bold text-on-primary shadow-lg shadow-primary/25 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30 ${
+            className={`flex items-center justify-center rounded-xl bg-primary text-sm font-bold text-on-primary shadow-lg cursor-pointer transition-all duration-200 hover:shadow-xl ${
               isCollapsed
                 ? "mx-auto h-10 w-10"
                 : "w-full gap-2 px-5 py-3"

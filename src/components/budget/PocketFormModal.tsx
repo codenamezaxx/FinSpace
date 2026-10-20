@@ -104,7 +104,7 @@ export function PocketFormModal({ isOpen, onClose, onSave, initialName, title }:
         {error && <p className="text-xs font-medium text-danger">{error}</p>}
         <button
           type="submit"
-          className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-on-primary transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98]"
+          className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-on-primary transition-all duration-200 hover:bg-primary-hover hover:shadow-lg active:scale-[0.98]"
         >
           {initialName ? t("common.save") : t("budget.add_pocket")}
         </button>

@@ -84,7 +84,7 @@ export function WealthSpeedometer({
   ];
 
   return (
-    <div className="glass rounded-2xl p-5">
+    <div className="surface-card rounded-2xl p-5">
       <div className="flex items-center justify-center">
         <svg
           viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}

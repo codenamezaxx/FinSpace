@@ -135,7 +135,7 @@ export default function BudgetPage() {
           </button>
           <button
             onClick={() => openAddTransaction()}
-            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
+            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary shadow-md transition-all duration-200 hover:bg-primary-hover hover:shadow-lg active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             {t("nav.add_transaction")}
@@ -146,7 +146,7 @@ export default function BudgetPage() {
       {/* 50/30/20 Budget Overview */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {/* Needs */}
-        <div className="glass min-w-0 rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
+        <div className="surface-card min-w-0 rounded-2xl p-6 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={needsStatus.percentage}
             label={`${t("budget.needs")} (${pct.needs}%)`}
@@ -161,7 +161,7 @@ export default function BudgetPage() {
         </div>
 
         {/* Wants */}
-        <div className="glass min-w-0 rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
+        <div className="surface-card min-w-0 rounded-2xl p-6 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={wantsStatus.percentage}
             label={`${t("budget.wants")} (${pct.wants}%)`}
@@ -176,7 +176,7 @@ export default function BudgetPage() {
         </div>
 
         {/* Savings */}
-        <div className="glass min-w-0 rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
+        <div className="surface-card min-w-0 rounded-2xl p-6 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
           <BudgetRing
             percentage={savingsStatus.percentage}
             label={`${t("budget.savings")} (${pct.savings}%)`}

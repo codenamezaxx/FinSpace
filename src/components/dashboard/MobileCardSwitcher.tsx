@@ -105,7 +105,7 @@ export function MobileCardSwitcher({
     <div className="flex flex-col gap-3">
       {/* ── Animated card slot with swipe ── */}
       <div
-        className="relative overflow-hidden w-full rounded-2xl shadow-lg shadow-black/20 backdrop-blur-xl cursor-grab active:cursor-grabbing select-none touch-pan-y"
+        className="relative overflow-hidden w-full rounded-2xl shadow-lg shadow-black/20 cursor-grab active:cursor-grabbing select-none touch-pan-y"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}

@@ -51,7 +51,7 @@ export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onD
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
-      className={`relative flex min-w-0 w-full flex-col items-start gap-2 rounded-2xl border border-border/50 bg-surface/80 p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 ${
+      className={`relative flex min-w-0 w-full flex-col items-start gap-2 rounded-2xl border border-border bg-surface p-5 text-left transition-all duration-200 hover:shadow-lg hover:shadow-black/20 ${
         isSelected ? "ring-2 ring-primary bg-surface" : ""
       }`}
     >

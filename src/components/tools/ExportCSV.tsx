@@ -97,7 +97,7 @@ export function ExportCSV() {
   };
 
   return (
-    <div className="glass rounded-2xl p-5">
+    <div className="surface-card rounded-2xl p-5">
       <div className="mb-4 flex items-center gap-2">
         <Calendar className="h-4 w-4 text-accent-secondary" />
         <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">

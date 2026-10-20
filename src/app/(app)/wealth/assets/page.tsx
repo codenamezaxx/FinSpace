@@ -134,7 +134,7 @@ function WealthAssetsInner() {
         <button
           type="button"
           onClick={() => openAddItem("asset")}
-          className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
+          className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary shadow-md transition-all duration-200 hover:bg-primary-hover hover:shadow-lg active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" />
           {t("wealth.add_item")}
@@ -148,7 +148,7 @@ function WealthAssetsInner() {
             {t("wealth.total_assets")}
           </h3>
           <div className="space-y-2">
-            <div className="glass flex items-center justify-between rounded-xl border-l-4 border-l-primary p-3">
+            <div className="surface-card flex items-center justify-between rounded-xl border-l-4 border-l-primary p-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-text-primary">
                   {t("wealth.recorded_balance")}

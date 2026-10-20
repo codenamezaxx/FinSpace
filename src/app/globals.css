@@ -27,11 +27,9 @@ html {
   --color-success: #22C55E;
   --color-danger: #EF4444;
 
-  /* Glassmorphism tokens */
-  --glass-bg: var(--glass-bg);
-  --glass-border: var(--glass-border);
-  --glass-shadow: var(--glass-shadow);
-  --glass-blur: 20px;
+  /* Elevation tokens (neutral, theme-aware — no colored glow) */
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
 }
 
 /* ─── Default theme tokens (light) ─── */
@@ -50,16 +48,10 @@ html {
   --color-on-primary: #FFFFFF;
   --color-accent: #EAB393;
   --color-accent-secondary: #8940F9;
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(0, 0, 0, 0.06);
-  --glass-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.12);
   --backdrop-bg: rgba(0, 0, 0, 0.3);
-  --glow-primary: rgba(59, 130, 246, 0.1);
-  --glow-accent: rgba(114, 62, 195, 0.08);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-pop: 0 16px 40px -18px rgba(15, 23, 42, 0.28);
   --sidebar-shadow: 2px 0 24px rgba(0, 0, 0, 0.06);
-  --gradient-card-purple: rgba(230, 217, 253, 0.904);
-  --gradient-card-mid: rgba(255, 255, 255, 0.65);
-  --gradient-card-blue: rgb(226, 237, 255);
   color-scheme: light;
 }
 
@@ -76,16 +68,10 @@ html {
   --color-warning: #FFCF95;
   --color-accent: #EAB393;
   --color-accent-secondary: #8940F9;
-  --glass-bg: rgba(30, 41, 59, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.5);
   --backdrop-bg: rgba(0, 0, 0, 0.6);
-  --glow-primary: rgba(59, 130, 246, 0.05);
-  --glow-accent: rgba(114, 62, 195, 0.05);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 20px 48px -20px rgba(0, 0, 0, 0.65);
   --sidebar-shadow: 2px 0 24px rgba(0, 0, 0, 0.25);
-  --gradient-card-purple: rgba(113, 62, 195, 0.333);
-  --gradient-card-mid: rgba(30, 41, 59, 0.55);
-  --gradient-card-blue: rgba(59, 131, 246, 0.237);
   color-scheme: dark;
 }
 
@@ -112,18 +98,15 @@ html {
   --color-primary-hover: #404040;
   --color-accent: #a3a3a3;
   --color-accent-secondary: #525252;
-  --glow-primary: rgba(0, 0, 0, 0.08);
-  --glow-accent: rgba(0, 0, 0, 0.06);
-  --gradient-card-purple: rgba(212, 212, 212, 0.9);
-  --gradient-card-mid: rgba(255, 255, 255, 0.65);
-  --gradient-card-blue: rgb(229, 229, 229);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-pop: 0 16px 40px -18px rgba(0, 0, 0, 0.2);
 }
 
 /* ─── Accent variant: monochrome (dark) — harus setelah blok dark ─── */
 [data-theme="dark"][data-accent="mono"] {
   --color-background: #0A0A0A;
-  --color-surface: #1a1a1a;
-  --color-surface-alt: #111111;
+  --color-surface: #111111;
+  --color-surface-alt: #151515;
   --color-border: #262626;
   --color-track: #404040;
   --color-text-primary: #fafafa;
@@ -134,22 +117,15 @@ html {
   --color-on-primary: #0A0A0A;
   --color-accent: #a3a3a3;
   --color-accent-secondary: #737373;
-  --glass-bg: rgba(26, 26, 26, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glow-primary: rgba(255, 255, 255, 0.04);
-  --glow-accent: rgba(255, 255, 255, 0.03);
-  --gradient-card-purple: rgba(64, 64, 64, 0.33);
-  --gradient-card-mid: rgba(26, 26, 26, 0.55);
-  --gradient-card-blue: rgba(115, 115, 115, 0.24);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 20px 48px -20px rgba(0, 0, 0, 0.6);
 }
 
-/* ─── Glassmorphism Utility ─── */
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+/* ─── Surface card utility (solid — replaces glassmorphism) ─── */
+.surface-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
 }
 
 /* ─── Scoped theme transition (no global flash) ─── */

@@ -25,7 +25,7 @@ export const RatioCard = memo(function RatioCard({
   const color = getStatusColor(status);
 
   return (
-    <div className="glass rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
+    <div className="surface-card rounded-2xl p-4 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
       <div className="flex items-center gap-2">
         {icon && (
           <span className="text-accent-secondary">{icon}</span>

@@ -174,7 +174,7 @@ export default function WealthPage() {
         <button
           type="button"
           onClick={() => openAddItem()}
-          className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
+          className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary shadow-md transition-all duration-200 hover:bg-primary-hover hover:shadow-lg active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" />
           {t("wealth.add_item")}
@@ -310,7 +310,7 @@ export default function WealthPage() {
       </div>
 
       {/* Speedometer */}
-      <div className="glass flex flex-col items-center rounded-2xl p-6">
+      <div className="surface-card flex flex-col items-center rounded-2xl p-6">
         <h2 className="mb-2 font-mono text-lg font-semibold text-text-primary">
           {t("wealth.health_score")}
         </h2>

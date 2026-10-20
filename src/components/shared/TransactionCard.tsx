@@ -51,7 +51,7 @@ export const TransactionCard = memo(function TransactionCard({ transaction, onSh
             }
           : undefined
       }
-      className={`glass flex items-center gap-3 overflow-hidden rounded-2xl p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${
+      className={`surface-card flex items-center gap-3 overflow-hidden rounded-2xl p-4 shadow-sm transition-all duration-200 hover:shadow-lg ${
         onShowDetail ? "cursor-pointer active:scale-[0.985]" : ""
       }`}
     >

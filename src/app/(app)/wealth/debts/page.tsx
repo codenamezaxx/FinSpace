@@ -97,7 +97,7 @@ function WealthDebtsInner() {
         <button
           type="button"
           onClick={() => setShowDebtForm(true)}
-          className="flex shrink-0 items-center gap-2 rounded-lg bg-primary/10 px-5 py-3 text-sm font-semibold text-primary shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
+          className="flex shrink-0 items-center gap-2 rounded-lg bg-primary/10 px-5 py-3 text-sm font-semibold text-primary shadow-md transition-all duration-200 hover:bg-primary-hover/20 hover:shadow-lg active:scale-[0.98]"
         >
           <Plus className="h-3.5 w-3.5" />
           {t("wealth.add_debt")}

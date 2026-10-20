@@ -20,6 +20,7 @@ import { motion } from "framer-motion";
 import { LandingSkeleton } from "@/components/landing/LandingSkeleton";
 import { useLanguage } from "@/lib/i18n";
 import { useCloudAuth } from "@/hooks/useCloudAuth";
+import { APP_VERSION } from "@/lib/version";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -127,14 +128,14 @@ export default function LandingPage() {
           <motion.div variants={heroItem} className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
             <Link
               href="/dashboard"
-              className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-on-primary shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/30"
+              className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-on-primary shadow-lg transition-all duration-200 hover:bg-primary-hover hover:shadow-xl"
             >
               {t("landing.hero_cta_start")}
               <ArrowRight size={18} />
             </Link>
             <a
               href="#features"
-              className="inline-flex h-12 items-center rounded-xl border border-border bg-surface/50 px-8 text-sm font-semibold text-text-secondary backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-text-muted hover:bg-surface hover:text-text-primary"
+              className="inline-flex h-12 items-center rounded-xl border border-border bg-surface px-8 text-sm font-semibold text-text-secondary transition-all duration-200 hover:border-text-muted hover:bg-surface hover:text-text-primary"
             >
               {t("landing.hero_cta_learn")}
             </a>
@@ -160,8 +161,8 @@ export default function LandingPage() {
               <div className="space-y-4 p-5">
                 {/* Row 1: Balance Card + Net Worth Card */}
                 <div className="flex flex-col md:flex-row gap-4">
-                  {/* Balance card — brand gradient */}
-                  <div className="rounded-xl bg-gradient-to-br from-primary to-primary/80 p-5 text-on-primary w-full">
+                  {/* Balance card — solid brand */}
+                  <div className="rounded-xl bg-primary p-5 text-on-primary w-full">
                     <p className="text-xs font-medium text-white/80">{t("landing.mock_balance")}</p>
                     <p className="mt-1.5 text-2xl font-bold">{t("landing.mock_balance_amount")}</p>
                     <div className="mt-3 flex items-center justify-center gap-2">
@@ -172,8 +173,8 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  {/* Net Worth card — accent gradient */}
-                  <div className="rounded-xl bg-gradient-to-br from-accent-secondary to-accent-secondary/80 p-5 text-white w-full">
+                  {/* Net Worth card — solid accent */}
+                  <div className="rounded-xl bg-accent-secondary p-5 text-white w-full">
                     <p className="text-xs font-medium text-white/80">{t("landing.mock_net_worth")}</p>
                     <p className="mt-1.5 text-2xl font-bold">{t("landing.mock_net_worth_amount")}</p>
                     <div className="mt-3 flex items-center justify-center gap-2">
@@ -328,7 +329,7 @@ export default function LandingPage() {
               <motion.div key={f.key} variants={fadeUp}>
                 <Link
                   href={`/${f.key === "dashboard" ? "dashboard" : f.key}`}
-                  className={`group block rounded-2xl border p-7 transition-all duration-200 hover:-translate-y-0.5 ${
+                  className={`group block rounded-2xl border p-7 transition-all duration-200 ${
                     i % 2 === 0
                       ? "border-border bg-surface hover:shadow-md hover:border-text-muted/30"
                       : "border-transparent bg-surface-alt/70 hover:border-border hover:bg-surface"
@@ -357,7 +358,7 @@ export default function LandingPage() {
         whileInView="visible"
         viewport={{ once: true, margin: "-80px" }}
         variants={fadeUp}
-        className="relative z-10 border-t border-border bg-surface/50 px-6 py-24"
+        className="relative z-10 border-t border-border bg-surface px-6 py-24"
       >
         <div className="mx-auto max-w-5xl">
           <div className="mb-14">
@@ -378,7 +379,7 @@ export default function LandingPage() {
           >
             {howItWorks.map((step, i) => (
               <motion.div key={step.key} variants={fadeUp}>
-                <div className="group rounded-2xl border border-border bg-surface p-8 text-center transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+                <div className="group rounded-2xl border border-border bg-surface p-8 text-center transition-all duration-200 hover:shadow-md">
                   <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 transition-colors duration-200 group-hover:bg-primary/20">
                     <step.icon className="h-7 w-7 text-primary" />
                   </div>
@@ -405,7 +406,7 @@ export default function LandingPage() {
         whileInView="visible"
         viewport={{ once: true, margin: "-80px" }}
         variants={fadeUp}
-        className="relative z-10 border-t border-border bg-surface/50 px-6 py-24"
+        className="relative z-10 border-t border-border bg-surface px-6 py-24"
       >
         <div className="mx-auto max-w-5xl">
           <div className="mb-14">
@@ -521,7 +522,7 @@ export default function LandingPage() {
         className="relative z-10 px-6 py-24"
       >
         <div className="mx-auto max-w-3xl text-center">
-          <div className="rounded-3xl border border-border bg-surface px-8 py-16 sm:px-16">
+          <div className="rounded-2xl border border-border bg-surface px-8 py-16 sm:px-16">
             <h2 className="text-3xl font-bold text-text-primary sm:text-4xl">
               {t("landing.cta_title")}
             </h2>
@@ -530,7 +531,7 @@ export default function LandingPage() {
             </p>
             <Link
               href="/dashboard"
-              className="mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-on-primary shadow-lg shadow-primary/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/30"
+              className="mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-on-primary shadow-lg transition-all duration-200 hover:bg-primary-hover hover:shadow-xl"
             >
               {t("landing.hero_cta_start")}
               <ArrowRight size={18} />
@@ -543,9 +544,9 @@ export default function LandingPage() {
       <div className="relative z-10 flex justify-center pb-4">
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="group inline-flex items-center gap-1.5 rounded-full border border-border  bg-surface-alt px-4 py-2 text-xs font-medium text-text-muted transition-all duration-200 hover:-translate-y-0.5 hover:border-text-muted/30 hover:bg-surface-alt hover:text-text-secondary"
+          className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-alt px-4 py-2 text-xs font-medium text-text-muted transition-all duration-200 hover:border-text-muted/30 hover:bg-surface-alt hover:text-text-secondary"
         >
-          <ChevronUp size={14} className="transition-transform duration-200 group-hover:-translate-y-0.5" />
+          <ChevronUp size={14} className="transition-transform duration-200 group-" />
           {t("landing.button_back_to_top")}
         </button>
       </div>
@@ -602,11 +603,11 @@ export default function LandingPage() {
 
           {/* Copyright bar */}
           <div className="relative mt-10 border-t border-primary/10 pt-6">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-px bg-border" />
             <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
               <p className="text-xs text-text-muted">{t("landing.footer_copyright")}</p>
               <span className="inline-flex items-center rounded-full border border-border bg-surface-alt/80 px-2.5 py-0.5 text-[10px] font-medium text-text-muted">
-                v1.8.1
+                v{APP_VERSION}
               </span>
             </div>
           </div>

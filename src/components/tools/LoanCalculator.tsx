@@ -40,7 +40,7 @@ export function LoanCalculator() {
     "w-full rounded-xl border border-border bg-surface-alt px-4 py-2.5 font-mono text-sm text-text-primary placeholder-text-muted outline-none transition-all duration-200 focus:border-primary/40 focus:ring-1 focus:ring-primary/20";
 
   return (
-    <div className="glass rounded-2xl p-5">
+    <div className="surface-card rounded-2xl p-5">
       {/* Header */}
       <div className="mb-4 flex items-center gap-2">
         <Calculator className="h-4 w-4 text-accent-secondary" />

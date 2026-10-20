@@ -1,4 +1,5 @@
 import type { Transaction } from "@/lib/db";
+import { APP_VERSION } from "@/lib/version";
 
 function formatDate(timestamp: number): string {
   const d = new Date(timestamp);
@@ -105,7 +106,7 @@ export function printReceiptHtml(transaction: Transaction, t: TranslateFn): void
 
   <!-- Footer -->
   <div class="footer">${t("print.thank_you")}</div>
-  <div class="footer">FinSpace App v1.8.1</div>
+  <div class="footer">FinSpace App v${APP_VERSION}</div>
 </body>
 </html>`;
 

@@ -102,7 +102,7 @@ const FinnyChatArea: FC<FinnyChatAreaProps> = ({ messages, isLoading, onUnsend }
         type="button"
         onClick={() => scrollToBottom(true)}
         aria-label={t("ai.scroll_to_bottom")}
-        className={`absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary shadow-lg shadow-primary/30 transition-all duration-200 hover:bg-primary-hover ${
+        className={`absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary shadow-lg transition-all duration-200 hover:bg-primary-hover ${
           showJump
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-2 opacity-0"

@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import type { Transaction } from "@/lib/db";
+import { APP_VERSION } from "@/lib/version";
 
 type TranslateFn = (key: string, vars?: Record<string, string>) => string;
 
@@ -104,7 +105,7 @@ export function generateReceiptPdf(transaction: Transaction, t: TranslateFn): vo
   doc.setTextColor(128, 128, 128);
   doc.text(t("pdf_receipt.thank_you"), MM_WIDTH / 2, y, { align: "center" });
   y += 4;
-  doc.text("FinSpace App v1.8.1", MM_WIDTH / 2, y, { align: "center" });
+  doc.text(`FinSpace App v${APP_VERSION}`, MM_WIDTH / 2, y, { align: "center" });
   y += 6;
 
   // ── Save ──

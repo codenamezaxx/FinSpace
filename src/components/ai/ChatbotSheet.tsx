@@ -109,7 +109,7 @@ export function ChatbotSheet({ isOpen, onClose }: ChatbotSheetProps) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border bg-surface-alt px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-secondary text-white shadow-md shadow-accent-secondary/25">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-secondary text-white shadow-md">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>

@@ -46,7 +46,7 @@ export default function BudgetPocketsPage() {
         </p>
       </div>
 
-      <div className="glass flex items-center justify-between gap-3 rounded-2xl p-4 sm:p-5">
+      <div className="surface-card flex items-center justify-between gap-3 rounded-2xl p-4 sm:p-5">
         <div className="min-w-0">
           <p className="text-xs font-medium text-text-muted">
             {t("budget.total_balance")}

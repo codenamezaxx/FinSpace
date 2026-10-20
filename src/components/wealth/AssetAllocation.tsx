@@ -38,7 +38,7 @@ export const AssetAllocation = memo(function AssetAllocation({
 
   if (total <= 0) {
     return (
-      <div className="glass rounded-2xl p-5">
+      <div className="surface-card rounded-2xl p-5">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
           <PiggyBank className="h-5 w-5 shrink-0 text-accent-secondary" />
           {t("wealth.allocation_title")}
@@ -51,7 +51,7 @@ export const AssetAllocation = memo(function AssetAllocation({
   }
 
   return (
-    <div className="glass min-w-0 rounded-2xl p-5">
+    <div className="surface-card min-w-0 rounded-2xl p-5">
       <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-text-primary">
         <PiggyBank className="h-5 w-5 shrink-0 text-accent-secondary" />
         {t("wealth.allocation_title")}

@@ -78,11 +78,11 @@ export default function LandingNav() {
           Desktop Navigation Bar (≥ lg)
          ═══════════════════════════════════════════ */}
       <nav
-        className="fixed inset-x-0 top-0 z-40 hidden  lg:block"
+        className="fixed inset-x-0 top-0 z-40 hidden lg:block"
       >
         <div className={`mx-auto flex h-16 max-w-300 items-center justify-between rounded-xl px-4 sm:px-6 md:mt-4 transition-all duration-300 ${
           scrolled
-            ? "bg-surface-alt/50 backdrop-blur-md shadow-lg"
+            ? "bg-surface-alt/50 shadow-lg"
             : "bg-transparent"
         }`}>
           {/* Left: Logo */}
@@ -136,7 +136,7 @@ export default function LandingNav() {
             </button>
             <Link
               href="/dashboard"
-              className="ml-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-all hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
+              className="ml-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-all hover:bg-primary-hover hover:shadow-lg"
             >
               {t("landing.hero_cta_start")}
             </Link>
@@ -150,8 +150,8 @@ export default function LandingNav() {
       <div
         className={`fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b px-4 transition-all duration-300 lg:hidden ${
           scrolled
-            ? "border-border bg-surface-alt/80 backdrop-blur-md"
-            : "border-transparent bg-surface-alt/40 backdrop-blur-sm"
+            ? "border-border bg-surface-alt/80 "
+            : "border-transparent bg-surface-alt/40"
         }`}
       >
         {/* Left: Logo */}

@@ -13,7 +13,7 @@ describe("layout theme overrides", () => {
     expect(layout).not.toContain('[data-theme="dark"] .bg-');
     expect(layout).not.toContain('[data-theme="dark"] .text-');
     expect(layout).not.toContain('[data-theme="dark"] .border-');
-    expect(layout).not.toContain('[data-theme="dark"] .glass');
+    expect(layout).not.toContain('[data-theme="dark"] .surface-card');
     expect(layout).not.toContain('[data-theme="dark"] .hover');
   });
 });

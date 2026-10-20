@@ -47,7 +47,7 @@ const MonthlyChart = dynamic(
     ),
   {
     loading: () => (
-      <div className="glass rounded-2xl p-5">
+      <div className="surface-card rounded-2xl p-5">
         <div className="mb-4 h-4 w-32 animate-pulse rounded bg-border" />
         <div className="mb-5 h-8 animate-pulse rounded-xl bg-border" />
         <div className="h-56 animate-pulse rounded-xl bg-border" />
@@ -123,7 +123,7 @@ function MoMBadge({
 function BalanceSkeleton() {
   return (
     <div className="flex flex-row gap-3">
-      <div className="glass rounded-2xl p-6 shadow-lg shadow-black/10 w-full">
+      <div className="surface-card rounded-2xl p-6 shadow-lg shadow-black/10 w-full">
         <div className="h-3 w-24 animate-pulse rounded bg-border" />
         <div className="mt-4 flex items-baseline gap-3">
           <div className="h-9 w-40 animate-pulse rounded-lg bg-border" />
@@ -141,7 +141,7 @@ function BalanceSkeleton() {
         </div>
         
       </div>
-      <div className="hidden lg:block glass rounded-2xl p-6 shadow-lg shadow-black/10 w-full">
+      <div className="hidden lg:block surface-card rounded-2xl p-6 shadow-lg shadow-black/10 w-full">
         <div className="h-3 w-24 animate-pulse rounded bg-border" />
         <div className="mt-4 flex items-baseline gap-3">
           <div className="h-9 w-40 animate-pulse rounded-lg bg-border" />
@@ -164,7 +164,7 @@ function BalanceSkeleton() {
 
 function CTASkeleton() {
   return (
-    <div className="glass rounded-2xl p-5">
+    <div className="surface-card rounded-2xl p-5">
       <div className="h-[52px] w-full animate-pulse rounded-xl bg-border" />
       <div className="mt-4 grid grid-cols-3 gap-3">
         {[1, 2, 3].map((i) => (
@@ -177,7 +177,7 @@ function CTASkeleton() {
 
 function TransactionSkeleton() {
   return (
-    <div className="glass rounded-2xl p-5">
+    <div className="surface-card rounded-2xl p-5">
       <div className="mb-4 h-4 w-36 animate-pulse rounded bg-border" />
       <div className="space-y-3">
         {[1, 2, 3, 4, 5].map((i) => (
@@ -357,7 +357,7 @@ export default function DashboardPage() {
         </div>
         <BalanceSkeleton />
         <CTASkeleton />
-        <div className="glass rounded-2xl p-6">
+        <div className="surface-card rounded-2xl p-6">
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-24 animate-pulse rounded-xl bg-border" />
@@ -397,10 +397,7 @@ export default function DashboardPage() {
             /* Balance View */
             <div
               key="balance"
-              className="rounded-2xl border-b-8 border-primary p-6"
-              style={{
-                background: 'linear-gradient(to bottom left, var(--gradient-card-blue), var(--gradient-card-mid))',
-              }}
+              className="rounded-2xl border-b-8 border-b-primary bg-surface p-6"
             >
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
                 {t("dashboard.total_balance")} &nbsp;-&nbsp;
@@ -462,10 +459,7 @@ export default function DashboardPage() {
             counts={netWorthCounts}
               collapsible
               className="border-0 border-b-8 border-accent-secondary"
-              style={{
-                background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid))',
-                height: "100%",
-              }}
+              style={{ height: "100%" }}
             />,
           ]}
         />
@@ -475,10 +469,7 @@ export default function DashboardPage() {
       <div className="hidden gap-6 lg:grid lg:grid-cols-2">
         {/* Combined Balance + Income/Expense */}
         <div
-          className="rounded-2xl border-l-8 border-l-primary p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30"
-          style={{
-            background: 'linear-gradient(to bottom left, var(--gradient-card-blue), var(--gradient-card-mid))',
-          }}
+          className="rounded-2xl border-l-8 border-l-primary bg-surface p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:shadow-xl hover:shadow-black/30"
         >
           <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
             {t("dashboard.total_balance")}
@@ -534,15 +525,12 @@ export default function DashboardPage() {
           counts={netWorthCounts}
           className="border-l-8 border-l-accent-secondary"
           collapsible
-          style={{
-                background: 'linear-gradient(to bottom left, var(--gradient-card-purple), var(--gradient-card-mid))',
-              }}
         />
       </div>
 
       {/* ── Top Pockets ── */}
       {topPockets.length > 0 && (
-        <div className="glass min-w-0 rounded-2xl p-4 lg:p-5">
+        <div className="surface-card min-w-0 rounded-2xl p-4 lg:p-5">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="flex min-w-0 items-center gap-2 truncate text-sm font-semibold text-text-primary">
               <Wallet className="h-5 w-5 shrink-0 text-primary" />
@@ -574,12 +562,12 @@ export default function DashboardPage() {
       )}
 
       {/* ── Quick Actions ── */}
-      <div className="glass rounded-2xl p-4 lg:p-5">
+      <div className="surface-card rounded-2xl p-4 lg:p-5">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <button
             type="button"
             onClick={() => openAddTransaction()}
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-on-primary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-on-primary cursor-pointer transition-all duration-200 hover:shadow-xl"
           >
             <Plus className="h-5 w-5" />
             {t("dashboard.new_transaction")}
@@ -587,14 +575,14 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => openAssetLiabilityModal()}
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3.5 text-sm font-semibold text-primary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-accent-secondary/15"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3.5 text-sm font-semibold text-primary cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-lg"
           >
             <Banknote className="h-5 w-5" />
             {t("dashboard.add_asset_liability")}
           </button>
           <Link
             href="/finny"
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3.5 text-sm font-semibold text-primary cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-accent-secondary/15"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-6 py-3.5 text-sm font-semibold text-primary cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-lg"
           >
             <Bot className="h-5 w-5" />
             {t("dashboard.chat_finny")}

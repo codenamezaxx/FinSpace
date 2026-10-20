@@ -193,7 +193,7 @@ export function TransactionList({
         {[...Array(5)].map((_, i) => (
           <div
             key={i}
-            className="h-[72px] animate-pulse rounded-2xl bg-surface/50"
+            className="h-[72px] animate-pulse rounded-2xl bg-surface"
           />
         ))}
       </div>
@@ -295,7 +295,7 @@ export function TransactionList({
       </div>
 
       {/* Desktop: Table */}
-      <div className="hidden md:block overflow-x-auto glass rounded-2xl">
+      <div className="hidden md:block overflow-x-auto surface-card rounded-2xl">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border bg-surface-alt">
