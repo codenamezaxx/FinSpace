@@ -228,6 +228,7 @@ This document outlines the step-by-step implementation plan for FinSpace. Execut
 - [x] Version bump 1.8.0 → 1.8.1
 - [x] Dashboard view-all links: transaction history → budget, holdings → wealth/assets, debts → wealth/debts
 - [x] Dashboard restructure: NetWorthCard detail toggle replaced by asset/liability/debt COUNT segments; top-3 pockets strip; bottom rows reordered to history+holdings and health+debts (new TopHoldingsCard, DebtSnapshotCard)
+- [x] Live-update fix: Dexie.liveQuery never fires for `.where().between()` range queries — replaced with full orderBy query + client-side time filter in useTransactions; dashboard/budget/pockets/transactions all now update instantly on data change without refresh (verified in browser)
 
 ## Phase 10: Deployment & Final Acceptance Testing
 - [ ] Build a robust suite of validation test scenarios for simulated offline state.

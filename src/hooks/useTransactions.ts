@@ -1,22 +1,29 @@
 "use client";
 
+import { useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, type Transaction } from "@/lib/db";
 
 export function useTransactions(options?: { startTime?: number; endTime?: number }) {
-  const transactions = useLiveQuery(() => {
-    // Use indexed range query when time bounds provided — avoids loading all rows
-    if (options?.startTime !== undefined || options?.endTime !== undefined) {
-      const start = options?.startTime ?? 0;
-      const end = options?.endTime ?? Date.now();
-      return db.transactions
-        .where("timestamp")
-        .between(start, end, true, true)
-        .reverse()
-        .toArray();
-    }
-    return db.transactions.orderBy("timestamp").reverse().toArray();
-  }, [options?.startTime, options?.endTime]);
+  // IMPORTANT: Do NOT use `.where("timestamp").between(...)` here.
+  // Dexie.liveQuery fails to track dependencies for range queries built on
+  // `.between()` — the observable never re-fires when rows are added/changed,
+  // so components silently show stale data until a full page reload.
+  // We query the full set (orderBy) and filter by time client-side instead.
+  // Transaction volume in a personal-finance app is modest, so this is cheap
+  // and — unlike the range query — reliably reactive.
+  const allTransactions = useLiveQuery(
+    () => db.transactions.orderBy("timestamp").reverse().toArray(),
+    []
+  );
+
+  const transactions = useMemo(() => {
+    const list = allTransactions ?? [];
+    if (options?.startTime === undefined && options?.endTime === undefined) return list;
+    const start = options?.startTime ?? 0;
+    const end = options?.endTime ?? Date.now();
+    return list.filter((t) => t.timestamp >= start && t.timestamp <= end);
+  }, [allTransactions, options?.startTime, options?.endTime]);
 
   const addTransaction = async (
     data: Omit<Transaction, "id" | "timestamp">
