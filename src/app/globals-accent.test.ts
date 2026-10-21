@@ -67,6 +67,73 @@ describe("on-primary button text token", () => {
   });
 });
 
+describe("accent new palettes (ember/aqua/nebula/bloom)", () => {
+  const NEW_ACCENTS = [
+    {
+      id: "ember",
+      onPrimaryLight: "#FFFFFF",
+      onPrimaryDark: "#1A1206",
+      primaryLight: "#C2410C",
+      primaryDark: "#F59E0B",
+    },
+    {
+      id: "aqua",
+      onPrimaryLight: "#FFFFFF",
+      onPrimaryDark: "#04211F",
+      primaryLight: "#0F766E",
+      primaryDark: "#2DD4BF",
+    },
+    {
+      id: "nebula",
+      onPrimaryLight: "#FFFFFF",
+      onPrimaryDark: "#160B33",
+      primaryLight: "#7C3AED",
+      primaryDark: "#A78BFA",
+    },
+    {
+      id: "bloom",
+      onPrimaryLight: "#FFFFFF",
+      onPrimaryDark: "#2A0A12",
+      primaryLight: "#BE123C",
+      primaryDark: "#FB7185",
+    },
+  ];
+  const monoDarkIdx = css.indexOf('[data-theme="dark"][data-accent="mono"]');
+
+  for (const a of NEW_ACCENTS) {
+    describe(a.id, () => {
+      const lightSel = `[data-accent="${a.id}"]`;
+      const darkSel = `[data-theme="dark"][data-accent="${a.id}"]`;
+
+      it("defines light and dark blocks, dark after mono dark", () => {
+        const lightIdx = css.indexOf(lightSel);
+        const darkIdx = css.indexOf(darkSel);
+        expect(lightIdx).toBeGreaterThan(0);
+        expect(darkIdx).toBeGreaterThan(lightIdx);
+        expect(darkIdx).toBeGreaterThan(monoDarkIdx);
+      });
+
+      it("sets primary and on-primary per spec", () => {
+        const light = css.slice(css.indexOf(lightSel), css.indexOf(darkSel));
+        const dark = css.slice(css.indexOf(darkSel));
+        expect(light).toContain(`--color-primary: ${a.primaryLight};`);
+        expect(light).toContain(`--color-on-primary: ${a.onPrimaryLight};`);
+        expect(dark).toContain(`--color-primary: ${a.primaryDark};`);
+        expect(dark).toContain(`--color-on-primary: ${a.onPrimaryDark};`);
+      });
+
+      it("never overrides success/danger indicators", () => {
+        const light = css.slice(css.indexOf(lightSel), css.indexOf(darkSel));
+        const dark = css.slice(css.indexOf(darkSel));
+        for (const block of [light, dark]) {
+          expect(block).not.toContain("--color-success");
+          expect(block).not.toContain("--color-danger");
+        }
+      });
+    });
+  }
+});
+
 describe("modal backdrop token (--backdrop-bg)", () => {
   const lightBlock = css.slice(
     css.indexOf("/* ─── Default theme tokens (light) ─── */"),

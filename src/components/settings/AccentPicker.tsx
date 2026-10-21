@@ -3,17 +3,7 @@
 import { Palette } from "lucide-react";
 import { useTheme } from "@/lib/theme-context";
 import { useLanguage } from "@/lib/i18n";
-
-const OPTIONS = [
-  {
-    value: "default" as const,
-    dots: ["#3B82F6", "#8940F9"],
-  },
-  {
-    value: "mono" as const,
-    dots: ["#737373", "#A3A3A3"],
-  },
-] as const;
+import { ACCENT_IDS, ACCENT_DOTS } from "@/lib/accents";
 
 export function AccentPicker() {
   const { accent, setAccent } = useTheme();
@@ -26,18 +16,20 @@ export function AccentPicker() {
         {t("settings.appearance_title")}
       </h2>
       <p className="mb-4 text-sm text-text-muted">{t("settings.accent_desc")}</p>
-      <div role="radiogroup" aria-label={t("settings.accent_label")} className="grid gap-2">
-        {OPTIONS.map((opt) => {
-          const active = accent === opt.value;
-          const label =
-            opt.value === "default" ? t("settings.accent_default") : t("settings.accent_mono");
+      <div
+        role="radiogroup"
+        aria-label={t("settings.accent_label")}
+        className="grid gap-2 sm:grid-cols-2"
+      >
+        {ACCENT_IDS.map((id) => {
+          const active = accent === id;
           return (
             <button
-              key={opt.value}
+              key={id}
               type="button"
               role="radio"
               aria-checked={active}
-              onClick={() => setAccent(opt.value)}
+              onClick={() => setAccent(id)}
               className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-200 ${
                 active
                   ? "border-primary bg-primary/10 text-text-primary"
@@ -45,7 +37,7 @@ export function AccentPicker() {
               }`}
             >
               <span className="flex -space-x-1">
-                {opt.dots.map((c) => (
+                {ACCENT_DOTS[id].map((c) => (
                   <span
                     key={c}
                     className="h-5 w-5 rounded-full border border-border"
@@ -53,7 +45,7 @@ export function AccentPicker() {
                   />
                 ))}
               </span>
-              {label}
+              {t(`settings.accent_${id}`)}
             </button>
           );
         })}

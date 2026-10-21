@@ -4,6 +4,7 @@ import Script from "next/script";
 import { ClientSerwistProvider } from "@/components/layout/ClientSerwistProvider";
 import { LanguageProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme-context";
+import { ACCENT_IDS } from "@/lib/accents";
 import { AssetLiabilityModalProvider } from "@/lib/asset-liability-modal-context";
 import { NotificationsProvider } from "@/components/notifications/NotificationsProvider";
 import "./globals.css";
@@ -112,7 +113,7 @@ export default function RootLayout({
           id="theme-init"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("finspace-theme");var a=localStorage.getItem("finspace-accent");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");document.documentElement.setAttribute("data-accent",a==="mono"?"mono":"default")}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem("finspace-theme");var a=localStorage.getItem("finspace-accent");var ids=${JSON.stringify(ACCENT_IDS)};document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");document.documentElement.setAttribute("data-accent",ids.indexOf(a)>=0?a:"default")}catch(e){}})()`,
           }}
         />
       </head>

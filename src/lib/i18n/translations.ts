@@ -363,6 +363,10 @@ export const translations = {
       accent_desc: "Applies to light and dark mode. Indicators stay colored.",
       accent_default: "Default (Blue–Purple)",
       accent_mono: "Monochrome",
+      accent_ember: "Ember (Amber–Terracotta)",
+      accent_aqua: "Aqua (Teal)",
+      accent_nebula: "Nebula (Violet–Magenta)",
+      accent_bloom: "Bloom (Rose)",
     },
     about: {
       title: "About & Feedback",
@@ -1005,6 +1009,10 @@ export const translations = {
       accent_desc: "Berlaku untuk mode terang dan gelap. Indikator tetap berwarna.",
       accent_default: "Default (Biru–Ungu)",
       accent_mono: "Monokrom",
+      accent_ember: "Ember (Amber–Terakota)",
+      accent_aqua: "Aqua (Teal)",
+      accent_nebula: "Nebula (Violet–Magenta)",
+      accent_bloom: "Bloom (Mawar)",
     },
     about: {
       title: "Tentang & Umpan Balik",

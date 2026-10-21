@@ -9,13 +9,14 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
+import { isAccent, parseAccent, type Accent } from "@/lib/accents";
+
+export type { Accent };
 
 type Theme = "dark" | "light";
 
-export type Accent = "default" | "mono";
-
 export function parseStoredAccent(raw: string | null): Accent {
-  return raw === "mono" ? "mono" : "default";
+  return parseAccent(raw);
 }
 
 interface ThemeContextValue {
@@ -43,7 +44,7 @@ function getStoredAccent(): Accent | null {
   if (typeof window === "undefined") return null;
   try {
     const stored = window.localStorage.getItem("finspace-accent");
-    if (stored === "mono" || stored === "default") return stored;
+    if (stored !== null && isAccent(stored)) return stored;
   } catch {
     // ignore
   }

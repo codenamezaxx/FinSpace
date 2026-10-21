@@ -12,15 +12,23 @@ vi.mock("@/lib/i18n", () => ({
 }));
 
 describe("AccentPicker", () => {
-  it("renders two radio options with default checked", () => {
+  it("renders six radio options in ACCENT_IDS order with default checked", () => {
     render(<AccentPicker />);
     const opts = screen.getAllByRole("radio");
-    expect(opts).toHaveLength(2);
+    expect(opts).toHaveLength(6);
     expect(opts[0].getAttribute("aria-checked")).toBe("true");
+    expect(opts[0].textContent).toContain("settings.accent_default");
+    expect(opts[1].textContent).toContain("settings.accent_ember");
+    expect(opts[2].textContent).toContain("settings.accent_aqua");
+    expect(opts[3].textContent).toContain("settings.accent_nebula");
+    expect(opts[4].textContent).toContain("settings.accent_bloom");
+    expect(opts[5].textContent).toContain("settings.accent_mono");
   });
-  it("calls setAccent mono on click", () => {
+  it("calls setAccent with the clicked accent id", () => {
     render(<AccentPicker />);
-    fireEvent.click(screen.getAllByRole("radio")[1]);
+    fireEvent.click(screen.getAllByRole("radio")[1]); // ember
+    expect(setAccent).toHaveBeenCalledWith("ember");
+    fireEvent.click(screen.getAllByRole("radio")[5]); // mono
     expect(setAccent).toHaveBeenCalledWith("mono");
   });
 });

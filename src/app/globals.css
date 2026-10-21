@@ -121,6 +121,142 @@ html {
   --shadow-pop: 0 20px 48px -20px rgba(0, 0, 0, 0.6);
 }
 
+/* ─── Accent variant: ember (light) ─── */
+[data-accent="ember"] {
+  --color-background: #F7F2EA;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #EDE5D8;
+  --color-border: #DDD0BC;
+  --color-track: #D6C9B4;
+  --color-text-primary: #1F1609;
+  --color-text-secondary: #5C5342;
+  --color-text-muted: #8F8577;
+  --color-primary: #C2410C;
+  --color-primary-hover: #9A3412;
+  --color-on-primary: #FFFFFF;
+  --color-accent: #EAB393;
+  --color-accent-secondary: #EA580C;
+}
+
+/* ─── Accent variant: ember (dark) ─── */
+[data-theme="dark"][data-accent="ember"] {
+  --color-background: #0D0A07;
+  --color-surface: #17130E;
+  --color-surface-alt: #1F1912;
+  --color-border: #33291C;
+  --color-track: #4A3F30;
+  --color-text-primary: #FAF6EF;
+  --color-text-secondary: #A8A093;
+  --color-text-muted: #7A7266;
+  --color-primary: #F59E0B;
+  --color-primary-hover: #FBBF24;
+  --color-on-primary: #1A1206;
+  --color-accent: #EAB393;
+  --color-accent-secondary: #FB923C;
+}
+
+/* ─── Accent variant: aqua (light) ─── */
+[data-accent="aqua"] {
+  --color-background: #EEF7F5;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #DFEDEA;
+  --color-border: #C3DBD6;
+  --color-track: #B7D2CD;
+  --color-text-primary: #072421;
+  --color-text-secondary: #3E5F5B;
+  --color-text-muted: #7C9B97;
+  --color-primary: #0F766E;
+  --color-primary-hover: #115E59;
+  --color-on-primary: #FFFFFF;
+  --color-accent: #14B8A6;
+  --color-accent-secondary: #0891B2;
+}
+
+/* ─── Accent variant: aqua (dark) ─── */
+[data-theme="dark"][data-accent="aqua"] {
+  --color-background: #041211;
+  --color-surface: #0E1F1D;
+  --color-surface-alt: #142826;
+  --color-border: #21403C;
+  --color-track: #2E544F;
+  --color-text-primary: #F2FAF9;
+  --color-text-secondary: #9BB8B4;
+  --color-text-muted: #6E8C88;
+  --color-primary: #2DD4BF;
+  --color-primary-hover: #5EEAD4;
+  --color-on-primary: #04211F;
+  --color-accent: #2DD4BF;
+  --color-accent-secondary: #06B6D4;
+}
+
+/* ─── Accent variant: nebula (light) ─── */
+[data-accent="nebula"] {
+  --color-background: #F2EFFB;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #E7E1F7;
+  --color-border: #D2C8EE;
+  --color-track: #C6BAE8;
+  --color-text-primary: #1A1233;
+  --color-text-secondary: #4A4070;
+  --color-text-muted: #8579A8;
+  --color-primary: #7C3AED;
+  --color-primary-hover: #6D28D9;
+  --color-on-primary: #FFFFFF;
+  --color-accent: #C4B5FD;
+  --color-accent-secondary: #DB2777;
+}
+
+/* ─── Accent variant: nebula (dark) ─── */
+[data-theme="dark"][data-accent="nebula"] {
+  --color-background: #0A0614;
+  --color-surface: #16102A;
+  --color-surface-alt: #1C1536;
+  --color-border: #2E2450;
+  --color-track: #423768;
+  --color-text-primary: #F6F2FF;
+  --color-text-secondary: #A79EC4;
+  --color-text-muted: #756B96;
+  --color-primary: #A78BFA;
+  --color-primary-hover: #C4B5FD;
+  --color-on-primary: #160B33;
+  --color-accent: #A78BFA;
+  --color-accent-secondary: #EC4899;
+}
+
+/* ─── Accent variant: bloom (light) ─── */
+[data-accent="bloom"] {
+  --color-background: #FDF0F2;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #FBE3E8;
+  --color-border: #F3CCD4;
+  --color-track: #EFC0CA;
+  --color-text-primary: #3B0A14;
+  --color-text-secondary: #6B3341;
+  --color-text-muted: #9C6371;
+  --color-primary: #BE123C;
+  --color-primary-hover: #9F1239;
+  --color-on-primary: #FFFFFF;
+  --color-accent: #FDA4AF;
+  --color-accent-secondary: #E11D48;
+}
+
+/* ─── Accent variant: bloom (dark) ─── */
+[data-theme="dark"][data-accent="bloom"] {
+  --color-background: #12060A;
+  --color-surface: #1F0F14;
+  --color-surface-alt: #29141B;
+  --color-border: #45222C;
+  --color-track: #5C3340;
+  --color-text-primary: #FFF3F5;
+  --color-text-secondary: #C4A0A8;
+  --color-text-muted: #8F6E77;
+  --color-primary: #FB7185;
+  --color-primary-hover: #FDA4AF;
+  --color-on-primary: #2A0A12;
+  --color-accent: #FDA4AF;
+  --color-accent-secondary: #F43F5E;
+}
+
 /* ─── Surface card utility (solid — replaces glassmorphism) ─── */
 .surface-card {
   background: var(--color-surface);
