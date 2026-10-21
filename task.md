@@ -246,6 +246,16 @@ Audit desain anti-"AI slop": hilangkan efek generik (gradient kartu, frosted gla
 ## Phase 9x: Accent Theme Expansion (2026-10-22)
 - [x] Add 4 full-personality accent themes (ember, aqua, nebula, bloom): `src/lib/accents.ts` single-source registry, 8 CSS token blocks in `globals.css`, anti-FOUC whitelist in `layout.tsx`, 6-option `AccentPicker` grid, EN/ID labels — 256 tests green, spec in `docs/superpowers/specs/2026-10-22-accent-themes-expansion-design.md`
 
+## Phase 9y: Settings Profile Section (2026-10-22)
+- [x] Replaced the cloud-sync card on the settings page with an editable Profile card (display name + avatar); sync status / Sync now / Sign in / Sign out controls removed from settings (sign-in/out stays in the topbar `ProfileButton` menu); Sync History card kept
+- [x] Profile override stored in the existing synced `app_meta` table (key `app-profile`) - no Dexie schema bump; `src/lib/profile.ts` owns storage + validation (name normalized & capped at 60, avatar bounded to 200k chars dataURL, rejects markup/oversized/non-dataURL pictures, empty override deletes the row so cloud values return)
+- [x] Avatar pick downscales to a 256px JPEG (q0.82, white alpha fill) so one synced row never bloats Dexie Cloud replication; guest users can edit and it syncs after a later login
+- [x] `useCloudAuth` layers the override on top of the read-only OAuth name/picture (9 callers unaffected); new `useProfile` live-query hook; `ProfileSection` component (avatar + camera badge, initials/User fallback, labeled autosave-on-blur name field with Check/Loader feedback)
+- [x] Fixed stale page subtitle `settings.manage_sync` (EN/ID) - no longer claims "manage cloud sync" now that sync controls are gone
+- [x] Verified: `tsc` clean, 48 files / 272 tests green (16 new in `src/lib/profile.test.ts` over real Dexie + fake-indexeddb), settings page screenshotted in light + dark
+
+- [x] Version bump 1.8.3 -> 1.8.4 (`npm version --no-git-tag-version`; package.json + lockfile konsisten, tidak ada versi hardcoded di src - receipt/PDF/landing badge/About semuanya baca `APP_VERSION` dari `version.ts`) - menyusul rilis Profile Section
+
 ## Phase 10: Deployment & Final Acceptance Testing
 - [ ] Build a robust suite of validation test scenarios for simulated offline state.
 - [ ] Validate desktop responsiveness at viewport widths up to 1920px.
