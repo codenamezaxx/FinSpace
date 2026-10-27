@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local notes/plugins, not app code.
+    ".obsidian/**",
   ]),
 ]);
 

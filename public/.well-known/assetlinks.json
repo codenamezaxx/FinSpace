@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.finspace.twa",
+      "sha256_cert_fingerprints": ["73:EA:16:6C:F3:A8:46:27:30:45:06:C0:A8:75:97:5E:54:87:14:F4:05:7B:AA:2F:7F:42:60:6D:D9:51:FC:79"]
+    }
+  }
+]

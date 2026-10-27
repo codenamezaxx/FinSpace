@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { Download, FileDown, FileText, Calendar } from "lucide-react";
 import { useTransactions } from "@/hooks/useTransactions";
+import { usePockets } from "@/hooks/usePockets";
 import { generateMonthlyReportPdf } from "@/lib/monthlyReportPdf";
 import { useLanguage } from "@/lib/i18n";
 
@@ -48,6 +49,7 @@ export function ExportCSV() {
   );
 
   const { transactions } = useTransactions({ startTime, endTime });
+  const { pockets } = usePockets();
 
   /* ── CSV Download ── */
 
@@ -93,7 +95,7 @@ export function ExportCSV() {
   /* ── PDF Download ── */
 
   const handleDownloadPdf = () => {
-    generateMonthlyReportPdf(transactions, selectedMonth, selectedYear, t);
+    generateMonthlyReportPdf(transactions, selectedMonth, selectedYear, t, pockets ?? []);
   };
 
   return (

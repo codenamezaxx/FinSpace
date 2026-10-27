@@ -1,22 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { SerwistProvider } from "@serwist/turbopack/react";
 import type { ReactNode } from "react";
 
 export function ClientSerwistProvider({ children }: { children: ReactNode }) {
-  // Only register SW in production (not dev localhost).
-  // Initial state avoids hydration mismatch.
-  const [disable, setDisable] = useState(true);
+  // Register the SW in production builds only. Deriving this from NODE_ENV
+  // keeps the server and client render identical (no hydration mismatch) and
+  // avoids freezing a `true` initial state, which prevented registration.
+  const disable = process.env.NODE_ENV !== "production";
 
   useEffect(() => {
-    const isDev =
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
-    setDisable(isDev);
-
     // Stale SW cleanup: only unregister SW that is NOT this app's Serwist.
-    if (!isDev && "serviceWorker" in navigator) {
+    if (!disable && "serviceWorker" in navigator) {
       navigator.serviceWorker.getRegistrations().then((regs) => {
         for (const reg of regs) {
           const sw = reg.active || reg.waiting || reg.installing;
@@ -26,7 +22,7 @@ export function ClientSerwistProvider({ children }: { children: ReactNode }) {
         }
       });
     }
-  }, []);
+  }, [disable]);
 
   return (
     <SerwistProvider swUrl="/serwist/sw.js" reloadOnOnline={false} disable={disable}>
