@@ -76,6 +76,35 @@ function arcPoints(cx: number, cy: number, r: number, a0: number, a1: number): [
   return out;
 }
 
+/* ─── Logo cache ─── */
+
+let logoDataUrl: string = "";
+
+/** Load the FinSpace logo once and cache as data URL. */
+async function loadLogo(): Promise<string> {
+  if (logoDataUrl) return logoDataUrl;
+  try {
+    const res = await fetch("/icons/icon-192x192.png");
+    const blob = await res.blob();
+    logoDataUrl = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    logoDataUrl = "";
+  }
+  return logoDataUrl;
+}
+
+/** Draw the cached logo into the banner. Returns true if drawn. */
+export async function drawLogo(doc: jsPDF, x: number, y: number, size: number): Promise<boolean> {
+  const dataUrl = await loadLogo();
+  if (!dataUrl) return false;
+  doc.addImage(dataUrl, "PNG", x, y, size, size);
+  return true;
+}
+
 /* ─── Banner ─── */
 
 /** Paint the bottom-right notch white so only that corner of the banner is rounded. */
@@ -107,26 +136,68 @@ export function drawBanner(doc: jsPDF): void {
 }
 
 /** Wordmark (left) + document title + period (right) inside the banner. */
-export function drawBannerText(doc: jsPDF, opts: { title: string; period: string; wordmark: string }): void {
+export async function drawBannerText(doc: jsPDF, opts: { title: string; period: string; wordmark: string }): Promise<void> {
   const { marginX, pageW } = GEO;
-  // Icon tile - using logo image would be better, fallback to blue square with "F"
-  doc.setFillColor(...C.blue);
-  doc.roundedRect(marginX, 9, 8, 8, 2, 2, "F");
+  // Logo image
+  const logoSize = 10;
+  const logoX = marginX;
+  const logoY = 13;
+  const logoDrawn = await drawLogo(doc, logoX, logoY, logoSize);
+  if (!logoDrawn) {
+    // Fallback: blue square with "F"
+    doc.setFillColor(...C.blue);
+    doc.roundedRect(logoX, logoY, logoSize, logoSize, 2, 2, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...C.white);
+    doc.text("F", logoX + logoSize / 2, logoY + 7, { align: "center" });
+  }
+  // Wordmark - BOLD
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(12);
   doc.setTextColor(...C.white);
-  doc.text("F", marginX + 4, 15, { align: "center" });
-  // Wordmark
-  doc.setFontSize(13);
-  doc.setTextColor(...C.white);
-  doc.text(opts.wordmark, marginX + 11, 16);
+  doc.text(opts.wordmark, logoX + logoSize + 2, logoY + 7);
   // Title + period, right aligned
-  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
   doc.text(opts.title, pageW - marginX, 14, { align: "right" });
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setTextColor(...C.blueText);
-  doc.text(opts.period, pageW - marginX, 21.5, { align: "right" });
+  doc.text(opts.period, pageW - marginX, 21, { align: "right" });
+}
+
+/** Synchronous version for didDrawPage hook — uses cached logo. */
+export function drawBannerTextSync(doc: jsPDF, opts: { title: string; period: string; wordmark: string }): void {
+  const { marginX, pageW } = GEO;
+  // Logo image from cache
+  const logoSize = 10;
+  const logoX = marginX;
+  const logoY = 13;
+  if (logoDataUrl) {
+    doc.addImage(logoDataUrl, "PNG", logoX, logoY, logoSize, logoSize);
+  } else {
+    // Fallback: blue square with "F"
+    doc.setFillColor(...C.blue);
+    doc.roundedRect(logoX, logoY, logoSize, logoSize, 2, 2, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...C.white);
+    doc.text("F", logoX + logoSize / 2, logoY + 7, { align: "center" });
+  }
+  // Wordmark - BOLD
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.setTextColor(...C.white);
+  doc.text(opts.wordmark, logoX + logoSize + 2, logoY + 7);
+  // Title + period, right aligned
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.text(opts.title, pageW - marginX, 14, { align: "right" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(...C.blueText);
+  doc.text(opts.period, pageW - marginX, 21, { align: "right" });
 }
 
 /** "Page X of Y" stamped top-right of the banner in the final pass. */

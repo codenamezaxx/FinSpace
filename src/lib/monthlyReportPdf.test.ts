@@ -30,7 +30,7 @@ function tx(partial: Partial<Transaction> & Pick<Transaction, "id" | "amount" | 
 const OCT_2026 = (day: number, hour = 12) => new Date(2026, 9, day, hour).getTime();
 
 describe("prepareReportData", () => {
-  it("excludes pocket transfers (transferId) from totals, detail and count", () => {
+  it("excludes pocket transfers from overall totals but includes them in detail transactions", () => {
     const data = prepareReportData(
       [
         tx({ id: "1", amount: 100_000, type: "expense", category: "Food", timestamp: OCT_2026(1) }),
@@ -42,11 +42,13 @@ describe("prepareReportData", () => {
       t,
       EMPTY_POCKETS
     );
+    // Overall aggregates exclude transfers
     expect(data.expenseAgg.total).toBe(100_000);
     expect(data.incomeAgg.total).toBe(0);
-    expect(data.transactions).toHaveLength(1);
     expect(data.net).toBe(-100_000);
     expect(data.expenseAgg.byCategory).toEqual({ Food: 100_000 });
+    // But transactions array includes transfers for detail table
+    expect(data.transactions).toHaveLength(3);
   });
 
   it("buckets daily expenses per day-of-month and the buckets sum to the expense total", () => {
@@ -101,8 +103,8 @@ describe("prepareReportData", () => {
 });
 
 describe("buildMonthlyReportPdf", () => {
-  it("builds a single page for a small month without throwing", () => {
-    const doc = buildMonthlyReportPdf(
+  it("builds a single page for a small month without throwing", async () => {
+    const doc = await buildMonthlyReportPdf(
       [
         tx({ id: "1", amount: 100_000, type: "income", category: "Salary", timestamp: OCT_2026(1) }),
         tx({ id: "2", amount: 40_000, type: "expense", category: "Food", timestamp: OCT_2026(2) }),
@@ -115,16 +117,16 @@ describe("buildMonthlyReportPdf", () => {
     expect(doc.getNumberOfPages()).toBe(1);
   });
 
-  it("handles an empty month (zero transactions) without throwing", () => {
-    const doc = buildMonthlyReportPdf([], 10, 2026, t, EMPTY_POCKETS);
+  it("handles an empty month (zero transactions) without throwing", async () => {
+    const doc = await buildMonthlyReportPdf([], 10, 2026, t, EMPTY_POCKETS);
     expect(doc.getNumberOfPages()).toBeGreaterThanOrEqual(1);
   });
 
-  it("spills the transaction detail table onto extra pages for a long month", () => {
+  it("spills the transaction detail table onto extra pages for a long month", async () => {
     const many = Array.from({ length: 60 }, (_, i) =>
       tx({ id: String(i), amount: 1_000 + i, type: i % 2 === 0 ? "expense" : "income", timestamp: OCT_2026((i % 31) + 1) })
     );
-    const doc = buildMonthlyReportPdf(many, 10, 2026, t, EMPTY_POCKETS);
+    const doc = await buildMonthlyReportPdf(many, 10, 2026, t, EMPTY_POCKETS);
     expect(doc.getNumberOfPages()).toBeGreaterThan(1);
   });
 });

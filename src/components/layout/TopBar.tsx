@@ -12,6 +12,7 @@ import { useNotificationsContext } from "@/components/notifications/Notification
 import { useSearch } from "@/hooks/useSearch";
 import { useCloudAuth } from "@/hooks/useCloudAuth";
 import { useLanguage } from "@/lib/i18n";
+import { PrivacyToggle } from "@/components/shared/PrivacyToggle";
 
 function getGreeting(t: (key: string) => string): string {
   const hour = new Date().getHours();

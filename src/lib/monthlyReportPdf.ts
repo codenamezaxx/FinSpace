@@ -10,6 +10,7 @@ import {
   GEO,
   drawBanner,
   drawBannerText,
+  drawBannerTextSync,
   drawCard,
   drawDonut,
   drawPageLabel,
@@ -119,8 +120,9 @@ export function prepareReportData(
   t: TranslateFn,
   pockets: Pocket[]
 ): MonthlyReportData {
-  // Pocket transfers are pure relocations — excluded from all totals,
-  // category breakdowns, top-5 lists and the detail table below.
+  // Pocket transfers are pure relocations — excluded from OVERALL totals,
+  // category breakdowns, top-5 lists and daily expense buckets.
+  // But they ARE included in per-pocket aggregates and transaction detail.
   const filtered = transactions.filter((tx) => !isTransferTransaction(tx));
   const incomeAgg = aggregate(filtered, "income");
   const expenseAgg = aggregate(filtered, "expense");
@@ -146,9 +148,11 @@ export function prepareReportData(
     month: "long",
     year: "numeric",
   });
-  const sorted = [...filtered].sort((a, b) => b.timestamp - a.timestamp);
+  // Transaction detail includes ALL transactions (including transfers) for completeness
+  const sorted = [...transactions].sort((a, b) => b.timestamp - a.timestamp);
 
-  const pocketAggs = aggregateByPocket(filtered, pockets);
+  // Pocket aggregates INCLUDE transfers so each pocket's income/expense/balance is correct
+  const pocketAggs = aggregateByPocket(transactions, pockets);
 
   return {
     transactions: sorted,
@@ -167,13 +171,13 @@ export function prepareReportData(
 
 /* ─── Build (exported for tests; returns the doc without saving) ─── */
 
-export function buildMonthlyReportPdf(
+export async function buildMonthlyReportPdf(
   transactions: Transaction[],
   month: number,
   year: number,
   t: TranslateFn,
   pockets: Pocket[]
-): jsPDF {
+): Promise<jsPDF> {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const d = prepareReportData(transactions, month, year, t, pockets);
   const bannerOpts = {
@@ -190,7 +194,7 @@ export function buildMonthlyReportPdf(
   function startPage(): void {
     doc.addPage();
     drawBanner(doc);
-    drawBannerText(doc, bannerOpts);
+    drawBannerTextSync(doc, bannerOpts);
     y = GEO.contentTop;
   }
 
@@ -198,15 +202,15 @@ export function buildMonthlyReportPdf(
     if (y + needed > GEO.contentBottom) startPage();
   }
 
-  /** Plain theme: tinted header, zebra rows, thin bottom rules — no vertical grid. */
-  function tableOpts(): UserOptions {
+  /** Table theme with visible grid: tinted header, zebra rows, full cell borders. */
+  function tableOpts(includeBanner = false): UserOptions {
     return {
-      theme: "plain",
+      theme: "grid",
       styles: {
         font: "helvetica",
         fontSize: 8.5,
         textColor: C.dark,
-        lineWidth: { bottom: 0.1 },
+        lineWidth: 0.2,
         lineColor: C.border,
         cellPadding: { top: 1.2, bottom: 1.2, left: 2, right: 2 },
       },
@@ -215,22 +219,26 @@ export function buildMonthlyReportPdf(
         textColor: C.muted,
         fontStyle: "bold",
         fontSize: 7.5,
+        lineWidth: 0.3,
+        lineColor: C.border,
       },
       alternateRowStyles: { fillColor: C.tintAlt },
       margin: { left: GEO.marginX, right: GEO.marginX, top: GEO.contentTop, bottom: 18 },
       tableWidth: CONTENT_W,
       // Banner is idempotent — redrawn on every page autotable paginates onto.
-      didDrawPage: () => {
-        drawBanner(doc);
-        drawBannerText(doc, bannerOpts);
-      },
+      didDrawPage: includeBanner
+        ? () => {
+            drawBanner(doc);
+            drawBannerTextSync(doc, bannerOpts);
+          }
+        : undefined,
     };
   }
 
   /* ═══ 1. Banner + holder block ═══ */
 
   drawBanner(doc);
-  drawBannerText(doc, bannerOpts);
+  await drawBannerText(doc, bannerOpts);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
@@ -249,7 +257,7 @@ export function buildMonthlyReportPdf(
   /* ═══ 2. Financial summary table ═══ */
 
   y = sectionHeading(doc, t("pdf_report.summary"), y);
-  const grandTotal = d.incomeAgg.total + d.expenseAgg.total;
+  const grandTotal = d.incomeAgg.total - d.expenseAgg.total;
   const incomePct = grandTotal > 0 ? ((d.incomeAgg.total / grandTotal) * 100).toFixed(1) : "0";
   const expensePct = grandTotal > 0 ? ((d.expenseAgg.total / grandTotal) * 100).toFixed(1) : "0";
 
@@ -458,7 +466,7 @@ export function buildMonthlyReportPdf(
     ensureSpace(SECTION_MIN);
     y = sectionHeading(doc, t("pdf_report.transaction_detail"), y);
     const sorted = d.transactions;
-    const base = tableOpts();
+    const base = tableOpts(true); // include banner on paginated pages
     // Build pocket name lookup
     const pocketNames = new Map(pockets.map((p) => [p.id, p.name]));
     autoTable(doc, {
@@ -466,15 +474,24 @@ export function buildMonthlyReportPdf(
       startY: y,
       styles: { ...base.styles, fontSize: 7.5 },
       head: [[t("pdf_report.date"), t("pdf_report.type"), t("pdf_report.category"), t("pdf_report.merchant"), t("pdf_report.amount"), t("pdf_report.payment"), t("pdf_report.pocket")]],
-      body: sorted.map((tx) => [
-        fmtDate(tx.timestamp),
-        tx.type === "income" ? t("pdf_report.income_type") : t("pdf_report.expense_type"),
-        tx.category,
-        tx.merchant,
-        fmtRp(tx.amount),
-        tx.payment_method,
-        tx.pocketId ? pocketNames.get(tx.pocketId) || "-" : "-",
-      ]),
+      body: sorted.map((tx) => {
+        const isTransfer = isTransferTransaction(tx);
+        const typeLabel = isTransfer
+          ? t("pdf_report.transfer_type")
+          : tx.type === "income"
+            ? t("pdf_report.income_type")
+            : t("pdf_report.expense_type");
+        const amountStr = fmtRp(tx.amount);
+        return [
+          fmtDate(tx.timestamp),
+          typeLabel,
+          tx.category,
+          tx.merchant,
+          amountStr,
+          tx.payment_method,
+          tx.pocketId ? pocketNames.get(tx.pocketId) || "-" : "-",
+        ];
+      }),
       columnStyles: {
         0: { halign: "center", cellWidth: 24 },
         1: { halign: "center", cellWidth: 20 },
@@ -488,7 +505,13 @@ export function buildMonthlyReportPdf(
         if (data.section !== "body") return;
         const tx = sorted[data.row.index];
         if (!tx) return;
-        const color = tx.type === "income" ? C.green : C.red;
+        const isTransfer = isTransferTransaction(tx);
+        let color = C.muted;
+        if (!isTransfer) {
+          color = tx.type === "income" ? C.green : C.red;
+        } else {
+          color = C.blue; // transfers in blue
+        }
         if (data.column.index === 1) data.cell.styles.textColor = color;
         if (data.column.index === 4) {
           data.cell.styles.textColor = color;
@@ -519,13 +542,14 @@ export function buildMonthlyReportPdf(
 
 /* ─── Public entry (signature updated; caller: ExportCSV.tsx) ─── */
 
-export function generateMonthlyReportPdf(
+export async function generateMonthlyReportPdf(
   transactions: Transaction[],
   month: number,
   year: number,
   t: TranslateFn,
   pockets: Pocket[]
-): void {
+): Promise<void> {
   const monthName = t("tools.months_array").split(",")[month - 1];
-  buildMonthlyReportPdf(transactions, month, year, t, pockets).save(`FinSpace_Report_${monthName}_${year}.pdf`);
+  const doc = await buildMonthlyReportPdf(transactions, month, year, t, pockets);
+  doc.save(`FinSpace_Report_${monthName}_${year}.pdf`);
 }

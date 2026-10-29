@@ -94,8 +94,8 @@ export function ExportCSV() {
 
   /* ── PDF Download ── */
 
-  const handleDownloadPdf = () => {
-    generateMonthlyReportPdf(transactions, selectedMonth, selectedYear, t, pockets ?? []);
+  const handleDownloadPdf = async () => {
+    await generateMonthlyReportPdf(transactions, selectedMonth, selectedYear, t, pockets ?? []);
   };
 
   return (
