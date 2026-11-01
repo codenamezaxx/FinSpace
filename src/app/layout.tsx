@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import { ClientSerwistProvider } from "@/components/layout/ClientSerwistProvider";
 import { LanguageProvider } from "@/lib/i18n";
@@ -9,18 +8,6 @@ import { AssetLiabilityModalProvider } from "@/lib/asset-liability-modal-context
 import { NotificationsProvider } from "@/components/notifications/NotificationsProvider";
 import { BalancePrivacyProvider } from "@/lib/balancePrivacy";
 import "./globals.css";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
 
 const APP_NAME = "FinSpace";
 const APP_DEFAULT_TITLE = "FinSpace - Personal Finance Manager";
@@ -87,7 +74,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className="h-full antialiased"
       suppressHydrationWarning
     >
       <head>
