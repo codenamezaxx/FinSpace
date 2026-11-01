@@ -257,9 +257,9 @@ export async function buildMonthlyReportPdf(
   /* ═══ 2. Financial summary table ═══ */
 
   y = sectionHeading(doc, t("pdf_report.summary"), y);
-  const grandTotal = d.incomeAgg.total - d.expenseAgg.total;
-  const incomePct = grandTotal > 0 ? ((d.incomeAgg.total / grandTotal) * 100).toFixed(1) : "0";
-  const expensePct = grandTotal > 0 ? ((d.expenseAgg.total / grandTotal) * 100).toFixed(1) : "0";
+  const totalTurnover = d.incomeAgg.total + d.expenseAgg.total;
+  const incomePct = totalTurnover > 0 ? ((d.incomeAgg.total / totalTurnover) * 100).toFixed(1) : "0";
+  const expensePct = totalTurnover > 0 ? ((d.expenseAgg.total / totalTurnover) * 100).toFixed(1) : "0";
 
   autoTable(doc, {
     ...tableOpts(),
@@ -318,7 +318,7 @@ export async function buildMonthlyReportPdf(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...C.dark);
-  doc.text(fmtRp(grandTotal), cardX + cardW - 6, y + 44, { align: "right" });
+  doc.text(fmtRp(totalTurnover), cardX + cardW - 6, y + 44, { align: "right" });
 
   const cardX2 = cardX + cardW + CARD_GAP;
   drawCard(doc, cardX2, y, cardW, CARD_H);
@@ -465,15 +465,14 @@ export async function buildMonthlyReportPdf(
   if (d.transactions.length > 0) {
     ensureSpace(SECTION_MIN);
     y = sectionHeading(doc, t("pdf_report.transaction_detail"), y);
-    const sorted = d.transactions;
+    // Sort ascending by timestamp (oldest first, day 1 to day 30/31)
+    const sorted = [...d.transactions].sort((a, b) => a.timestamp - b.timestamp);
     const base = tableOpts(true); // include banner on paginated pages
-    // Build pocket name lookup
-    const pocketNames = new Map(pockets.map((p) => [p.id, p.name]));
     autoTable(doc, {
       ...base,
       startY: y,
       styles: { ...base.styles, fontSize: 7.5 },
-      head: [[t("pdf_report.date"), t("pdf_report.type"), t("pdf_report.category"), t("pdf_report.merchant"), t("pdf_report.amount"), t("pdf_report.payment"), t("pdf_report.pocket")]],
+      head: [[t("pdf_report.date"), t("pdf_report.type"), t("pdf_report.category"), t("pdf_report.merchant"), t("pdf_report.amount"), t("pdf_report.payment")]],
       body: sorted.map((tx) => {
         const isTransfer = isTransferTransaction(tx);
         const typeLabel = isTransfer
@@ -489,17 +488,15 @@ export async function buildMonthlyReportPdf(
           tx.merchant,
           amountStr,
           tx.payment_method,
-          tx.pocketId ? pocketNames.get(tx.pocketId) || "-" : "-",
         ];
       }),
       columnStyles: {
         0: { halign: "center", cellWidth: 24 },
         1: { halign: "center", cellWidth: 20 },
-        2: { cellWidth: 26 },
-        3: { fontStyle: "bold", cellWidth: 36 },
-        4: { halign: "right", cellWidth: 28 },
-        5: { halign: "center", cellWidth: 22 },
-        6: { halign: "center", cellWidth: 18 },
+        2: { cellWidth: 28 },
+        3: { fontStyle: "bold", cellWidth: 42 },
+        4: { halign: "right", cellWidth: 30 },
+        5: { halign: "center", cellWidth: 30 },
       },
       didParseCell(data) {
         if (data.section !== "body") return;
@@ -542,14 +539,72 @@ export async function buildMonthlyReportPdf(
 
 /* ─── Public entry (signature updated; caller: ExportCSV.tsx) ─── */
 
+export interface SavePdfResult {
+  success: boolean;
+  filePath?: string;
+  error?: string;
+}
+
+/**
+ * Generate and save monthly report PDF using File System Access API
+ * (shows native "Save As" dialog) with fallback to default download.
+ */
 export async function generateMonthlyReportPdf(
   transactions: Transaction[],
   month: number,
   year: number,
   t: TranslateFn,
   pockets: Pocket[]
-): Promise<void> {
+): Promise<SavePdfResult> {
   const monthName = t("tools.months_array").split(",")[month - 1];
   const doc = await buildMonthlyReportPdf(transactions, month, year, t, pockets);
-  doc.save(`FinSpace_Report_${monthName}_${year}.pdf`);
+  const defaultFileName = `FinSpace_Report_${monthName}_${year}.pdf`;
+
+  // Try File System Access API first (modern browsers)
+  if (typeof window !== "undefined" && "showSaveFilePicker" in window) {
+    try {
+      const handle = await (window as unknown as { showSaveFilePicker: (options: {
+        suggestedName: string;
+        types: Array<{ description: string; accept: Record<string, string[]> }>;
+      }) => Promise<FileSystemFileHandle> }).showSaveFilePicker({
+        suggestedName: defaultFileName,
+        types: [
+          {
+            description: "PDF Document",
+            accept: { "application/pdf": [".pdf"] },
+          },
+        ],
+      });
+
+      const writable = await handle.createWritable();
+      const blob = doc.output("blob");
+      await writable.write(blob);
+      await writable.close();
+
+      // Try to get the file path (may not be available in all browsers)
+      let filePath: string | undefined;
+      if ("getFile" in handle) {
+        try {
+          const file = await handle.getFile();
+          filePath = file.name;
+        } catch {
+          filePath = defaultFileName;
+        }
+      } else {
+        filePath = defaultFileName;
+      }
+
+      return { success: true, filePath };
+    } catch (err) {
+      // User cancelled or API not supported — fall back to default download
+      if (err instanceof DOMException && err.name === "AbortError") {
+        return { success: false, error: "User cancelled" };
+      }
+      // Fall through to default download
+    }
+  }
+
+  // Fallback: default browser download (no location choice)
+  doc.save(defaultFileName);
+  return { success: true, filePath: defaultFileName };
 }

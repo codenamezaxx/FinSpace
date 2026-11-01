@@ -14,6 +14,7 @@ import { usePagination } from "@/hooks/usePagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { Transaction } from "@/lib/db";
 import type { Pocket } from "@/lib/pocket";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 function formatDate(ts: number, locale: string): string {
   return new Date(ts).toLocaleDateString(locale, {
@@ -55,6 +56,7 @@ export function TransactionList({
   openTxId,
 }: TransactionListProps) {
   const { t, lang } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const { transactions, loading, deleteTransaction, updateTransaction } =
     useTransactions();
   const [search, setSearch] = useState("");
@@ -366,7 +368,7 @@ export function TransactionList({
                   }`}
                 >
                   {tx.type === "expense" ? "-" : "+"}
-                  {formatCurrency(tx.amount)}
+                  {formatCurrencyPrivacy(tx.amount, isHidden)}
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
                   {pockets.find((p) => p.id === tx.pocketId)?.name ??

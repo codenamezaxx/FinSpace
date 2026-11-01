@@ -6,6 +6,7 @@ import { formatCurrency } from "@/lib/netWorth";
 import type { DebtEntry } from "@/lib/netWorth";
 import { remainingAmount } from "@/lib/debtUtils";
 import { useLanguage } from "@/lib/i18n";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 interface DebtSnapshotCardProps {
   debts: DebtEntry[];
@@ -22,6 +23,7 @@ function formatDue(ts: number, lang: string): string {
 
 export function DebtSnapshotCard({ debts, viewAllHref }: DebtSnapshotCardProps) {
   const { t, lang } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const top = [...debts]
     .map((d) => ({ debt: d, remaining: remainingAmount(d) }))
     .sort((a, b) => b.remaining - a.remaining)
@@ -71,7 +73,7 @@ export function DebtSnapshotCard({ debts, viewAllHref }: DebtSnapshotCardProps) 
                   </p>
                 </div>
                 <span className="shrink-0 font-mono text-sm font-semibold text-text-primary">
-                  {formatCurrency(remaining)}
+                  {formatCurrencyPrivacy(remaining, isHidden)}
                 </span>
               </div>
             );
@@ -81,3 +83,4 @@ export function DebtSnapshotCard({ debts, viewAllHref }: DebtSnapshotCardProps) 
     </div>
   );
 }
+

@@ -14,11 +14,13 @@ import { PaginationControls } from "@/components/shared/PaginationControls";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { AssetRow, LiabilityRow } from "@/components/wealth/WealthLists";
 import { calculateNetWorth, formatCurrency } from "@/lib/netWorth";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
 import { useLanguage } from "@/lib/i18n";
 
 function WealthAssetsInner() {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const { assets, liabilities } = useWealthData();
   const { pockets, totalBalance: pocketTotalBalance } = usePockets();
   const { addTransaction } = useTransactions();
@@ -126,9 +128,9 @@ function WealthAssetsInner() {
             {t("wealth.assets_page_title")}
           </h1>
           <p className="mt-2 font-mono text-xs text-text-muted">
-            {assets.length} · {formatCurrency(totalAssets)}
+            {assets.length} · {formatCurrencyPrivacy(totalAssets, isHidden)}
             {" | "}
-            {liabilities.length} · {formatCurrency(totalLiabilities)}
+            {liabilities.length} · {formatCurrencyPrivacy(totalLiabilities, isHidden)}
           </p>
         </div>
         <button
@@ -158,7 +160,7 @@ function WealthAssetsInner() {
                 </p>
               </div>
               <span className="shrink-0 font-mono text-sm font-semibold text-success">
-                {formatCurrency(pocketTotalBalance)}
+                {formatCurrencyPrivacy(pocketTotalBalance, isHidden)}
               </span>
             </div>
             {assets.length === 0 ? (
@@ -271,3 +273,4 @@ export default function WealthAssetsPage() {
     </Suspense>
   );
 }
+

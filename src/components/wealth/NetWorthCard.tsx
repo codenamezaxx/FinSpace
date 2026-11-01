@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/netWorth";
 import { useLanguage } from "@/lib/i18n";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 interface NetWorthCardProps {
   totalBalance: number;
@@ -40,6 +41,7 @@ export function NetWorthCard({
   counts,
 }: NetWorthCardProps) {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const title = titleProp ?? t("wealth.net_worth");
   const isPositive = netWorth >= 0;
   const [showDetail, setShowDetail] = useState(false);
@@ -55,7 +57,7 @@ export function NetWorthCard({
 
       <div className="mt-3 flex items-baseline gap-3">
         <p className="text-3xl font-bold text-text-primary">
-          {formatCurrency(Math.abs(netWorth))}
+          {formatCurrencyPrivacy(Math.abs(netWorth), isHidden)}
         </p>
         <div
           className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
@@ -89,7 +91,7 @@ export function NetWorthCard({
             ).map((s) => (
               <div
                 key={s.label}
-                className="min-w-0 rounded-xl bg-surface-alt/50 px-2 py-3 text-center"
+                className="min-w-0 rounded-xl px-2 py-3 text-center"
               >
                 <p className="truncate font-mono text-xl font-bold text-text-primary">
                   {s.value}
@@ -130,6 +132,7 @@ export function NetWorthCard({
                   label={t("wealth.recorded_balance")}
                   value={totalBalance}
                   color="text-success"
+                  isHidden={isHidden}
                 >
                   <Banknote className="h-3.5 w-3.5 text-text-muted" />
                 </BreakdownRow>
@@ -137,18 +140,21 @@ export function NetWorthCard({
                   label={t("wealth.total_assets")}
                   value={totalAssets}
                   color="text-success"
+                  isHidden={isHidden}
                 />
                 <BreakdownRow
                   label={t("wealth.total_liabilities")}
                   value={totalLiabilities}
                   color="text-danger"
                   negative
+                  isHidden={isHidden}
                 />
                 <BreakdownRow
                   label={t("wealth.total_debts")}
                   value={totalDebts}
                   color="text-danger"
                   negative
+                  isHidden={isHidden}
                 />
                 <div className="border-t border-border pt-2">
                   <div className="flex items-center justify-between">
@@ -160,7 +166,7 @@ export function NetWorthCard({
                         isPositive ? "text-success" : "text-danger"
                       }`}
                     >
-                      {formatCurrency(Math.abs(netWorth))}
+                      {formatCurrencyPrivacy(Math.abs(netWorth), isHidden)}
                     </p>
                   </div>
                 </div>
@@ -176,6 +182,7 @@ export function NetWorthCard({
               label={t("wealth.recorded_balance")}
               value={totalBalance}
               color="text-success"
+              isHidden={isHidden}
             >
               <Banknote className="h-3.5 w-3.5 text-text-muted" />
             </BreakdownRow>
@@ -183,18 +190,21 @@ export function NetWorthCard({
               label={t("wealth.total_assets")}
               value={totalAssets}
               color="text-success"
+              isHidden={isHidden}
             />
             <BreakdownRow
               label={t("wealth.total_liabilities")}
               value={totalLiabilities}
               color="text-danger"
               negative
+              isHidden={isHidden}
             />
             <BreakdownRow
               label={t("wealth.total_debts")}
               value={totalDebts}
               color="text-danger"
               negative
+              isHidden={isHidden}
             />
             <div className="border-t border-border pt-2">
               <div className="flex items-center justify-between">
@@ -206,7 +216,7 @@ export function NetWorthCard({
                     isPositive ? "text-success" : "text-danger"
                   }`}
                 >
-                  {formatCurrency(Math.abs(netWorth))}
+                  {formatCurrencyPrivacy(Math.abs(netWorth), isHidden)}
                 </p>
               </div>
             </div>
@@ -223,12 +233,14 @@ function BreakdownRow({
   color,
   negative = false,
   children,
+  isHidden,
 }: {
   label: string;
   value: number;
   color: string;
   negative?: boolean;
   children?: React.ReactNode;
+  isHidden: boolean;
 }) {
   return (
     <div className="flex items-center justify-between">
@@ -238,7 +250,7 @@ function BreakdownRow({
       </div>
       <p className={`font-mono text-sm font-semibold ${color}`}>
         {negative ? "- " : "+ "}
-        {formatCurrency(value)}
+        {formatCurrencyPrivacy(value, isHidden)}
       </p>
     </div>
   );

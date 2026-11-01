@@ -7,6 +7,7 @@ import type { DebtEntry } from "@/lib/netWorth";
 import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
 import { remainingAmount } from "@/lib/debtUtils";
 import { useLanguage } from "@/lib/i18n";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 interface PayDebtModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ export function PayDebtModal({
   onPay,
 }: PayDebtModalProps) {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const [amount, setAmount] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -36,7 +38,7 @@ export function PayDebtModal({
     if (!amount || isNaN(val) || val <= 0)
       errs.amount = t("wealth.valid_amount");
     else if (val > remaining)
-      errs.amount = `${t("wealth.max_label")} ${formatCurrency(remaining)}`;
+      errs.amount = `${t("wealth.max_label")} ${formatCurrencyPrivacy(remaining, isHidden)}`;
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -54,7 +56,7 @@ export function PayDebtModal({
     <div className="rounded-xl border border-border bg-surface-alt p-3">
       <p className="text-sm text-text-primary">{currentDebt.name}</p>
       <p className="mt-1 font-mono text-sm text-text-muted">
-        {t("wealth.remaining_label")}: {formatCurrency(remaining)}
+        {t("wealth.remaining_label")}: {formatCurrencyPrivacy(remaining, isHidden)}
       </p>
     </div>
   );
@@ -83,7 +85,7 @@ export function PayDebtModal({
             <p className="mt-1 font-mono text-xs text-danger">{errors.amount}</p>
           )}
           <p className="mt-1 font-mono text-[11px] text-text-muted">
-            {t("wealth.max_label")}: {formatCurrency(remaining)}
+            {t("wealth.max_label")}: {formatCurrencyPrivacy(remaining, isHidden)}
           </p>
         </div>
 
@@ -99,3 +101,4 @@ export function PayDebtModal({
     </ResponsiveModal>
   );
 }
+

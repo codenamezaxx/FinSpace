@@ -3,8 +3,9 @@
 import { memo, useMemo } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { PiggyBank } from "lucide-react";
-import { formatCurrency, type AssetEntry } from "@/lib/netWorth";
+import { formatCurrency } from "@/lib/netWorth";
 import { useLanguage } from "@/lib/i18n";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 const SLICES = [
   { type: "liquid", color: "var(--color-primary)" },
@@ -19,6 +20,7 @@ export const AssetAllocation = memo(function AssetAllocation({
   assets: AssetEntry[];
 }) {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
 
   const { total, rows } = useMemo(() => {
     const total = assets.reduce((sum, a) => sum + a.amount, 0);
@@ -60,7 +62,7 @@ export const AssetAllocation = memo(function AssetAllocation({
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Tooltip
-              formatter={(value) => formatCurrency(Number(value ?? 0))}
+              formatter={(value) => formatCurrencyPrivacy(Number(value ?? 0), isHidden)}
               contentStyle={{
                 backgroundColor: "var(--color-surface)",
                 border: "1px solid var(--color-border)",
@@ -87,7 +89,7 @@ export const AssetAllocation = memo(function AssetAllocation({
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <p className="font-mono text-lg font-bold text-text-primary">
-            {formatCurrency(total)}
+            {formatCurrencyPrivacy(total, isHidden)}
           </p>
           <p className="font-mono text-[11px] text-text-muted">
             {rows.length} {t("wealth.allocation_types")}
@@ -106,7 +108,7 @@ export const AssetAllocation = memo(function AssetAllocation({
               {r.pct.toFixed(1)}%
             </span>
             <span className="w-28 text-right font-mono text-xs font-semibold text-text-primary">
-              {formatCurrency(r.value)}
+              {formatCurrencyPrivacy(r.value, isHidden)}
             </span>
           </div>
         ))}
@@ -114,3 +116,5 @@ export const AssetAllocation = memo(function AssetAllocation({
     </div>
   );
 });
+
+import type { AssetEntry } from "@/lib/netWorth";

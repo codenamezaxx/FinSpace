@@ -14,6 +14,7 @@ import {
   type DebtEntry,
 } from "@/lib/netWorth";
 import { useLanguage } from "@/lib/i18n";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 const inputClasses =
   "w-full rounded-lg border border-border bg-surface-alt px-3 py-2.5 font-mono text-sm text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-colors";
@@ -24,6 +25,7 @@ export const PayoffSimulator = memo(function PayoffSimulator({
   debts: DebtEntry[];
 }) {
   const { t, lang } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const unpaid = useMemo(
     () => debts.filter((d) => remainingAmount(d) > 0),
     [debts]
@@ -83,7 +85,7 @@ export const PayoffSimulator = memo(function PayoffSimulator({
           >
             {unpaid.map((d) => (
               <option key={d.id} value={d.id}>
-                {d.name} — {formatCurrency(remainingAmount(d))}
+                {d.name} — {formatCurrencyPrivacy(remainingAmount(d), isHidden)}
               </option>
             ))}
           </select>
@@ -129,7 +131,7 @@ export const PayoffSimulator = memo(function PayoffSimulator({
           </div>
           <div className="rounded-xl bg-surface-alt p-3">
             <p className="font-mono text-sm font-bold leading-8 text-success">
-              {formatCurrency(sim.interestSaved)}
+              {formatCurrencyPrivacy(sim.interestSaved, isHidden)}
             </p>
             <p className="mt-0.5 font-mono text-[11px] text-text-muted">
               {t("wealth.sim_interest_saved")}
@@ -139,9 +141,10 @@ export const PayoffSimulator = memo(function PayoffSimulator({
       )}
 
       <p className="mt-3 font-mono text-[11px] text-text-muted">
-        {t("wealth.remaining_label")}: {formatCurrency(remaining)} · {t("wealth.max_label")}{" "}
-        {formatCurrency(base)}/bln
+        {t("wealth.remaining_label")}: {formatCurrencyPrivacy(remaining, isHidden)} · {t("wealth.max_label")}{" "}
+        {formatCurrencyPrivacy(base, isHidden)}/bln
       </p>
     </div>
   );
 });
+

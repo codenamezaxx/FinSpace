@@ -11,9 +11,11 @@ import { PocketFormModal } from "@/components/budget/PocketFormModal";
 import type { Pocket } from "@/lib/pocket";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import { TransferModal } from "@/components/budget/TransferModal";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 export default function BudgetPocketsPage() {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const router = useRouter();
   const {
     pockets, balances,
@@ -52,14 +54,7 @@ export default function BudgetPocketsPage() {
             {t("budget.total_balance")}
           </p>
           <p className="mt-1 truncate font-mono text-2xl font-bold text-text-primary">
-            {new Intl.NumberFormat("id-ID", {
-              style: "currency",
-              currency: "IDR",
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
-            }).format(
-              pockets.reduce((s, p) => s + (balances[p.id] ?? 0), 0)
-            )}
+            {formatCurrencyPrivacy(pockets.reduce((s, p) => s + (balances[p.id] ?? 0), 0), isHidden)}
           </p>
         </div>
         <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 font-mono text-xs font-semibold text-primary">
@@ -154,3 +149,4 @@ export default function BudgetPocketsPage() {
     </div>
   );
 }
+

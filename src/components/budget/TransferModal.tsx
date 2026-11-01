@@ -6,6 +6,7 @@ import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import { useLanguage } from "@/lib/i18n";
 import type { Pocket } from "@/lib/pocket";
 import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 interface TransferModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export function TransferModal({
   onTransfer,
 }: TransferModalProps) {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const [fromId, setFromId] = useState(preSelectedFrom ?? "");
   const [toId, setToId] = useState("");
   const [amount, setAmount] = useState("");
@@ -81,7 +83,7 @@ export function TransferModal({
             <option value="">{t("budget.transfer_from")}</option>
             {pockets.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name} — {formatCurrency(balances[p.id] ?? 0)}
+                {p.name} — {formatCurrencyPrivacy(balances[p.id] ?? 0, isHidden)}
               </option>
             ))}
           </select>
@@ -103,7 +105,7 @@ export function TransferModal({
             <option value="">{t("budget.transfer_to")}</option>
             {availableDestinations.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name} — {formatCurrency(balances[p.id] ?? 0)}
+                {p.name} — {formatCurrencyPrivacy(balances[p.id] ?? 0, isHidden)}
               </option>
             ))}
           </select>
@@ -123,7 +125,7 @@ export function TransferModal({
           />
           {numericAmount > sourceBalance && (
             <p className="mt-1 text-xs text-warning">
-              {t("transfer.insufficient_balance", { pocket: sourcePocketName, balance: formatCurrency(sourceBalance) })}
+              {t("transfer.insufficient_balance", { pocket: sourcePocketName, balance: formatCurrencyPrivacy(sourceBalance, isHidden) })}
             </p>
           )}
         </div>
@@ -155,3 +157,4 @@ export function TransferModal({
     </ResponsiveModal>
   );
 }
+

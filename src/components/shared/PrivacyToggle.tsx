@@ -25,7 +25,7 @@ export function PrivacyToggle({ compact = false, className = "", "aria-label": a
       className={`
         flex items-center justify-center rounded-lg transition-all duration-200
         ${compact ? "h-8 w-8" : "h-9 w-9"}
-        ${isHidden ? "text-text-secondary bg-surface-alt hover:bg-surface" : "text-primary bg-primary/10 hover:bg-primary/20"}
+        ${isHidden ? "text-text-secondary/80 bg-surface-alt hover:bg-surface" : "text-secondary"}
         ${className}
       `}
     >

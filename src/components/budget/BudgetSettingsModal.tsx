@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal";
 import { useLanguage } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/netWorth";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 interface BudgetSettingsModalProps {
   isOpen: boolean;
@@ -143,6 +144,7 @@ export function BudgetSettingsModal({
   onSave,
 }: BudgetSettingsModalProps) {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const [needs, setNeeds] = useState(currentAllocation.needs);
   const [wants, setWants] = useState(currentAllocation.wants);
   const [savings, setSavings] = useState(currentAllocation.savings);
@@ -264,7 +266,7 @@ export function BudgetSettingsModal({
         <div className="flex items-center justify-between rounded-xl border border-border bg-surface-alt px-4 py-3">
           <p className="text-xs font-medium text-text-muted">{t("budget.total_income")}</p>
           <p className="font-mono text-base font-bold text-text-primary">
-            {formatCurrency(totalIncome)}
+            {formatCurrencyPrivacy(totalIncome, isHidden)}
           </p>
         </div>
 
@@ -314,3 +316,4 @@ export function BudgetSettingsModal({
     </ResponsiveModal>
   );
 }
+

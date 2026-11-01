@@ -13,6 +13,7 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { useWealthData } from "@/hooks/useWealthData";
 import { useAssetLiabilityModal } from "@/lib/asset-liability-modal-context";
 import { calculateNetWorth, formatCurrency } from "@/lib/netWorth";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 import {
   calculateAllRatios,
   calculateHealthScore,
@@ -50,6 +51,7 @@ function ViewAllLink({ href, label }: { href: string; label: string }) {
 
 export default function WealthPage() {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
   const endOfMonth = new Date(
@@ -264,7 +266,7 @@ export default function WealthPage() {
               {t("wealth.total_debts")}
             </h3>
             <p className="mt-0.5 font-mono text-xs text-text-muted">
-              {debts.length} · {formatCurrency(netWorthData.totalDebts)}
+              {debts.length} · {formatCurrencyPrivacy(netWorthData.totalDebts, isHidden)}
             </p>
           </div>
           <ViewAllLink href="/wealth/debts" label={t("wealth.view_all")} />
@@ -323,3 +325,4 @@ export default function WealthPage() {
     </div>
   );
 }
+

@@ -198,12 +198,25 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
           </button>
         )}
 
+        {/* Mobile: privacy toggle */}
+        {!searchOpen && (
+          <div className="lg:hidden flex items-center">
+            <PrivacyToggle compact />
+          </div>
+        )}
+
         {/* Mobile: bell icon (notifications) */}
         {!searchOpen && (
           <div className="lg:hidden">
             <BellButton />
           </div>
         )}
+
+        {/* Privacy toggle*/}
+        <div className="hidden lg:block ml-3 flex items-center">
+          <PrivacyToggle compact />
+        </div>
+
 
         {/* Bell (notifications) — desktop with dropdown panel */}
         <div className="relative hidden lg:block">

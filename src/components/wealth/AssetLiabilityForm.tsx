@@ -8,6 +8,7 @@ import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWort
 import { useLanguage } from "@/lib/i18n";
 import { usePockets } from "@/hooks/usePockets";
 import { newAssetId, newLiabilityId } from "@/lib/ids";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 type ItemType = "asset" | "liability";
 
@@ -32,6 +33,7 @@ export function AssetLiabilityForm({
   initialItem,
 }: AssetLiabilityFormProps) {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const [type, setType] = useState<ItemType>("asset");
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
@@ -238,7 +240,7 @@ export function AssetLiabilityForm({
                 {t("wealth.current_balance")}
               </p>
               <p className="font-mono text-sm font-semibold text-text-primary">
-                {formatCurrency(currentBalance)}
+                {formatCurrencyPrivacy(currentBalance, isHidden)}
               </p>
             </div>
           )}
@@ -265,7 +267,7 @@ export function AssetLiabilityForm({
               >
                 {pockets.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name} — {formatCurrency(balances[p.id] ?? 0)}
+                    {p.name} — {formatCurrencyPrivacy(balances[p.id] ?? 0, isHidden)}
                   </option>
                 ))}
               </select>
@@ -274,7 +276,7 @@ export function AssetLiabilityForm({
                   {t("transfer.insufficient_balance", {
                     pocket:
                       pockets.find((p) => p.id === purchasePocketId)?.name ?? "",
-                    balance: formatCurrency(balances[purchasePocketId] ?? 0),
+                    balance: formatCurrencyPrivacy(balances[purchasePocketId] ?? 0, isHidden),
                   })}
                 </p>
               )}
@@ -296,3 +298,4 @@ export function AssetLiabilityForm({
     </ResponsiveModal>
   );
 }
+

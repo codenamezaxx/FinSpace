@@ -32,6 +32,7 @@ import {
   getDebtToIncomeStatus,
 } from "@/lib/financialRatios";
 import { formatCurrency, calculateNetWorth } from "@/lib/netWorth";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 import { totalMonthlyDebtObligation } from "@/lib/debtUtils";
 import type { HealthStatus } from "@/lib/financialRatios";
 import type { NetWorthResult } from "@/lib/netWorth";
@@ -40,6 +41,7 @@ import { useCloudAuth } from "@/hooks/useCloudAuth";
 import { useLanguage } from "@/lib/i18n";
 
 /* ─── Dynamic import — Recharts is heavy, only load when needed ─── */
+
 const MonthlyChart = dynamic(
   () =>
     import("@/components/dashboard/MonthlyChart").then(
@@ -47,7 +49,7 @@ const MonthlyChart = dynamic(
     ),
   {
     loading: () => (
-      <div className="surface-card rounded-2xl p-5">
+      <div className="glass rounded-2xl p-5">
         <div className="mb-4 h-4 w-32 animate-pulse rounded bg-border" />
         <div className="mb-5 h-8 animate-pulse rounded-xl bg-border" />
         <div className="h-56 animate-pulse rounded-xl bg-border" />
@@ -72,6 +74,7 @@ function formatPctChange(value: number): string {
 }
 
 /* ─── MoM badge: +% vs last month. Wraps below nominal when tight. ─── */
+
 function MoMBadge({
   change,
   current,
@@ -97,13 +100,11 @@ function MoMBadge({
   const good = invert ? down : up;
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[11px] font-semibold ${
-        flat
-          ? "bg-surface-alt text-text-muted"
-          : good
-            ? "bg-success/15 text-success"
-            : "bg-danger/15 text-danger"
-      }`}
+      className={`inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[11px] font-semibold ${flat
+        ? "bg-surface-alt text-text-muted"
+        : good
+          ? "bg-success/15 text-success"
+          : "bg-danger/15 text-danger"}`}
     >
       {up ? (
         <ArrowUpIcon className="h-3 w-3" />
@@ -123,7 +124,7 @@ function MoMBadge({
 function BalanceSkeleton() {
   return (
     <div className="flex flex-row gap-3">
-      <div className="surface-card rounded-2xl p-6 shadow-lg shadow-black/10 w-full">
+      <div className="glass rounded-2xl p-6 shadow-lg shadow-black/10 w-full">
         <div className="h-3 w-24 animate-pulse rounded bg-border" />
         <div className="mt-4 flex items-baseline gap-3">
           <div className="h-9 w-40 animate-pulse rounded-lg bg-border" />
@@ -139,9 +140,8 @@ function BalanceSkeleton() {
             <div className="h-6 w-28 animate-pulse rounded bg-border" />
           </div>
         </div>
-        
       </div>
-      <div className="hidden lg:block surface-card rounded-2xl p-6 shadow-lg shadow-black/10 w-full">
+      <div className="hidden lg:block glass rounded-2xl p-6 shadow-lg shadow-black/10 w-full">
         <div className="h-3 w-24 animate-pulse rounded bg-border" />
         <div className="mt-4 flex items-baseline gap-3">
           <div className="h-9 w-40 animate-pulse rounded-lg bg-border" />
@@ -164,7 +164,7 @@ function BalanceSkeleton() {
 
 function CTASkeleton() {
   return (
-    <div className="surface-card rounded-2xl p-5">
+    <div className="glass rounded-2xl p-5">
       <div className="h-[52px] w-full animate-pulse rounded-xl bg-border" />
       <div className="mt-4 grid grid-cols-3 gap-3">
         {[1, 2, 3].map((i) => (
@@ -177,7 +177,7 @@ function CTASkeleton() {
 
 function TransactionSkeleton() {
   return (
-    <div className="surface-card rounded-2xl p-5">
+    <div className="glass rounded-2xl p-5">
       <div className="mb-4 h-4 w-36 animate-pulse rounded bg-border" />
       <div className="space-y-3">
         {[1, 2, 3, 4, 5].map((i) => (
@@ -199,6 +199,7 @@ function TransactionSkeleton() {
 
 export default function DashboardPage() {
   const { t, lang } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const { user } = useCloudAuth();
   const { openAddTransaction } = useTransactionModal();
   const { openAssetLiabilityModal } = useAssetLiabilityModal();
@@ -357,7 +358,7 @@ export default function DashboardPage() {
         </div>
         <BalanceSkeleton />
         <CTASkeleton />
-        <div className="surface-card rounded-2xl p-6">
+        <div className="glass rounded-2xl p-6">
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-24 animate-pulse rounded-xl bg-border" />
@@ -394,10 +395,11 @@ export default function DashboardPage() {
       <div className="lg:hidden">
         <MobileCardSwitcher
           views={[
+
             /* Balance View */
             <div
               key="balance"
-              className="rounded-2xl border-b-8 border-b-primary bg-surface p-6"
+              className="rounded-2xl border-b-8 border-primary p-6 bg-surface-alt"
             >
               <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
                 {t("dashboard.total_balance")} &nbsp;-&nbsp;
@@ -409,7 +411,7 @@ export default function DashboardPage() {
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
                 <p className="min-w-0 wrap-break-word text-2xl font-bold text-text-primary sm:text-3xl">
-                  {formatCurrency(Math.abs(balance))}
+                  {formatCurrencyPrivacy(Math.abs(balance), isHidden)}
                 </p>
                 <div
                   className={`flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
@@ -430,8 +432,8 @@ export default function DashboardPage() {
                 <div className="min-w-0">
                   <p className="font-mono text-xs text-text-muted">{t("dashboard.income")}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <p className="break-words font-mono text-lg font-semibold text-success">
-                      {formatCurrency(income)}
+                    <p className="wrap-break-word font-mono text-lg font-semibold text-success">
+                      {formatCurrencyPrivacy(income, isHidden)}
                     </p>
                     <MoMBadge change={momIncome} current={income} newLabel={t("dashboard.mom_new")} />
                   </div>
@@ -440,7 +442,7 @@ export default function DashboardPage() {
                   <p className="font-mono text-xs text-text-muted">{t("dashboard.expense")}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                     <p className="break-words font-mono text-lg font-semibold text-danger">
-                      {formatCurrency(expenses)}
+                      {formatCurrencyPrivacy(expenses, isHidden)}
                     </p>
                     <MoMBadge change={momExpenses} current={expenses} newLabel={t("dashboard.mom_new")} invert />
                   </div>
@@ -458,9 +460,9 @@ export default function DashboardPage() {
               netWorth={netWorthData.netWorth}
             counts={netWorthCounts}
               collapsible
-              className="border-0 border-b-8 border-accent-secondary"
-              style={{ height: "100%" }}
+              className="border-0 border-b-8 border-accent-secondary bg-surface-alt"
             />,
+
           ]}
         />
       </div>
@@ -469,49 +471,49 @@ export default function DashboardPage() {
       <div className="hidden gap-6 lg:grid lg:grid-cols-2">
         {/* Combined Balance + Income/Expense */}
         <div
-          className="rounded-2xl border-l-8 border-l-primary bg-surface p-6 shadow-lg shadow-black/20 transition-all duration-200 hover:shadow-xl hover:shadow-black/30"
+          className="rounded-2xl bg-surface-alt border-l-8 border-l-primary p-6 shadow-lg shadow-black/20 backdrop-blur-xl"
         >
           <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
             {t("dashboard.total_balance")}
-           </p>
-           <div className="mt-3 flex items-baseline gap-3">
-             <p className="text-3xl font-bold text-text-primary">
-               {formatCurrency(Math.abs(balance))}
-             </p>
-             <div
-               className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                 isPositive
-                   ? "bg-success/15 text-success"
-                   : "bg-danger/15 text-danger"
-               }`}
-             >
-               {isPositive ? (
-                 <ArrowUpIcon className="h-3.5 w-3.5" />
-               ) : (
-                 <ArrowDownIcon className="h-3.5 w-3.5" />
-               )}
-               {isPositive ? t("dashboard.positive") : t("dashboard.negative")}
-             </div>
-           </div>
-           <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
-              <div className="min-w-0">
-                <p className="font-mono text-xs text-text-muted">{t("dashboard.income")}</p>
-                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <p className="font-mono text-lg font-semibold text-success">
-                    {formatCurrency(income)}
-                  </p>
-                  <MoMBadge change={momIncome} current={income} newLabel={t("dashboard.mom_new")} />
-                </div>
+          </p>
+          <div className="mt-3 flex items-baseline gap-3">
+            <p className="text-3xl font-bold text-text-primary">
+              {formatCurrencyPrivacy(Math.abs(balance), isHidden)}
+            </p>
+            <div
+              className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                isPositive
+                  ? "bg-success/15 text-success"
+                  : "bg-danger/15 text-danger"
+              }`}
+            >
+              {isPositive ? (
+                <ArrowUpIcon className="h-3.5 w-3.5" />
+              ) : (
+                <ArrowDownIcon className="h-3.5 w-3.5" />
+              )}
+              {isPositive ? t("dashboard.positive") : t("dashboard.negative")}
+            </div>
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
+            <div className="min-w-0">
+              <p className="font-mono text-xs text-text-muted">{t("dashboard.income")}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <p className="wrap-break-word font-mono text-lg font-semibold text-success">
+                  {formatCurrencyPrivacy(income, isHidden)}
+                </p>
+                <MoMBadge change={momIncome} current={income} newLabel={t("dashboard.mom_new")} />
               </div>
-              <div className="min-w-0">
-                <p className="font-mono text-xs text-text-muted">{t("dashboard.expense")}</p>
-                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <p className="font-mono text-lg font-semibold text-danger">
-                    {formatCurrency(expenses)}
-                  </p>
-                  <MoMBadge change={momExpenses} current={expenses} newLabel={t("dashboard.mom_new")} invert />
-                </div>
+            </div>
+            <div className="min-w-0">
+              <p className="font-mono text-xs text-text-muted">{t("dashboard.expense")}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <p className="wrap-break-word font-mono text-lg font-semibold text-danger">
+                  {formatCurrencyPrivacy(expenses, isHidden)}
+                </p>
+                <MoMBadge change={momExpenses} current={expenses} newLabel={t("dashboard.mom_new")} invert />
               </div>
+            </div>
           </div>
         </div>
 
@@ -523,7 +525,7 @@ export default function DashboardPage() {
           totalDebts={netWorthData.totalDebts}
           netWorth={netWorthData.netWorth}
           counts={netWorthCounts}
-          className="border-l-8 border-l-accent-secondary"
+          className="border-l-8 border-l-accent-secondary bg-surface-alt"
           collapsible
         />
       </div>
@@ -553,7 +555,7 @@ export default function DashboardPage() {
                   {p.name}
                 </p>
                 <p className="mt-1 truncate font-mono text-xs font-bold text-text-primary sm:text-sm">
-                  {formatCurrency(balances[p.id] ?? 0)}
+                  {formatCurrencyPrivacy(balances[p.id] ?? 0, isHidden)}
                 </p>
               </div>
             ))}
@@ -597,19 +599,25 @@ export default function DashboardPage() {
 
       {/* ── Row: Transaction History + Top Holdings ── */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <TransactionHistory transactions={transactions} viewAllHref="/budget/transactions" />
+        <TransactionHistory
+          transactions={transactions}
+          viewAllHref="/budget/transactions"
+        />
+
         <TopHoldingsCard
           assets={assetsList}
           liabilities={liabilitiesList}
-          assetEmptyText={t("dashboard.no_data_yet")}
-          liabilityEmptyText={t("dashboard.no_data_yet")}
           viewAllHref="/wealth/assets"
         />
       </div>
 
-      {/* ── Row: Health Score + Top Debts ── */}
+{/* ── Row: Health Score + Top Debts ── */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <DebtSnapshotCard debts={debtsList} viewAllHref="/wealth/debts" />
+        <DebtSnapshotCard
+          debts={debtsList}
+          viewAllHref="/wealth/debts"
+        />
+
         <SmartInsights
           ratios={ratioData}
           healthScore={healthScore}

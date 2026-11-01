@@ -20,7 +20,6 @@ import { notifyTransaction, checkOverspending, checkCreditReminders } from "@/li
 import { newLiabilityId } from "@/lib/ids";
 import { db, migrateWealthFromLocalStorage, deduplicateWealthData } from "@/lib/db";
 import type { Transaction } from "@/lib/db";
-import { BalancePrivacyProvider } from "@/lib/balancePrivacy";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -167,7 +166,6 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <TransactionModalProvider>
-      <BalancePrivacyProvider>
         <GlobalTransactionModal />
         <div className="flex min-h-screen flex-col bg-background lg:flex-row">
       <NavigationBar
@@ -224,7 +222,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         />
       </div>
     </div>
-      </BalancePrivacyProvider>
-    </TransactionModalProvider>
+      </TransactionModalProvider>
   );
 }

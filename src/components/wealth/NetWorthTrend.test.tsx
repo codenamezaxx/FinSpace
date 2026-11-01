@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { NetWorthTrend } from "@/components/wealth/NetWorthTrend";
+import { BalancePrivacyProvider } from "@/lib/balancePrivacy";
 
 vi.mock("@/lib/i18n", () => ({
   useLanguage: () => ({ t: (k: string) => k }),
@@ -14,14 +15,18 @@ const asset = {
   createdAt: new Date("2025-01-01").getTime(),
 };
 
+function renderWithPrivacy(ui: React.ReactElement) {
+  return render(<BalancePrivacyProvider>{ui}</BalancePrivacyProvider>);
+}
+
 describe("NetWorthTrend", () => {
   it("shows empty hint when no history", () => {
-    render(<NetWorthTrend assets={[]} liabilities={[]} transactions={[]} debts={[]} />);
+    renderWithPrivacy(<NetWorthTrend assets={[]} liabilities={[]} transactions={[]} debts={[]} />);
     expect(screen.getByText("wealth.trend_empty")).toBeDefined();
   });
 
   it("renders chart and delta for nonzero history", () => {
-    const { container } = render(
+    const { container } = renderWithPrivacy(
       <NetWorthTrend assets={[asset]} liabilities={[]} transactions={[]} debts={[]} />
     );
     expect(screen.getByText("wealth.trend_title")).toBeDefined();

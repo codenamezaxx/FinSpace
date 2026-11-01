@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/lib/theme-context";
 import { ACCENT_IDS } from "@/lib/accents";
 import { AssetLiabilityModalProvider } from "@/lib/asset-liability-modal-context";
 import { NotificationsProvider } from "@/components/notifications/NotificationsProvider";
+import { BalancePrivacyProvider } from "@/lib/balancePrivacy";
 import "./globals.css";
 
 const inter = Inter({
@@ -121,11 +122,13 @@ export default function RootLayout({
         <LanguageProvider>
           <ThemeProvider>
             <ClientSerwistProvider>
-              <AssetLiabilityModalProvider>
-                <NotificationsProvider>
-                  {children}
-                </NotificationsProvider>
-              </AssetLiabilityModalProvider>
+              <BalancePrivacyProvider>
+                <AssetLiabilityModalProvider>
+                  <NotificationsProvider>
+                    {children}
+                  </NotificationsProvider>
+                </AssetLiabilityModalProvider>
+              </BalancePrivacyProvider>
             </ClientSerwistProvider>
           </ThemeProvider>
         </LanguageProvider>

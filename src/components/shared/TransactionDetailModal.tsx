@@ -7,6 +7,7 @@ import { useLanguage } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/netWorth";
 import { printReceiptHtml } from "@/lib/printReceipt";
 import type { Transaction } from "@/lib/db";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 interface TransactionDetailModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export function TransactionDetailModal({
   onDelete,
 }: TransactionDetailModalProps) {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const { pockets } = usePockets();
   if (!transaction) return null;
 
@@ -67,7 +69,7 @@ export function TransactionDetailModal({
             }`}
           >
             {isExpense ? "-" : "+"}
-            {formatCurrency(transaction.amount)}
+            {formatCurrencyPrivacy(transaction.amount, isHidden)}
           </p>
         </div>
 

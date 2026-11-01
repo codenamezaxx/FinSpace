@@ -18,6 +18,7 @@ import {
   type DebtEntry,
   type LiabilityEntry,
 } from "@/lib/netWorth";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 import type { Transaction } from "@/lib/db";
 import { useLanguage } from "@/lib/i18n";
 
@@ -37,12 +38,13 @@ function TrendTooltip({
   payload?: Array<{ value?: number | string }>;
   label?: string;
 }) {
+  const { isHidden } = useBalancePrivacy();
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-border bg-surface px-3 py-2 shadow-lg">
       <p className="font-mono text-[11px] text-text-muted">{label}</p>
       <p className="font-mono text-sm font-bold text-text-primary">
-        {formatCurrency(Number(payload[0].value ?? 0))}
+        {formatCurrencyPrivacy(Number(payload[0].value ?? 0), isHidden)}
       </p>
     </div>
   );
@@ -55,6 +57,7 @@ export const NetWorthTrend = memo(function NetWorthTrend({
   debts,
 }: NetWorthTrendProps) {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
 
   const data = useMemo(
     () => computeMonthlyNetWorth(assets, liabilities, transactions, debts),
@@ -103,7 +106,7 @@ export const NetWorthTrend = memo(function NetWorthTrend({
           }`}
         >
           {up ? "+" : "−"}
-          {formatCurrency(Math.abs(delta))}
+          {formatCurrencyPrivacy(Math.abs(delta), isHidden)}
           {pct ? ` (${pct})` : ""}
         </span>
       </div>
@@ -154,3 +157,4 @@ export const NetWorthTrend = memo(function NetWorthTrend({
     </div>
   );
 });
+

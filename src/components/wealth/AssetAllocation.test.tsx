@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AssetAllocation } from "@/components/wealth/AssetAllocation";
+import { BalancePrivacyProvider } from "@/lib/balancePrivacy";
 
 vi.mock("@/lib/i18n", () => ({
   useLanguage: () => ({ t: (k: string) => k }),
@@ -12,14 +13,18 @@ const assets = [
   { id: "a3", name: "Tanah", amount: 1000000, type: "property" as const },
 ];
 
+function renderWithPrivacy(ui: React.ReactElement) {
+  return render(<BalancePrivacyProvider>{ui}</BalancePrivacyProvider>);
+}
+
 describe("AssetAllocation", () => {
   it("shows empty hint when no assets", () => {
-    render(<AssetAllocation assets={[]} />);
+    renderWithPrivacy(<AssetAllocation assets={[]} />);
     expect(screen.getByText("wealth.allocation_empty")).toBeDefined();
   });
 
   it("renders donut with total and slices", () => {
-    const { container } = render(<AssetAllocation assets={assets} />);
+    const { container } = renderWithPrivacy(<AssetAllocation assets={assets} />);
     expect(screen.getByText("wealth.allocation_title")).toBeDefined();
     expect(container.querySelector("svg")).not.toBeNull();
     // 60% liquid slice legend

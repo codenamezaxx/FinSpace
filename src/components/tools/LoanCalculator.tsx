@@ -4,11 +4,13 @@ import { useMemo, useState } from "react";
 import { Calculator } from "lucide-react";
 import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
 import { useLanguage } from "@/lib/i18n";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 const TENOR_OPTIONS = [6, 12, 24, 36, 48, 60];
 
 export function LoanCalculator() {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const [jumlah, setJumlah] = useState("");
   const [bunga, setBunga] = useState("");
   const [tenor, setTenor] = useState("");
@@ -113,7 +115,7 @@ export function LoanCalculator() {
                 {t("tools.monthly_payment")}
               </p>
               <p className="font-mono text-2xl font-bold text-primary">
-                {formatCurrency(Math.round(result.payment))}
+                {formatCurrencyPrivacy(Math.round(result.payment), isHidden)}
               </p>
             </div>
 
@@ -125,7 +127,7 @@ export function LoanCalculator() {
                 {t("tools.total_interest")}
               </p>
               <p className="font-mono text-sm text-text-secondary">
-                {formatCurrency(Math.round(result.totalInterest))}
+                {formatCurrencyPrivacy(Math.round(result.totalInterest), isHidden)}
               </p>
             </div>
 
@@ -135,7 +137,7 @@ export function LoanCalculator() {
                 {t("tools.total_payment")}
               </p>
               <p className="font-mono text-sm text-text-secondary">
-                {formatCurrency(Math.round(result.totalPayment))}
+                {formatCurrencyPrivacy(Math.round(result.totalPayment), isHidden)}
               </p>
             </div>
           </div>
@@ -150,3 +152,4 @@ export function LoanCalculator() {
     </div>
   );
 }
+

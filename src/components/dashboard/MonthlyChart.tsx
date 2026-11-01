@@ -20,6 +20,7 @@ import {
 } from "@/lib/monthlyChart";
 import type { Transaction } from "@/lib/db";
 import { useLanguage } from "@/lib/i18n";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 interface MonthlyChartProps {
   transactions: Transaction[];
@@ -42,6 +43,7 @@ function CashFlowTooltip({
   incomeLabel: string;
   expenseLabel: string;
 }) {
+  const { isHidden } = useBalancePrivacy();
   if (!active || !payload || payload.length === 0) return null;
   const income = payload.find((p) => p.dataKey === "income");
   const expense = payload.find((p) => p.dataKey === "expense");
@@ -54,7 +56,7 @@ function CashFlowTooltip({
             className="h-2 w-2 rounded-full"
             style={{ backgroundColor: INCOME_COLOR }}
           />
-          {incomeLabel}: {formatCurrency(Number(income.value ?? 0))}
+          {incomeLabel}: {formatCurrencyPrivacy(Number(income.value ?? 0), isHidden)}
         </p>
       )}
       {expense != null && (
@@ -63,7 +65,7 @@ function CashFlowTooltip({
             className="h-2 w-2 rounded-full"
             style={{ backgroundColor: EXPENSE_COLOR }}
           />
-          {expenseLabel}: {formatCurrency(Number(expense.value ?? 0))}
+          {expenseLabel}: {formatCurrencyPrivacy(Number(expense.value ?? 0), isHidden)}
         </p>
       )}
     </div>
@@ -74,6 +76,7 @@ const RANGES: CashFlowRange[] = ["day", "week", "month", "year"];
 
 export function MonthlyChart({ transactions }: MonthlyChartProps) {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const [range, setRange] = useState<CashFlowRange>("day");
 
   const cashflowData = useMemo(
@@ -138,11 +141,11 @@ export function MonthlyChart({ transactions }: MonthlyChartProps) {
       </div>
 
       {/* ── Chart area ── */}
-      <div className="h-64 w-full">
+      <div className="h-64 w-full flex items-center">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={cashflowData}
-            margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
+            margin={{ top: 15, right: 20, left: 60, bottom: 15 }}
           >
             <defs>
               <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
@@ -168,10 +171,12 @@ export function MonthlyChart({ transactions }: MonthlyChartProps) {
                 fontSize: 11,
                 fill: "var(--color-text-muted)",
                 fontFamily: "var(--font-jetbrains-mono)",
+                textAnchor: "middle",
               }}
               axisLine={{ stroke: "var(--color-border)" }}
               tickLine={false}
               interval="preserveStartEnd"
+              textAnchor="middle"
             />
 
             <YAxis

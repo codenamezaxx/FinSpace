@@ -4,6 +4,7 @@ import { memo } from "react";
 import { ArrowDownRight, ArrowUpRight, ShoppingBag, type LucideIcon } from "lucide-react";
 import { usePockets } from "@/hooks/usePockets";
 import type { Transaction } from "@/lib/db";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 const categoryIcons: Record<string, LucideIcon> = {
   "Makanan & Minuman": ShoppingBag,
@@ -16,15 +17,6 @@ function formatDate(ts: number): string {
   });
 }
 
-function formatAmount(amount: number): string {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
 interface TransactionCardProps {
   transaction: Transaction;
   onShowDetail?: (tx: Transaction) => void;
@@ -33,6 +25,7 @@ interface TransactionCardProps {
 export const TransactionCard = memo(function TransactionCard({ transaction, onShowDetail }: TransactionCardProps) {
   const isExpense = transaction.type === "expense";
   const { pockets } = usePockets();
+  const { isHidden } = useBalancePrivacy();
   const pocket = pockets.find((p) => p.id === transaction.pocketId);
   const Icon = categoryIcons[transaction.category] || ShoppingBag;
 
@@ -88,7 +81,7 @@ export const TransactionCard = memo(function TransactionCard({ transaction, onSh
           }`}
         >
           {isExpense ? "-" : "+"}
-          {formatAmount(transaction.amount)}
+          {formatCurrencyPrivacy(transaction.amount, isHidden)}
         </p>
         <p className="text-xs text-text-muted">
           {pocket?.name ?? transaction.payment_method}

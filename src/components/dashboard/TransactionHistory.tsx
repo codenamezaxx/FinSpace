@@ -5,6 +5,7 @@ import { TrendingUp, TrendingDown, Receipt, ArrowRight } from "lucide-react";
 import { formatCurrency } from "@/lib/netWorth";
 import type { Transaction } from "@/lib/db";
 import { useLanguage } from "@/lib/i18n";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 interface TransactionHistoryProps {
   transactions: Transaction[];
@@ -27,6 +28,7 @@ function relativeTime(timestamp: number, t: (key: string, params?: Record<string
 
 export function TransactionHistory({ transactions, viewAllHref }: TransactionHistoryProps) {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
 
   if (transactions.length === 0) {
     return (
@@ -112,7 +114,7 @@ export function TransactionHistory({ transactions, viewAllHref }: TransactionHis
                   }`}
                 >
                   {isIncome ? "+" : "-"}
-                  {formatCurrency(tx.amount)}
+                  {formatCurrencyPrivacy(tx.amount, isHidden)}
                 </p>
                 <p className="mt-0.5 font-mono text-[10px] text-text-muted">
                   {relativeTime(tx.timestamp, t)}
@@ -125,3 +127,4 @@ export function TransactionHistory({ transactions, viewAllHref }: TransactionHis
     </div>
   );
 }
+

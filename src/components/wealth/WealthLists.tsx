@@ -6,6 +6,7 @@ import { formatCurrency } from "@/lib/netWorth";
 import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
 import type { LucideIcon } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 export const ASSET_META: Record<AssetEntry["type"], { icon: LucideIcon; tint: string; labelKey: string }> = {
   liquid: { icon: Wallet, tint: "text-primary bg-primary/10", labelKey: "wealth.liquid" },
@@ -22,13 +23,17 @@ export function AssetRow({
   onEdit,
   onDelete,
   highlighted = false,
+  isHidden = false,
 }: {
   asset: AssetEntry;
   onEdit?: () => void;
   onDelete?: () => void;
   highlighted?: boolean;
+  isHidden?: boolean;
 }) {
   const { t } = useLanguage();
+  const { isHidden: ctxHidden } = useBalancePrivacy();
+  const hidden = isHidden ?? ctxHidden;
   const meta = ASSET_META[asset.type] ?? ASSET_META.other;
   const Icon = meta.icon;
   const ref = useRef<HTMLDivElement>(null);
@@ -54,7 +59,7 @@ export function AssetRow({
         </p>
       </div>
       <span className="shrink-0 font-mono text-sm font-semibold text-text-primary">
-        {formatCurrency(asset.amount)}
+        {formatCurrencyPrivacy(asset.amount, hidden)}
       </span>
       {onEdit && (
         <button
@@ -85,13 +90,17 @@ export function LiabilityRow({
   onEdit,
   onDelete,
   highlighted = false,
+  isHidden = false,
 }: {
   liability: LiabilityEntry;
   onEdit?: () => void;
   onDelete?: () => void;
   highlighted?: boolean;
+  isHidden?: boolean;
 }) {
   const { t } = useLanguage();
+  const { isHidden: ctxHidden } = useBalancePrivacy();
+  const hidden = isHidden ?? ctxHidden;
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (highlighted) ref.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
@@ -107,7 +116,7 @@ export function LiabilityRow({
         {liability.name}
       </p>
       <span className="shrink-0 font-mono text-sm font-semibold text-text-primary">
-        {formatCurrency(liability.amount)}
+        {formatCurrencyPrivacy(liability.amount, hidden)}
       </span>
       {onEdit && (
         <button
@@ -132,3 +141,4 @@ export function LiabilityRow({
     </div>
   );
 }
+

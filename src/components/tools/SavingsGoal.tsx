@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { PiggyBank } from "lucide-react";
 import { formatCurrency, formatInputValue, parseInputValue } from "@/lib/netWorth";
 import { useLanguage } from "@/lib/i18n";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 export function SavingsGoal() {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const [target, setTarget] = useState("");
   const [waktu, setWaktu] = useState("");
   const [saldoAwal, setSaldoAwal] = useState("");
@@ -82,7 +84,7 @@ export function SavingsGoal() {
               {t("tools.monthly_saving")}
             </p>
             <p className="mt-1 font-mono text-2xl font-bold text-accent">
-              {formatCurrency(Math.round(monthly))}
+              {formatCurrencyPrivacy(Math.round(monthly), isHidden)}
             </p>
             <p className="mt-1 text-xs text-text-muted">
               {t("tools.for_duration", { months: waktuNum })}
@@ -97,3 +99,4 @@ export function SavingsGoal() {
     </div>
   );
 }
+

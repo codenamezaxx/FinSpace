@@ -5,6 +5,7 @@ import { Trophy, ArrowRight } from "lucide-react";
 import { formatCurrency } from "@/lib/netWorth";
 import type { AssetEntry, LiabilityEntry } from "@/lib/netWorth";
 import { useLanguage } from "@/lib/i18n";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 interface TopHoldingsCardProps {
   assets: AssetEntry[];
@@ -19,12 +20,16 @@ function TopList({
   items,
   emptyText,
   amountClass,
+  isHidden,
 }: {
   title: string;
   items: Array<{ id: string; name: string; amount: number }>;
   emptyText: string;
   amountClass: string;
+  isHidden: boolean;
 }) {
+  const { isHidden: ctxHidden } = useBalancePrivacy();
+  const hidden = isHidden ?? ctxHidden;
   return (
     <div className="min-w-0">
       <h3 className="mb-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-text-muted">
@@ -46,7 +51,7 @@ function TopList({
                 {item.name}
               </p>
               <span className={`shrink-0 font-mono text-xs font-semibold ${amountClass}`}>
-                {formatCurrency(item.amount)}
+                {formatCurrencyPrivacy(item.amount, hidden)}
               </span>
             </div>
           ))}
@@ -64,6 +69,7 @@ export function TopHoldingsCard({
   viewAllHref,
 }: TopHoldingsCardProps) {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const topAssets = [...assets].sort((a, b) => b.amount - a.amount).slice(0, 3);
   const topLiabilities = [...liabilities]
     .sort((a, b) => b.amount - a.amount)
@@ -91,15 +97,16 @@ export function TopHoldingsCard({
           title={t("dashboard.largest_assets")}
           items={topAssets}
           emptyText={assetEmptyText ?? t("wealth.no_assets_yet")}
-          amountClass="text-success"
+          amountClass="text-success" isHidden={isHidden}
         />
         <TopList
           title={t("dashboard.largest_liabilities")}
           items={topLiabilities}
           emptyText={liabilityEmptyText ?? t("wealth.no_liabilities_yet")}
-          amountClass="text-danger"
+          amountClass="text-danger" isHidden={isHidden}
         />
       </div>
     </div>
   );
 }
+

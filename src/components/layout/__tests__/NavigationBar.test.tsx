@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { NavigationBar } from "../NavigationBar";
+import { BalancePrivacyProvider } from "@/lib/balancePrivacy";
 
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
@@ -21,9 +22,14 @@ vi.mock("@/lib/transaction-modal-context", () => ({
   }),
 }));
 
+// Helper to wrap with required providers
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<BalancePrivacyProvider>{ui}</BalancePrivacyProvider>);
+}
+
 describe("NavigationBar", () => {
   it("renders all standard nav links", () => {
-    render(<NavigationBar />);
+    renderWithProviders(<NavigationBar />);
     // Each nav link appears twice — mobile nav + sidebar
     expect(screen.getAllByText("Dasbor").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Anggaran").length).toBeGreaterThanOrEqual(1);
@@ -32,38 +38,38 @@ describe("NavigationBar", () => {
   });
 
   it("renders scan button when onScan prop is provided", () => {
-    render(<NavigationBar onScan={vi.fn()} />);
+    renderWithProviders(<NavigationBar onScan={vi.fn()} />);
     const scanBtn = screen.getByLabelText("Scan struk");
     expect(scanBtn).toBeDefined();
   });
 
   it("does NOT render scan button when onScan is undefined", () => {
-    render(<NavigationBar />);
+    renderWithProviders(<NavigationBar />);
     expect(screen.queryByLabelText("Scan struk")).toBeNull();
   });
 
   it("calls onScan when scan button clicked", () => {
     const onScan = vi.fn();
-    render(<NavigationBar onScan={onScan} />);
+    renderWithProviders(<NavigationBar onScan={onScan} />);
     const scanBtn = screen.getByLabelText("Scan struk");
     fireEvent.click(scanBtn);
     expect(onScan).toHaveBeenCalledOnce();
   });
 
   it("renders expanded sidebar toggle by default", () => {
-    render(<NavigationBar onToggle={vi.fn()} />);
+    renderWithProviders(<NavigationBar onToggle={vi.fn()} />);
     const toggleBtn = screen.getByLabelText("Ciutkan sidebar");
     expect(toggleBtn).toBeDefined();
   });
 
   it("renders collapsed state toggle label", () => {
-    render(<NavigationBar isCollapsed={true} onToggle={vi.fn()} />);
+    renderWithProviders(<NavigationBar isCollapsed={true} onToggle={vi.fn()} />);
     const toggleBtn = screen.getByLabelText("Perluas sidebar");
     expect(toggleBtn).toBeDefined();
   });
 
   it("renders expanded state toggle label", () => {
-    render(<NavigationBar isCollapsed={false} onToggle={vi.fn()} />);
+    renderWithProviders(<NavigationBar isCollapsed={false} onToggle={vi.fn()} />);
     const toggleBtn = screen.getByLabelText("Ciutkan sidebar");
     expect(toggleBtn).toBeDefined();
   });

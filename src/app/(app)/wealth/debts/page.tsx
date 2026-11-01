@@ -13,12 +13,14 @@ import { DebtList } from "@/components/wealth/DebtList";
 import { PayoffSimulator } from "@/components/wealth/PayoffSimulator";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { calculateNetWorth, formatCurrency } from "@/lib/netWorth";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 import type { DebtEntry } from "@/lib/netWorth";
 import { usePockets } from "@/hooks/usePockets";
 import { useLanguage } from "@/lib/i18n";
 
 function WealthDebtsInner() {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const { debts, assets, liabilities } = useWealthData();
   const { addTransaction } = useTransactions();
   const { totalBalance: pocketTotalBalance } = usePockets();
@@ -91,7 +93,7 @@ function WealthDebtsInner() {
             {t("wealth.debts_page_title")}
           </h1>
           <p className="mt-2 font-mono text-xs text-text-muted">
-            {debts.length} · {formatCurrency(totalDebts)}
+            {debts.length} · {formatCurrencyPrivacy(totalDebts, isHidden)}
           </p>
         </div>
         <button
@@ -152,3 +154,4 @@ export default function WealthDebtsPage() {
     </Suspense>
   );
 }
+

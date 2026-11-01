@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { TransactionList } from "@/components/shared/TransactionList";
 import { useLanguage } from "@/lib/i18n";
+import { BalancePrivacyProvider } from "@/lib/balancePrivacy";
 
 vi.mock("@/lib/i18n", () => ({
   useLanguage: vi.fn(() => ({ t: (k: string) => k, lang: "id" })),
@@ -32,15 +33,19 @@ vi.mock("@/hooks/useTransactions", () => ({
   }),
 }));
 
+function renderWithPrivacy(ui: React.ReactElement) {
+  return render(<BalancePrivacyProvider>{ui}</BalancePrivacyProvider>);
+}
+
 describe("TransactionList openTxId", () => {
   it("auto-opens the detail modal for the focused transaction", () => {
-    render(<TransactionList openTxId="tx1" />);
+    renderWithPrivacy(<TransactionList openTxId="tx1" />);
     // print button only exists inside the detail modal
     expect(screen.getByText("receipt.print_button")).toBeDefined();
   });
 
   it("does not auto-open without openTxId", () => {
-    render(<TransactionList />);
+    renderWithPrivacy(<TransactionList />);
     expect(screen.queryByText("receipt.print_button")).toBeNull();
   });
 });
@@ -51,7 +56,7 @@ describe("TransactionList currency locale", () => {
       t: ((k: string) => k) as never,
       lang: "en",
     } as never);
-    const { container } = render(<TransactionList />);
+    const { container } = renderWithPrivacy(<TransactionList />);
     expect(container.textContent).toContain("Rp");
     expect(container.textContent).not.toMatch(/IDR\s?\d/);
     vi.mocked(useLanguage).mockReturnValue({

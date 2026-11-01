@@ -74,7 +74,7 @@ export function TransactionEditModal({
       await onSave(transaction.id, {
         amount: numAmount,
         type: tab,
-        category: tab === "income" ? "Pemasukkan" : category,
+        category: tab === "income" ? "Pemasukan" : category,
         merchant: merchant.trim(),
         payment_method:
           pockets.find((p) => p.id === selectedPocketId)?.name ?? "Tunai",

@@ -18,6 +18,7 @@ import { formatCurrency } from "@/lib/netWorth";
 import { calcInstallment, remainingAmount } from "@/lib/debtUtils";
 import type { InstallmentResult } from "@/lib/debtUtils";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 interface DebtListProps {
   debts: DebtEntry[];
@@ -30,6 +31,7 @@ interface DebtListProps {
 
 export function DebtList({ debts, onPay, onDelete, onEdit, onAdd, highlightId }: DebtListProps) {
   const { t, lang } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const { page, totalPages, pageSize, setPageSize, setPage, next, prev } = usePagination(
     debts.length,
     15,
@@ -87,6 +89,7 @@ export function DebtList({ debts, onPay, onDelete, onEdit, onAdd, highlightId }:
             highlighted={highlightId === debt.id}
             t={t}
             lang={lang}
+            isHidden={isHidden}
           />
         );
       })}
@@ -113,6 +116,7 @@ function DebtItem({
   highlighted = false,
   t,
   lang,
+  isHidden,
 }: {
   debt: DebtEntry;
   remaining: number;
@@ -124,6 +128,7 @@ function DebtItem({
   highlighted?: boolean;
   t: (key: string, vars?: Record<string, string | number>) => string;
   lang: string;
+  isHidden: boolean;
 }) {
   const locale = lang === "id" ? "id-ID" : "en-US";
   const itemRef = useRef<HTMLDivElement>(null);
@@ -144,9 +149,9 @@ function DebtItem({
     if (installment.overdue) {
       infoText = t("debt.due_date", { date: dueDateText });
     } else if (installment.period === "bulan") {
-      infoText = t("debt.installment_monthly", { amount: formatCurrency(installment.amount), count: installment.count });
+      infoText = t("debt.installment_monthly", { amount: formatCurrencyPrivacy(installment.amount, isHidden), count: installment.count });
     } else {
-      infoText = t("debt.installment_weekly", { amount: formatCurrency(installment.amount), count: installment.count });
+      infoText = t("debt.installment_weekly", { amount: formatCurrencyPrivacy(installment.amount, isHidden), count: installment.count });
     }
   }
 
@@ -154,7 +159,7 @@ function DebtItem({
     !paidOff &&
     installment.interestTotal != null &&
     installment.interestTotal > 0
-      ? t("debt.interest", { amount: formatCurrency(installment.interestTotal) })
+      ? t("debt.interest", { amount: formatCurrencyPrivacy(installment.interestTotal, isHidden) })
       : null;
 
   const statusTone = paidOff
@@ -215,7 +220,7 @@ function DebtItem({
           </div>
         </div>
         <span className="shrink-0 font-mono text-sm font-semibold text-text-primary">
-          {formatCurrency(remaining)}
+          {formatCurrencyPrivacy(remaining, isHidden)}
         </span>
       </div>
 

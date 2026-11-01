@@ -5,6 +5,7 @@ import type { Pocket } from "@/lib/pocket";
 import { useLanguage } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/netWorth";
 import { useState, useRef, useEffect } from "react";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 interface PocketCardProps {
   pocket: Pocket;
@@ -30,6 +31,7 @@ const categoryLabelKey: Record<Pocket["category"], string> = {
 
 export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onDelete, onTransfer }: PocketCardProps) {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const config = CATEGORY_CONFIG[pocket.category];
@@ -104,7 +106,7 @@ export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onD
         </p>
       </div>
       <p className="mt-1 w-full truncate font-mono text-base font-bold text-text-primary">
-        {formatCurrency(balance)}
+        {formatCurrencyPrivacy(balance, isHidden)}
       </p>
     </div>
   );

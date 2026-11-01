@@ -17,6 +17,7 @@ import {
 import { usePockets } from "@/hooks/usePockets";
 import { BudgetSettingsModal } from "@/components/budget/BudgetSettingsModal";
 import { formatCurrency } from "@/lib/netWorth";
+import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 function ViewAllLink({ href, label }: { href: string; label: string }) {
   return (
@@ -32,6 +33,7 @@ function ViewAllLink({ href, label }: { href: string; label: string }) {
 
 export default function BudgetPage() {
   const { t } = useLanguage();
+  const { isHidden } = useBalancePrivacy();
   const { openAddTransaction } = useTransactionModal();
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
@@ -120,7 +122,7 @@ export default function BudgetPage() {
           <p className="text-sm text-text-muted">
             {t("budget.this_month")}:{" "}
             <span className="font-mono font-semibold text-success">
-              {formatCurrency(monthlyIncome)}
+              {formatCurrencyPrivacy(monthlyIncome, isHidden)}
             </span>
           </p>
         </div>
@@ -135,7 +137,7 @@ export default function BudgetPage() {
           </button>
           <button
             onClick={() => openAddTransaction()}
-            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary shadow-md transition-all duration-200 hover:bg-primary-hover hover:shadow-lg active:scale-[0.98]"
+            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-on-primary shadow-md shadow-primary/20 transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             {t("nav.add_transaction")}
@@ -146,45 +148,45 @@ export default function BudgetPage() {
       {/* 50/30/20 Budget Overview */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {/* Needs */}
-        <div className="surface-card min-w-0 rounded-2xl p-6 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
+        <div className="bg-surface min-w-0 rounded-2xl p-6 transition-all duration-200">
           <BudgetRing
             percentage={needsStatus.percentage}
             label={`${t("budget.needs")} (${pct.needs}%)`}
-            sublabel={`${t("budget.spent")} ${formatCurrency(spending.needs)}`}
+            sublabel={`${t("budget.spent")} ${formatCurrencyPrivacy(spending.needs, isHidden)}`}
             remaining={
               needsStatus.isOverBudget
-                ? t("budget.over_by", { amount: formatCurrency(Math.abs(needsStatus.remaining)) })
-                : `${formatCurrency(needsStatus.remaining)} ${t("budget.remaining")}`
+                ? t("budget.over_by", { amount: formatCurrencyPrivacy(Math.abs(needsStatus.remaining), isHidden) })
+                : `${formatCurrencyPrivacy(needsStatus.remaining, isHidden)} ${t("budget.remaining")}`
             }
             isOverBudget={needsStatus.isOverBudget}
           />
         </div>
 
         {/* Wants */}
-        <div className="surface-card min-w-0 rounded-2xl p-6 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
+        <div className="bg-surface min-w-0 rounded-2xl p-6 transition-all duration-200">
           <BudgetRing
             percentage={wantsStatus.percentage}
             label={`${t("budget.wants")} (${pct.wants}%)`}
-            sublabel={`${t("budget.spent")} ${formatCurrency(spending.wants)}`}
+            sublabel={`${t("budget.spent")} ${formatCurrencyPrivacy(spending.wants, isHidden)}`}
             remaining={
               wantsStatus.isOverBudget
-                ? t("budget.over_by", { amount: formatCurrency(Math.abs(wantsStatus.remaining)) })
-                : `${formatCurrency(wantsStatus.remaining)} ${t("budget.remaining")}`
+                ? t("budget.over_by", { amount: formatCurrencyPrivacy(Math.abs(wantsStatus.remaining), isHidden) })
+                : `${formatCurrencyPrivacy(wantsStatus.remaining, isHidden)} ${t("budget.remaining")}`
             }
             isOverBudget={wantsStatus.isOverBudget}
           />
         </div>
 
         {/* Savings */}
-        <div className="surface-card min-w-0 rounded-2xl p-6 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
+        <div className="bg-surface min-w-0 rounded-2xl p-6 transition-all duration-200">
           <BudgetRing
             percentage={savingsStatus.percentage}
             label={`${t("budget.savings")} (${pct.savings}%)`}
-            sublabel={`${t("budget.saved")} ${formatCurrency(savingsDeposits)}`}
+            sublabel={`${t("budget.saved")} ${formatCurrencyPrivacy(savingsDeposits, isHidden)}`}
             remaining={
               savingsComplete
                 ? t("budget.savings_complete")
-                : t("budget.toward_target", { amount: formatCurrency(Math.max(0, allocation.savings - savingsDeposits)) })
+                : t("budget.toward_target", { amount: formatCurrencyPrivacy(Math.max(0, allocation.savings - savingsDeposits), isHidden) })
             }
             isOverBudget={false}
             metSavingsGoal={savingsComplete}
@@ -222,7 +224,7 @@ export default function BudgetPage() {
                       {p.name}
                     </p>
                     <p className="mt-0.5 truncate font-mono text-sm font-bold text-text-primary sm:text-base">
-                      {formatCurrency(balances[p.id] ?? 0)}
+                      {formatCurrencyPrivacy(balances[p.id] ?? 0, isHidden)}
                     </p>
                   </div>
                 </div>
@@ -238,10 +240,7 @@ export default function BudgetPage() {
           <h2 className="truncate text-lg font-semibold text-primary">
             {t("budget.recent_transactions")}
           </h2>
-          <ViewAllLink
-            href="/budget/transactions"
-            label={t("budget.view_all_transactions")}
-          />
+          <ViewAllLink href="/budget/transactions" label={t("budget.view_all_transactions")} />
         </div>
         <TransactionList pockets={pockets} compact limit={10} />
       </div>

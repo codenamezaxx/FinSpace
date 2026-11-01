@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { TransactionDetailModal } from "@/components/shared/TransactionDetailModal";
 import { printReceiptHtml } from "@/lib/printReceipt";
+import { BalancePrivacyProvider } from "@/lib/balancePrivacy";
 
 vi.mock("@/lib/i18n", () => ({
   useLanguage: () => ({ t: (k: string) => k, lang: "id" }),
@@ -27,9 +28,13 @@ const tx = {
   transferId: null,
 } as never;
 
+function renderWithPrivacy(ui: React.ReactElement) {
+  return render(<BalancePrivacyProvider>{ui}</BalancePrivacyProvider>);
+}
+
 describe("TransactionDetailModal print", () => {
   it("prints receipt for the shown transaction", () => {
-    render(
+    renderWithPrivacy(
       <TransactionDetailModal
         isOpen
         onClose={() => {}}
@@ -44,7 +49,7 @@ describe("TransactionDetailModal print", () => {
   });
 
   it("keeps edit and delete actions as icon buttons", () => {
-    render(
+    renderWithPrivacy(
       <TransactionDetailModal
         isOpen
         onClose={() => {}}

@@ -7,6 +7,8 @@ import {
   Bot,
   Camera,
   ChevronDown,
+  Eye,
+  EyeOff,
   Info,
   LayoutDashboard,
   Wallet,
@@ -20,6 +22,7 @@ import {
 import { useTransactionModal } from "@/lib/transaction-modal-context";
 import { useLanguage } from "@/lib/i18n";
 import { AboutFeedbackModal } from "@/components/shared/AboutFeedbackModal";
+import { useBalancePrivacy } from "@/lib/balancePrivacy";
 
 interface NavigationBarProps {
   isCollapsed?: boolean;
@@ -144,6 +147,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
   const pathname = usePathname();
   const { openAddTransaction } = useTransactionModal();
   const { t } = useLanguage();
+  const { isHidden, toggle } = useBalancePrivacy();
   const [aboutOpen, setAboutOpen] = useState(false);
 
   const navItems = useMemo(() => [
@@ -215,38 +219,50 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
           style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
         />
 
-        {navItems.map((item, i) => {
-          const isActive = pathname.startsWith(item.href);
-          const Icon = item.icon;
-          return (
-            <Fragment key={item.href}>
-              {i === 2 && onScan && (
-                <button
-                  onClick={onScan}
-                  className="flex items-center justify-center w-full max-w-14 h-14 -mt-5 rounded-full bg-primary text-on-primary shadow-lg cursor-pointer transition-all duration-300 active:scale-95"
-                  aria-label={t("nav.scan_receipt")}
-                >
-                  <Camera className="w-6 h-6" />
-                </button>
-              )}
-              <Link
-                ref={(el) => { linkRefs.current[i] = el; }}
-                href={item.href}
-                className={`flex flex-col items-center w-full gap-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors duration-200 ${
-                  isActive ? "bg-primary/10 text-primary" : "text-text-muted hover:text-text-secondary"
-                }`}
-              >
-                <Icon
-                  className={`h-5 w-5 transition-all duration-300 ${
-                    isActive ? "text-primary scale-110" : "scale-95"
+{navItems.map((item, i) => {
+            const isActive = pathname.startsWith(item.href);
+            const Icon = item.icon;
+            return (
+              <Fragment key={item.href}>
+                {i === 2 && onScan && (
+                  <button
+                    onClick={onScan}
+                    className="flex items-center justify-center w-full max-w-14 h-14 -mt-5 rounded-full bg-primary text-on-primary shadow-lg cursor-pointer transition-all duration-300 active:scale-95"
+                    aria-label={t("nav.scan_receipt")}
+                  >
+                    <Camera className="w-6 h-6" />
+                  </button>
+                )}
+                <Link
+                  ref={(el) => { linkRefs.current[i] = el; }}
+                  href={item.href}
+                  className={`flex flex-col items-center w-full gap-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors duration-200 ${
+                    isActive ? "bg-primary/10 text-primary" : "text-text-muted hover:text-text-secondary"
                   }`}
-                />
-                <span>{item.label}</span>
-              </Link>
-            </Fragment>
-          );
-        })}
-      </nav>
+                >
+                  <Icon
+                    className={`h-5 w-5 transition-all duration-300 ${
+                      isActive ? "text-primary scale-110" : "scale-95"
+                    }`}
+                  />
+                  <span>{item.label}</span>
+                </Link>
+              </Fragment>
+            );
+          })}
+          {/* Privacy toggle */}
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label={isHidden ? t("privacy.show_amounts") : t("privacy.hide_amounts")}
+            aria-pressed={isHidden}
+            className={`flex items-center justify-center w-full h-12 rounded-lg transition-colors duration-200 ${
+              isHidden ? "text-text-secondary bg-surface-alt" : "text-primary bg-primary/10"
+            }`}
+          >
+            {isHidden ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+          </button>
+        </nav>
 
       {/* Desktop Sidebar */}
       <aside
