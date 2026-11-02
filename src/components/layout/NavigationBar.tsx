@@ -250,18 +250,6 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
               </Fragment>
             );
           })}
-          {/* Privacy toggle */}
-          <button
-            type="button"
-            onClick={toggle}
-            aria-label={isHidden ? t("privacy.show_amounts") : t("privacy.hide_amounts")}
-            aria-pressed={isHidden}
-            className={`flex items-center justify-center w-full h-12 rounded-lg transition-colors duration-200 ${
-              isHidden ? "text-text-secondary bg-surface-alt" : "text-primary bg-primary/10"
-            }`}
-          >
-            {isHidden ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-          </button>
         </nav>
 
       {/* Desktop Sidebar */}
