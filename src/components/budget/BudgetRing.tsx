@@ -89,7 +89,7 @@ export const BudgetRing = memo(function BudgetRing({
       )}
       {remaining && (
         <span
-          className={`text-xs font-medium font-mono ${
+          className={`text-center text-xs font-medium font-mono ${
             isOverBudget ? "text-danger" : "text-success"
           }`}
         >

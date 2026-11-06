@@ -2,6 +2,7 @@
 
 import { Bot, User } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import Markdown from "react-markdown";
 
 interface ChatMessageProps {
   role: "user" | "bot";
@@ -36,7 +37,7 @@ export function ChatMessage({ role, text, timestamp }: ChatMessageProps) {
               : "rounded-tr-sm bg-primary text-on-primary"
           }`}
         >
-          {text}
+          <Markdown>{text}</Markdown>
         </div>
         {timestamp && (
           <span className="mt-1 px-1 text-[10px] text-text-muted">

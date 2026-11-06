@@ -208,17 +208,17 @@ html {
 
 /* ─── Accent variant: nebula (dark) ─── */
 [data-theme="dark"][data-accent="nebula"] {
-  --color-background: #0A0614;
-  --color-surface: #16102A;
-  --color-surface-alt: #1C1536;
+  --color-background: #0b0815;
+  --color-surface: #161124;
+  --color-surface-alt: #1a142d;
   --color-border: #2E2450;
   --color-track: #423768;
   --color-text-primary: #F6F2FF;
   --color-text-secondary: #A79EC4;
   --color-text-muted: #756B96;
-  --color-primary: #A78BFA;
-  --color-primary-hover: #C4B5FD;
-  --color-on-primary: #160B33;
+  --color-primary: #7C3AED;
+  --color-primary-hover: #6D28D9;
+  --color-on-primary: #F6F2FF;
   --color-accent: #A78BFA;
   --color-accent-secondary: #EC4899;
 }

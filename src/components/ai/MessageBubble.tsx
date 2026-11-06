@@ -3,6 +3,7 @@
 import type { FC } from "react";
 import { Undo2 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import Markdown from "react-markdown";
 
 interface MessageBubbleProps {
   id: string;
@@ -35,7 +36,9 @@ const MessageBubble: FC<MessageBubbleProps> = ({ id, role, content, onUnsend }) 
             : "bg-surface text-text-primary rounded-bl-md"
         }`}
       >
-        <p className="text-sm leading-relaxed whitespace-pre-wrap">{content}</p>
+        <div className="text-sm leading-relaxed">
+          <Markdown>{content}</Markdown>
+        </div>
       </div>
     </div>
   );
