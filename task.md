@@ -265,6 +265,7 @@ Audit desain anti-"AI slop": hilangkan efek generik (gradient kartu, frosted gla
 - [x] Balance Privacy (2026-10-29): global eye-icon toggle in TopBar (desktop) & NavigationBar (mobile) to mask/unmask all nominal amounts (net balance, net worth, pocket balances, asset/liability/debt values, transaction amounts) with localStorage persistence; `useBalancePrivacy` hook + `formatCurrencyPrivacy` utility; all display components updated (NetWorthCard, PocketCard, TransactionCard/List/DetailModal, AssetAllocation, DebtList, MonthlyChart); 279 tests pass (49 files), tsc clean
 
 ## Phase 10: Deployment & Final Acceptance Testing
+- [x] Troubleshoot Vercel font compilation failure while preserving Inter and JetBrains Mono; production builds use Webpack to avoid Turbopack's `next/font/google` resolver error.
 - [ ] Build a robust suite of validation test scenarios for simulated offline state.
 - [ ] Validate desktop responsiveness at viewport widths up to 1920px.
 - [ ] Audit accessibility color contrast scores across all components to hit the $\ge 4.5:1$ threshold.

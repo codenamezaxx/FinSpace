@@ -10,7 +10,7 @@ Compact execution guide for OpenCode sessions. Read **PRD.md** for full product 
 
 ```bash
 npm run dev    # dev server at localhost:3000
-npm run build  # production build
+npm run build  # production build (Webpack avoids the Vercel Turbopack next/font resolver failure)
 npm run lint   # ESLint check
 ```
 
