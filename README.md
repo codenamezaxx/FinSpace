@@ -85,7 +85,7 @@ flowchart TD
     E --> G[(Local IndexedDB)]
     B --> H[useLiveQuery Hooks]
     H --> G
-    B --> I[AI Queue (IndexedDB)]
+    B --> I["AI Queue (IndexedDB)"]
     I -- SW Background Sync --> J[Gemini API]
     B --> K[Web Bluetooth]
     K --> L[Thermal Printer]

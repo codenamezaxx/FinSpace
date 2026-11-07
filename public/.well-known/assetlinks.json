@@ -4,7 +4,7 @@
     "target": {
       "namespace": "android_app",
       "package_name": "app.finspace.twa",
-      "sha256_cert_fingerprints": ["73:EA:16:6C:F3:A8:46:27:30:45:06:C0:A8:75:97:5E:54:87:14:F4:05:7B:AA:2F:7F:42:60:6D:D9:51:FC:79"]
+      "sha256_cert_fingerprints": ["EE:B0:BD:52:08:E8:84:9B:8A:4C:CB:5A:E9:EE:57:1E:E5:A7:30:84:74:B1:64:94:AD:E4:B6:17:42:5E:27:1A"]
     }
   }
 ]
