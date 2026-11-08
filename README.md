@@ -173,7 +173,7 @@ Tanpa variabel ini: aplikasi tetap berfungsi penuh secara lokal (anonymous Dexie
 
 ### Pengingat Push ke Perangkat
 
-Pengingat pengeluaran dikirim lewat Web Push pada pukul 12.00, 17.00, dan 21.00 sesuai zona waktu perangkat — termasuk saat aplikasi tidak sedang terbuka. Agar push berjalan di production:
+Pengingat pengeluaran dikirim lewat Web Push satu kali sehari pada pukul 12.00 UTC — termasuk saat aplikasi tidak sedang terbuka. Agar push berjalan di production:
 
 1. Buat database Redis di Upstash dan siapkan VAPID key pair dengan `npx web-push generate-vapid-keys`.
 2. Tambahkan variabel berikut ke `.env.local` dan Vercel Project Settings → Environment Variables:
@@ -187,7 +187,7 @@ VAPID_SUBJECT=mailto:admin@example.com
 CRON_SECRET=your_long_random_secret
 ```
 
-`VAPID_PRIVATE_KEY`, `UPSTASH_REDIS_REST_TOKEN`, dan `CRON_SECRET` adalah rahasia server — jangan gunakan prefix `NEXT_PUBLIC_` atau commit nilainya. Public key VAPID harus tersedia saat build. `vercel.json` menjalankan pengirim reminder setiap lima menit; jadwal Cron sub-harian ini memerlukan paket Vercel yang mendukung frekuensi tersebut (Hobby membatasi Cron hingga sekali sehari). Pengguna harus mengizinkan notifikasi dari Settings di browser/perangkat.
+`VAPID_PRIVATE_KEY`, `UPSTASH_REDIS_REST_TOKEN`, dan `CRON_SECRET` adalah rahasia server — jangan gunakan prefix `NEXT_PUBLIC_` atau commit nilainya. Public key VAPID harus tersedia saat build. `vercel.json` menjalankan pengirim reminder sekali sehari pada pukul 12.00 UTC, sesuai batas Cron harian paket Vercel Hobby. Karena waktu ini menggunakan UTC, jam notifikasi setempat berbeda menurut zona waktu perangkat. Pengguna harus mengizinkan notifikasi dari Settings di browser/perangkat.
 
 ### Build & Jalankan Production
 

@@ -266,6 +266,7 @@ Audit desain anti-"AI slop": hilangkan efek generik (gradient kartu, frosted gla
 
 ## Phase 10: Deployment & Final Acceptance Testing
 - [x] Version bump 1.8.7 -> 1.8.8 (`npm version --no-git-tag-version`; package.json + lockfile updated, app version displays read `APP_VERSION` automatically).
+- [x] Reduce device push reminders to one daily Vercel Hobby-compatible Cron run at 12:00 UTC.
 - [x] Remove the redundant “All Pockets” action and move balance transfer to a primary button aligned with the Pockets page heading.
 - [x] Add device-level expense reminders with Web Push, Vercel Cron, and Upstash Redis; validate scheduling, subscription input, and offline/local status updates.
 - [ ] Configure VAPID/Upstash/Cron secrets in Vercel and verify a real device notification after deployment.

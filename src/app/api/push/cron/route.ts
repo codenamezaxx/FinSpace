@@ -1,7 +1,7 @@
 import * as webpush from "web-push";
 import { translations } from "@/lib/i18n/translations";
 import {
-  getLocalReminderSlot,
+  getDailyReminderSlot,
   isReminderLocale,
   isValidPushSubscription,
   isValidTimezone,
@@ -75,7 +75,7 @@ export async function GET(request: Request): Promise<Response> {
           continue;
         }
 
-        const slot = getLocalReminderSlot(now, record.timezone);
+        const slot = getDailyReminderSlot(now, record.timezone);
         if (!slot) continue;
         if (
           record.activityDate === slot.date &&

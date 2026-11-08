@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  getLocalReminderSlot,
+  getDailyReminderSlot,
   isReminderLocale,
   isValidLocalDate,
   isValidPushEndpoint,
@@ -9,24 +9,30 @@ import {
 } from "./push-reminders";
 
 describe("push reminder scheduling", () => {
-  it("finds the configured local reminder slot in a device timezone", () => {
+  it("schedules one daily reminder at 12:00 UTC using the device's local date", () => {
     expect(
-      getLocalReminderSlot(new Date("2026-11-09T05:00:00.000Z"), "Asia/Jakarta")
-    ).toEqual({ date: "2026-11-09", slot: "12:00" });
+      getDailyReminderSlot(new Date("2026-11-09T12:00:00.000Z"), "Asia/Jakarta")
+    ).toEqual({ date: "2026-11-09", slot: "daily" });
+    expect(
+      getDailyReminderSlot(new Date("2026-11-09T12:00:00.000Z"), "Pacific/Kiritimati")
+    ).toEqual({ date: "2026-11-10", slot: "daily" });
   });
 
-  it("allows cron delivery retries within the five-minute slot window", () => {
+  it("allows cron delivery retries within the five-minute UTC window", () => {
     expect(
-      getLocalReminderSlot(new Date("2026-11-09T05:04:00.000Z"), "Asia/Jakarta")
-    ).toEqual({ date: "2026-11-09", slot: "12:00" });
+      getDailyReminderSlot(new Date("2026-11-09T12:04:00.000Z"), "Asia/Jakarta")
+    ).toEqual({ date: "2026-11-09", slot: "daily" });
     expect(
-      getLocalReminderSlot(new Date("2026-11-09T05:05:00.000Z"), "Asia/Jakarta")
+      getDailyReminderSlot(new Date("2026-11-09T12:05:00.000Z"), "Asia/Jakarta")
     ).toBeNull();
   });
 
-  it("does not deliver outside reminder times", () => {
+  it("does not deliver outside the configured daily UTC time", () => {
     expect(
-      getLocalReminderSlot(new Date("2026-11-09T06:00:00.000Z"), "Asia/Jakarta")
+      getDailyReminderSlot(new Date("2026-11-09T11:59:00.000Z"), "Asia/Jakarta")
+    ).toBeNull();
+    expect(
+      getDailyReminderSlot(new Date("2026-11-09T13:00:00.000Z"), "Asia/Jakarta")
     ).toBeNull();
   });
 

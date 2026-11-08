@@ -11,8 +11,6 @@ export interface PushReminderRecord {
   hasLoggedExpense: boolean;
 }
 
-const REMINDER_HOURS = new Set(["12", "17", "21"]);
-
 export function isValidTimezone(timezone: unknown): timezone is string {
   if (typeof timezone !== "string" || timezone.length > 100) return false;
   try {
@@ -23,25 +21,23 @@ export function isValidTimezone(timezone: unknown): timezone is string {
   }
 }
 
-export function getLocalReminderSlot(
+export function getDailyReminderSlot(
   now: Date,
   timezone: string
 ): { date: string; slot: string } | null {
+  if (now.getUTCHours() !== 12 || now.getUTCMinutes() > 4) return null;
+
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: timezone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
   }).formatToParts(now);
   const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
-  if (Number(values.minute) > 4 || !REMINDER_HOURS.has(values.hour)) return null;
 
   return {
     date: `${values.year}-${values.month}-${values.day}`,
-    slot: `${values.hour}:00`,
+    slot: "daily",
   };
 }
 
