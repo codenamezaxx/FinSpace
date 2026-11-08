@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { Search, ArrowLeft, X } from "lucide-react";
+import { Search, ArrowLeft, X, Info } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { ProfileButton } from "./ProfileButton";
+import { AboutFeedbackModal } from "@/components/shared/AboutFeedbackModal";
 import { SearchDropdown } from "./SearchDropdown";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { BellButton } from "@/components/notifications/BellButton";
@@ -42,6 +43,7 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { results, loading } = useSearch(searchQuery);
 
@@ -244,8 +246,25 @@ export function TopBar({ isSidebarCollapsed = false }: TopBarProps) {
         </div>
 
         {/* Profile */}
-        <ProfileButton />
+        <div className="lg:hidden">
+          <ProfileButton />
+        </div>
+
+        {/* About — desktop, at the far right */}
+        <button
+          type="button"
+          onClick={() => setAboutOpen(true)}
+          className="hidden items-center justify-center rounded-lg p-2 text-text-muted transition-colors hover:bg-surface hover:text-text-primary lg:flex"
+          aria-label={t("about.title")}
+          title={t("about.title")}
+        >
+          <Info className="h-5 w-5" />
+        </button>
       </div>
+      <AboutFeedbackModal
+        isOpen={aboutOpen}
+        onClose={() => setAboutOpen(false)}
+      />
     </header>
   );
 }

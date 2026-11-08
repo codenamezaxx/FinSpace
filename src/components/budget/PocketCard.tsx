@@ -3,14 +3,12 @@
 import { Wallet, CreditCard, Landmark, MoreHorizontal, Pencil, Trash2, ArrowRightLeft } from "lucide-react";
 import type { Pocket } from "@/lib/pocket";
 import { useLanguage } from "@/lib/i18n";
-import { formatCurrency } from "@/lib/netWorth";
 import { useState, useRef, useEffect } from "react";
 import { useBalancePrivacy, formatCurrencyPrivacy } from "@/lib/balancePrivacy";
 
 interface PocketCardProps {
   pocket: Pocket;
   balance: number;
-  isSelected: boolean;
   onClick: () => void;
   onRename: () => void;
   onDelete: () => void;
@@ -29,7 +27,7 @@ const categoryLabelKey: Record<Pocket["category"], string> = {
   rekening: "transaction.bank_account",
 };
 
-export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onDelete, onTransfer }: PocketCardProps) {
+export function PocketCard({ pocket, balance, onClick, onRename, onDelete, onTransfer }: PocketCardProps) {
   const { t } = useLanguage();
   const { isHidden } = useBalancePrivacy();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -53,9 +51,7 @@ export function PocketCard({ pocket, balance, isSelected, onClick, onRename, onD
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
-      className={`relative flex min-w-0 w-full flex-col items-start gap-2 rounded-2xl border border-border bg-surface p-5 text-left transition-all duration-200 hover:shadow-lg hover:shadow-black/20 ${
-        isSelected ? "ring-2 ring-primary bg-surface" : ""
-      }`}
+      className="relative flex min-w-0 w-full flex-col items-start gap-2 rounded-2xl border border-border bg-surface p-5 text-left transition-all duration-200 hover:shadow-lg hover:shadow-black/20"
     >
       {/* ⋮ menu */}
       <div className="absolute right-1.5 top-1.5" ref={menuRef}>

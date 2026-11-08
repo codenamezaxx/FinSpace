@@ -8,7 +8,6 @@ import { useLanguage } from "@/lib/i18n";
 interface PocketGridProps {
   pockets: Pocket[];
   balances: Record<string, number>;
-  selectedId: string | null;
   onSelect: (id: string | null) => void;
   onAdd: () => void;
   onRename: (pocket: Pocket) => void;
@@ -17,7 +16,7 @@ interface PocketGridProps {
 }
 
 export function PocketGrid({
-  pockets, balances, selectedId, onSelect, onAdd, onRename, onDelete, onTransfer,
+  pockets, balances, onSelect, onAdd, onRename, onDelete, onTransfer,
 }: PocketGridProps) {
   const { t } = useLanguage();
   if (pockets.length === 0) {
@@ -44,8 +43,7 @@ export function PocketGrid({
             key={pocket.id}
             pocket={pocket}
             balance={balances[pocket.id] ?? 0}
-            isSelected={selectedId === pocket.id}
-            onClick={() => onSelect(selectedId === pocket.id ? null : pocket.id)}
+            onClick={() => onSelect(pocket.id)}
             onRename={() => onRename(pocket)}
             onDelete={() => onDelete(pocket)}
             onTransfer={() => onTransfer(pocket)}
@@ -59,31 +57,6 @@ export function PocketGrid({
           <Plus className="h-6 w-6" />
           <span className="text-xs font-semibold">{t("pockets.add_pocket")}</span>
         </button>
-      </div>
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => onSelect(null)}
-          className={`rounded-lg h-auto w-full lg:w-auto px-6 py-3 text-sm font-medium transition-all duration-200 ${
-            selectedId === null
-              ? "bg-primary text-on-primary"
-              : "border border-border text-text-muted hover:bg-surface-alt hover:text-text-secondary"
-          }`}
-        >
-          {t("pockets.all_pockets")}
-        </button>
-        <button
-          type="button"
-          onClick={() => onTransfer()}
-          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-muted hover:bg-surface-alt hover:text-text-secondary transition-colors"
-        >
-          {t("pockets.transfer_balance")}
-        </button>
-        {selectedId && (
-          <span className="self-center text-[11px] text-text-muted">
-            {t("pockets.showing_selected")}
-          </span>
-        )}
       </div>
     </div>
   );

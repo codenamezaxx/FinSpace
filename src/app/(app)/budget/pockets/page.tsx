@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRightLeft } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { usePockets } from "@/hooks/usePockets";
 import { PocketGrid } from "@/components/budget/PocketGrid";
@@ -39,13 +39,25 @@ export default function BudgetPocketsPage() {
         {t("settings.back")}
       </Link>
 
-      <div className="min-w-0">
-        <h1 className="truncate text-2xl font-bold text-text-primary">
-          {t("budget.pockets_title")}
-        </h1>
-        <p className="mt-2 text-sm text-text-muted">
-          {t("budget.manage_pockets")}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl font-bold text-text-primary">
+            {t("budget.pockets_title")}
+          </h1>
+          <p className="mt-2 text-sm text-text-muted">
+            {t("budget.manage_pockets")}
+          </p>
+        </div>
+        {pockets.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowTransfer(true)}
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary/90"
+          >
+            <ArrowRightLeft className="h-4 w-4" />
+            {t("pockets.transfer_balance")}
+          </button>
+        )}
       </div>
 
       <div className="surface-card flex items-center justify-between gap-3 rounded-2xl p-4 sm:p-5">
@@ -65,7 +77,6 @@ export default function BudgetPocketsPage() {
       <PocketGrid
         pockets={pockets}
         balances={balances}
-        selectedId={null}
         onSelect={(id) => {
           if (id) router.push(`/budget/transactions?pocket=${id}`);
         }}
@@ -149,4 +160,3 @@ export default function BudgetPocketsPage() {
     </div>
   );
 }
-

@@ -265,6 +265,14 @@ Audit desain anti-"AI slop": hilangkan efek generik (gradient kartu, frosted gla
 - [x] Balance Privacy (2026-10-29): global eye-icon toggle in TopBar (desktop) & NavigationBar (mobile) to mask/unmask all nominal amounts (net balance, net worth, pocket balances, asset/liability/debt values, transaction amounts) with localStorage persistence; `useBalancePrivacy` hook + `formatCurrencyPrivacy` utility; all display components updated (NetWorthCard, PocketCard, TransactionCard/List/DetailModal, AssetAllocation, DebtList, MonthlyChart); 279 tests pass (49 files), tsc clean
 
 ## Phase 10: Deployment & Final Acceptance Testing
+- [x] Version bump 1.8.7 -> 1.8.8 (`npm version --no-git-tag-version`; package.json + lockfile updated, app version displays read `APP_VERSION` automatically).
+- [x] Remove the redundant “All Pockets” action and move balance transfer to a primary button aligned with the Pockets page heading.
+- [x] Add device-level expense reminders with Web Push, Vercel Cron, and Upstash Redis; validate scheduling, subscription input, and offline/local status updates.
+- [ ] Configure VAPID/Upstash/Cron secrets in Vercel and verify a real device notification after deployment.
+- [x] Move the desktop About button from the sidebar to the far right of the TopBar.
+- [x] Audit monthly report export copy against EN/ID translations; add missing English toast/loading text and localize the toast dismiss label, CSV filename, and date format.
+- [x] Refine desktop sidebar account UI with a rounded account card, icon-only expanded logout, and a collapsed-avatar logout dropdown.
+- [x] Show signed-in user name, email, and logout control above Settings in the desktop sidebar; keep the TopBar profile menu mobile-only.
 - [x] Fix GitHub README Mermaid parsing error by quoting the AI Queue node label containing parentheses.
 - [x] Troubleshoot Vercel font compilation failure while preserving Inter and JetBrains Mono; production builds use Webpack to avoid Turbopack's `next/font/google` resolver error.
 - [ ] Build a robust suite of validation test scenarios for simulated offline state.

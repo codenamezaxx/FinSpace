@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { useLanguage } from "@/lib/i18n";
+import { db } from "@/lib/db";
+import {
+  getPushReminderSubscription,
+  isPushReminderActive,
+  syncExpenseReminderActivity,
+} from "@/lib/push-client";
 import {
   REMINDER_TIMES,
   REMINDERS_CHANGED_EVENT,
@@ -12,6 +19,10 @@ import {
   nextOccurrence,
   type ReminderTime,
 } from "@/lib/reminders";
+
+function dateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
 
 async function showSystemNotification(
   title: string,
@@ -58,7 +69,71 @@ async function showSystemNotification(
  * next day after firing. Also writes an in-app notification (bell badge).
  */
 export function useExpenseReminders(): void {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const [today, setToday] = useState("");
+  const [activityRefresh, setActivityRefresh] = useState(0);
+  const lastSyncedActivity = useRef("");
+  const dayStart = useMemo(() => {
+    if (!today) return 0;
+    const [year, month, day] = today.split("-").map(Number);
+    return new Date(year, month - 1, day).getTime();
+  }, [today]);
+  const expenseCount = useLiveQuery(
+    () =>
+      dayStart
+        ? db.transactions
+            .where("timestamp")
+            .aboveOrEqual(dayStart)
+            .filter((tx) => tx.type === "expense" && !tx.transferId)
+            .count()
+        : Promise.resolve(0),
+    [dayStart]
+  );
+
+  useEffect(() => {
+    const refreshDay = () => setToday(dateKey(new Date()));
+    refreshDay();
+    const refreshOnVisible = () => {
+      if (document.visibilityState === "visible") {
+        refreshDay();
+        setActivityRefresh((value) => value + 1);
+      }
+    };
+    const refreshOnOnline = () => setActivityRefresh((value) => value + 1);
+    document.addEventListener("visibilitychange", refreshOnVisible);
+    window.addEventListener("online", refreshOnOnline);
+    const now = new Date();
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const timer = window.setTimeout(refreshDay, midnight.getTime() - now.getTime());
+    return () => {
+      document.removeEventListener("visibilitychange", refreshOnVisible);
+      window.removeEventListener("online", refreshOnOnline);
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (
+      !today ||
+      expenseCount === undefined ||
+      !isRemindersEnabled() ||
+      !isPushReminderActive()
+    ) {
+      return;
+    }
+
+    const hasLoggedExpense = expenseCount > 0;
+    const signature = `${today}:${lang}:${hasLoggedExpense}`;
+    if (signature === lastSyncedActivity.current) return;
+
+    void syncExpenseReminderActivity(lang, hasLoggedExpense)
+      .then(() => {
+        lastSyncedActivity.current = signature;
+      })
+      .catch((error) => {
+        console.error("Could not sync expense activity for push reminders:", error);
+      });
+  }, [activityRefresh, expenseCount, lang, today]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window)) return;
@@ -118,9 +193,14 @@ export function useExpenseReminders(): void {
           read: 0,
           createdAt: Date.now(),
         });
-        await showSystemNotification(title, body);
-      } catch {
-        // Never let a reminder crash the app
+        const pushSubscription = isPushReminderActive()
+          ? await getPushReminderSubscription()
+          : null;
+        if (!pushSubscription) {
+          await showSystemNotification(title, body);
+        }
+      } catch (error) {
+        console.error("Expense reminder failed:", error);
       } finally {
         if (!cancelled) schedule();
       }
@@ -139,6 +219,5 @@ export function useExpenseReminders(): void {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener(REMINDERS_CHANGED_EVENT, onChanged);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t]);
 }

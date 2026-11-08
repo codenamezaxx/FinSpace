@@ -9,6 +9,13 @@ import {
   setRemindersEnabled,
   REMINDERS_CHANGED_EVENT,
 } from "@/lib/reminders";
+import {
+  hasLoggedExpenseToday,
+  hasPushReminderSubscription,
+  isPushReminderFeatureAvailable,
+  subscribeToExpenseReminders,
+  unsubscribeFromExpenseReminders,
+} from "@/lib/push-client";
 import { useLanguage } from "@/lib/i18n";
 import { AccentPicker } from "@/components/settings/AccentPicker";
 import { ProfileSection } from "@/components/settings/ProfileSection";
@@ -19,7 +26,7 @@ interface SyncLogEntry {
 }
 
 export default function SettingsPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const sync = useSyncStatus();
   const [syncLog, setSyncLog] = useState<SyncLogEntry[]>([]);
   const prevPhase = useRef("__initial__");
@@ -29,38 +36,74 @@ export default function SettingsPage() {
   const [notifPermission, setNotifPermission] = useState<
     NotificationPermission | "unsupported"
   >("default");
+  const [pushAvailable, setPushAvailable] = useState(false);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [reminderBusy, setReminderBusy] = useState(false);
+  const [reminderError, setReminderError] = useState<string | null>(null);
 
   useEffect(() => {
-    const refresh = () => {
+    let active = true;
+    const refresh = async () => {
       setRemEnabled(isRemindersEnabled());
       setNotifPermission(
         typeof window !== "undefined" && "Notification" in window
           ? Notification.permission
           : "unsupported"
       );
+      setPushAvailable(isPushReminderFeatureAvailable());
+      try {
+        const subscribed = await hasPushReminderSubscription();
+        if (active) setPushSubscribed(subscribed);
+      } catch (error) {
+        console.error("Could not check device push subscription:", error);
+        if (active) setPushSubscribed(false);
+      }
     };
-    refresh();
+    void refresh();
     window.addEventListener(REMINDERS_CHANGED_EVENT, refresh);
-    return () => window.removeEventListener(REMINDERS_CHANGED_EVENT, refresh);
+    return () => {
+      active = false;
+      window.removeEventListener(REMINDERS_CHANGED_EVENT, refresh);
+    };
   }, []);
 
   // Effective state: stored preference AND granted permission
-  const remindersEffective = remEnabled && notifPermission === "granted";
+  const remindersConfigured = remEnabled && pushSubscribed;
 
   const handleReminderToggle = async () => {
-    if (remindersEffective) {
-      setRemindersEnabled(false);
-      return;
+    setReminderError(null);
+    setReminderBusy(true);
+    try {
+      if (remindersConfigured) {
+        const serverCleanupComplete = await unsubscribeFromExpenseReminders();
+        setPushSubscribed(false);
+        setRemindersEnabled(false);
+        if (!serverCleanupComplete) {
+          setReminderError(t("settings.reminders_cleanup_pending"));
+        }
+        return;
+      }
+      if (!pushAvailable) {
+        setReminderError(t("settings.reminders_push_unavailable"));
+        return;
+      }
+      if (Notification.permission === "default") {
+        const permission = await Notification.requestPermission();
+        setNotifPermission(permission);
+        if (permission !== "granted") return;
+      } else if (Notification.permission === "denied") {
+        return;
+      }
+      const hasExpense = await hasLoggedExpenseToday();
+      await subscribeToExpenseReminders(lang, hasExpense);
+      setPushSubscribed(true);
+      setRemindersEnabled(true);
+    } catch (error) {
+      console.error("Could not update device reminders:", error);
+      setReminderError(t("settings.reminders_enable_error"));
+    } finally {
+      setReminderBusy(false);
     }
-    if (typeof window === "undefined" || !("Notification" in window)) return;
-    if (Notification.permission === "default") {
-      const p = await Notification.requestPermission();
-      setNotifPermission(p);
-      if (p !== "granted") return;
-    } else if (Notification.permission === "denied") {
-      return;
-    }
-    setRemindersEnabled(true);
   };
 
   // ── Sync history: track phase transitions ──
@@ -149,26 +192,27 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between gap-3">
           <span
             className={`text-sm font-medium ${
-              remindersEffective ? "text-success" : "text-text-muted"
+              remindersConfigured ? "text-success" : "text-text-muted"
             }`}
           >
-            {remindersEffective
+            {remindersConfigured
               ? t("settings.reminders_on")
               : t("settings.reminders_off")}
           </span>
           <button
             type="button"
             role="switch"
-            aria-checked={remindersEffective}
+            aria-checked={remindersConfigured}
             aria-label={t("settings.reminders_title")}
             onClick={handleReminderToggle}
-            className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-              remindersEffective ? "bg-primary" : "bg-border"
+            disabled={reminderBusy || (!pushAvailable && !remindersConfigured)}
+            className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+              remindersConfigured ? "bg-primary" : "bg-border"
             }`}
           >
             <span
               className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${
-                remindersEffective ? "left-6" : "left-1"
+                remindersConfigured ? "left-6" : "left-1"
               }`}
             />
           </button>
@@ -176,6 +220,16 @@ export default function SettingsPage() {
         {remEnabled && notifPermission === "denied" && (
           <p className="mt-3 text-xs text-warning">
             {t("settings.reminders_need_permission")}
+          </p>
+        )}
+        {!pushAvailable && (
+          <p className="mt-3 text-xs text-warning">
+            {t("settings.reminders_push_unavailable")}
+          </p>
+        )}
+        {reminderError && (
+          <p className="mt-3 text-xs text-danger" role="alert">
+            {reminderError}
           </p>
         )}
       </div>

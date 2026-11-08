@@ -9,20 +9,20 @@ import {
   ChevronDown,
   Eye,
   EyeOff,
-  Info,
   LayoutDashboard,
   Wallet,
   TrendingUp,
   Wrench,
   Settings,
+  LogOut,
   Plus,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
 import { useTransactionModal } from "@/lib/transaction-modal-context";
 import { useLanguage } from "@/lib/i18n";
-import { AboutFeedbackModal } from "@/components/shared/AboutFeedbackModal";
 import { useBalancePrivacy } from "@/lib/balancePrivacy";
+import { useCloudAuth } from "@/hooks/useCloudAuth";
 
 interface NavigationBarProps {
   isCollapsed?: boolean;
@@ -148,7 +148,34 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
   const { openAddTransaction } = useTransactionModal();
   const { t } = useLanguage();
   const { isHidden, toggle } = useBalancePrivacy();
-  const [aboutOpen, setAboutOpen] = useState(false);
+  const { user, isLoggedIn, logout } = useCloudAuth();
+  const collapsedAccountRef = useRef<HTMLDetailsElement>(null);
+
+  const handleLogout = useCallback(async () => {
+    if (collapsedAccountRef.current) {
+      collapsedAccountRef.current.open = false;
+    }
+
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  }, [logout]);
+
+  useEffect(() => {
+    if (!isCollapsed) return;
+
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      const details = collapsedAccountRef.current;
+      if (details?.open && event.target instanceof Node && !details.contains(event.target)) {
+        details.open = false;
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [isCollapsed]);
 
   const navItems = useMemo(() => [
     { href: "/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
@@ -427,13 +454,88 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
           </Link>
         </nav>
 
+        {/* Account — Above Settings */}
+        {isLoggedIn && user && (
+          isCollapsed ? (
+            <div className="relative flex justify-center border-t border-border px-2 py-3">
+              <details ref={collapsedAccountRef} className="group relative">
+                <summary
+                  className="list-none cursor-pointer rounded-full outline-none ring-offset-2 ring-offset-surface-alt focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden"
+                  aria-label={t("profile.profile")}
+                  title={user.name || t("profile.profile")}
+                >
+                  <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-xs font-bold text-on-primary">
+                    {user.picture ? (
+                      <img
+                        src={user.picture}
+                        alt=""
+                        className="h-full w-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      user.name.charAt(0).toUpperCase() || "?"
+                    )}
+                  </div>
+                </summary>
+                <div className="absolute bottom-0 left-full z-50 ml-2 min-w-36 rounded-xl border border-border bg-surface p-1.5 shadow-xl">
+                  <button
+                    type="button"
+                    onClick={() => void handleLogout()}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-text-secondary transition-colors hover:bg-surface-alt hover:text-danger hover:cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    {t("profile.sign_out")}
+                  </button>
+                </div>
+              </details>
+            </div>
+          ) : (
+            <div className="border-t border-border p-2.5">
+              <div className="flex items-center gap-2 rounded-2xl p-2.5">
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-xs font-bold text-on-primary"
+                  aria-hidden="true"
+                >
+                  {user.picture ? (
+                    <img
+                      src={user.picture}
+                      alt=""
+                      className="h-full w-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    user.name.charAt(0).toUpperCase() || "?"
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-semibold text-text-primary">
+                    {user.name || t("profile.user")}
+                  </p>
+                  <p className="truncate text-[11px] text-text-muted">
+                    {user.email}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void handleLogout()}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-alt hover:text-danger hover:cursor-pointer"
+                  aria-label={t("profile.sign_out")}
+                  title={t("profile.sign_out")}
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )
+        )}
+
         {/* Settings + About — bottom of sidebar */}
         <div className="border-t border-border">
           {/* Settings */}
-          <div className="px-3 py-4">
+          <div className="px-4 py-2">
             <Link
               href="/settings"
-              className={`flex items-center rounded-lg transition-colors hover:bg-surface ${
+              className={`flex py-3 items-center font-medium rounded-lg transition-colors hover:bg-surface ${
                 isCollapsed
                   ? "mx-auto h-9 w-9 justify-center"
                   : "w-full gap-3 px-3 py-2"
@@ -455,35 +557,8 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
             </Link>
           </div>
 
-          {/* About & Feedback */}
-          <div className="px-3 pb-4">
-            <button
-              type="button"
-              onClick={() => setAboutOpen(true)}
-              className={`flex items-center rounded-lg transition-colors hover:bg-surface cursor-pointer ${
-                isCollapsed
-                  ? "mx-auto h-9 w-9 justify-center"
-                  : "w-full gap-3 px-3 py-2"
-              } text-text-muted hover:text-text-secondary`}
-              title={isCollapsed ? t("about.title") : undefined}
-            >
-              <Info className="h-4 w-4 shrink-0" />
-              <span
-                className={`overflow-hidden text-xs transition-all duration-300 ${
-                  isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                }`}
-              >
-                {t("about.title")}
-              </span>
-            </button>
-          </div>
         </div>
 
-      {/* About & Feedback Modal */}
-      <AboutFeedbackModal
-        isOpen={aboutOpen}
-        onClose={() => setAboutOpen(false)}
-      />
       </aside>
     </>
   );

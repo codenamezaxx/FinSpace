@@ -32,11 +32,42 @@ const serwist = new Serwist({
 
 serwist.addEventListeners();
 
+// Server-scheduled reminders arrive even when the app is closed.
+self.addEventListener("push", (event) => {
+  let payload: { title?: string; body?: string; url?: string; tag?: string } = {};
+  try {
+    payload = event.data?.json() ?? {};
+  } catch (error) {
+    console.error("Ignoring malformed push notification payload.", error);
+    return;
+  }
+  if (!payload.title || !payload.body) return;
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/icons/icon-192x192.png",
+      badge: "/icons/icon-192x192.png",
+      tag: payload.tag ?? "finspace-expense-reminder",
+      data: { url: payload.url ?? "/dashboard" },
+    })
+  );
+});
+
 // Tapping an expense-reminder notification focuses/opens the dashboard
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url =
+  const requestedUrl =
     (event.notification.data as { url?: string } | null)?.url ?? "/dashboard";
+  let url = "/dashboard";
+  try {
+    const parsedUrl = new URL(requestedUrl, self.location.origin);
+    if (parsedUrl.origin === self.location.origin) {
+      url = `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+    }
+  } catch {
+    // Keep the safe dashboard destination.
+  }
   event.waitUntil(
     (async () => {
       const allClients = await self.clients.matchAll({
@@ -45,6 +76,9 @@ self.addEventListener("notificationclick", (event) => {
       });
       for (const client of allClients) {
         if ("focus" in client && typeof client.focus === "function") {
+          if ("navigate" in client && typeof client.navigate === "function") {
+            await client.navigate(url);
+          }
           await client.focus();
           return;
         }

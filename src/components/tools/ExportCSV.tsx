@@ -17,8 +17,8 @@ const YEARS = Array.from(
 
 /* ─── helpers ─── */
 
-function fmtDate(ts: number): string {
-  return new Date(ts).toLocaleDateString("id-ID");
+function fmtDate(ts: number, locale: string): string {
+  return new Date(ts).toLocaleDateString(locale);
 }
 
 /** Escape a single cell value for CSV */
@@ -38,6 +38,7 @@ interface Toast {
 }
 
 function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (idx: number) => void }) {
+  const { t } = useLanguage();
   if (toasts.length === 0) return null;
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
@@ -60,7 +61,7 @@ function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id
           <button
             onClick={() => onDismiss(idx)}
             className="ml-2 flex-shrink-0 text-white/80 hover:text-white transition-opacity"
-            aria-label="Dismiss"
+            aria-label={t("common.close")}
           >
             ✕
           </button>
@@ -73,7 +74,7 @@ function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id
 /* ─── component ─── */
 
 export function ExportCSV() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [selectedMonth, setSelectedMonth] = useState(CURRENT_MONTH);
   const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
@@ -120,7 +121,7 @@ export function ExportCSV() {
       .sort((a, b) => b.timestamp - a.timestamp)
       .map((tx) =>
         [
-          fmtDate(tx.timestamp),
+          fmtDate(tx.timestamp, lang === "en" ? "en-US" : "id-ID"),
           tx.type === "income" ? t("transaction.income") : t("transaction.expense"),
           tx.category,
           tx.merchant,
@@ -139,20 +140,20 @@ export function ExportCSV() {
     const link = document.createElement("a");
     link.href = url;
     const months = t("tools.months_array").split(",");
-    link.download = `FinSpace_Transaksi_${months[selectedMonth - 1]}_${selectedYear}.csv`;
+    link.download = `${t("tools.csv_file_prefix")}_${months[selectedMonth - 1]}_${selectedYear}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    showToast(t("tools.csv_downloaded") ?? "CSV downloaded", "success");
+    showToast(t("tools.csv_downloaded"), "success");
   };
 
   /* ── PDF Download ── */
 
   const handleDownloadPdf = async () => {
     setIsPdfLoading(true);
-    showToast(t("tools.generating_report") ?? "Generating report...", "info");
+    showToast(t("tools.generating_report"), "info");
 
     try {
       const result: SavePdfResult = await generateMonthlyReportPdf(
@@ -165,13 +166,13 @@ export function ExportCSV() {
 
       if (result.success) {
         const fileName = result.filePath ?? `FinSpace_Report_${selectedMonth}_${selectedYear}.pdf`;
-        showToast(`${t("tools.report_saved") ?? "Report saved"}: ${fileName}`, "success");
+        showToast(`${t("tools.report_saved")}: ${fileName}`, "success");
       } else if (result.error === "User cancelled") {
-        showToast(t("tools.save_cancelled") ?? "Save cancelled", "info");
+        showToast(t("tools.save_cancelled"), "info");
       }
     } catch (err) {
       console.error("PDF generation failed:", err);
-      showToast(t("tools.report_error") ?? "Failed to generate report", "error");
+      showToast(t("tools.report_error"), "error");
     } finally {
       setIsPdfLoading(false);
     }
@@ -271,7 +272,7 @@ export function ExportCSV() {
               {isPdfLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  {t("tools.generating") ?? "Generating..."}
+                  {t("tools.generating")}
                 </>
               ) : (
                 <>
