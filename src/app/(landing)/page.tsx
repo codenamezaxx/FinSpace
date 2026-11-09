@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   LayoutDashboard,
-  Lightbulb,
   Wallet,
   TrendingUp,
   Wrench,
@@ -15,9 +14,17 @@ import {
   Receipt,
   ChevronDown,
   ChevronUp,
+  CloudOff,
+  LockKeyhole,
+  CircleDollarSign,
+  Smartphone,
+  MonitorDown,
+  Download,
+  ExternalLink,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { LandingSkeleton } from "@/components/landing/LandingSkeleton";
+import { LandingDashboardPreview } from "@/components/landing/LandingDashboardPreview";
 import { useLanguage } from "@/lib/i18n";
 import { useCloudAuth } from "@/hooks/useCloudAuth";
 import { APP_VERSION } from "@/lib/version";
@@ -96,205 +103,75 @@ export default function LandingPage() {
     { icon: TrendingUp, key: "step3" },
   ] as const;
 
+  const trustPoints = [
+    { icon: CloudOff, key: "trust_offline" },
+    { icon: LockKeyhole, key: "trust_private" },
+    { icon: CircleDollarSign, key: "trust_free" },
+  ] as const;
+
   return (
     <LandingSkeleton isLoading={authLoading}>
       <main className="relative min-h-screen bg-background">
       {/* ─── Hero ─── */}
-      <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pt-32 pb-20 text-center">
+      <section className="relative z-10 px-5 pb-16 pt-24 sm:px-8 sm:pb-20 sm:pt-28 lg:px-10 lg:pb-24 lg:pt-28">
         <motion.div
           variants={heroContainer}
           initial="hidden"
           animate="visible"
-          className="flex flex-col items-center"
+          className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-14"
         >
-          <motion.div variants={heroItem} className="mb-8">
-            <Image src="/icons/icon-192x192.svg" alt="FinSpace" width={56} height={56} className="h-20 w-20" />
-          </motion.div>
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <motion.div variants={heroItem} className="mb-6 inline-flex items-center gap-2.5">
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
+                {t("landing.tagline")}
+              </span>
+            </motion.div>
 
-          <motion.h1
-            variants={heroItem}
-            className="text-5xl font-bold tracking-tight text-text-primary sm:text-6xl lg:text-7xl"
-          >
-            {t("landing.title")}
-          </motion.h1>
-
-          <motion.p
-            variants={heroItem}
-            className="mx-auto mt-6 max-w-xl text-lg text-text-muted sm:text-xl"
-          >
-            {t("landing.subtitle")}
-          </motion.p>
-
-          <motion.div variants={heroItem} className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
-            <Link
-              href="/dashboard"
-              className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-on-primary shadow-lg transition-all duration-200 hover:bg-primary-hover hover:shadow-xl"
+            <motion.h1
+              variants={heroItem}
+              className="max-w-[15ch] text-4xl font-bold leading-[1.08] tracking-tight text-text-primary sm:text-5xl lg:text-6xl xl:text-7xl"
             >
-              {t("landing.hero_cta_start")}
-              <ArrowRight size={18} />
-            </Link>
-            <a
-              href="#features"
-              className="inline-flex h-12 items-center rounded-xl border border-border bg-surface px-8 text-sm font-semibold text-text-secondary transition-all duration-200 hover:border-text-muted hover:bg-surface hover:text-text-primary"
+              {t("landing.title")}
+            </motion.h1>
+
+            <motion.p
+              variants={heroItem}
+              className="mt-6 max-w-lg text-base leading-7 text-text-secondary sm:text-lg sm:leading-8"
             >
-              {t("landing.hero_cta_learn")}
-            </a>
-          </motion.div>
+              {t("landing.subtitle")}
+            </motion.p>
 
-          {/* Mini Dashboard Preview */}
-          <motion.div variants={heroItem} className="mt-16 w-full max-w-4xl">
-            <div className="overflow-hidden rounded-2xl border border-border bg-surface-alt shadow-lg">
-              {/* macOS-style Title bar */}
-              <div className="relative flex items-center border-b border-border bg-surface px-5 py-3">
-                {/* Traffic light dots */}
-                <div className="flex items-center gap-[6px]">
-                  <span className="h-[10px] w-[10px] rounded-full bg-[#EF4444]" />
-                  <span className="h-[10px] w-[10px] rounded-full bg-[#EAB393]" />
-                  <span className="h-[10px] w-[10px] rounded-full bg-[#22C55E]" />
+            <motion.div variants={heroItem} className="mt-8 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row lg:items-start">
+              <Link
+                href="/dashboard"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-7 text-sm font-semibold text-on-primary shadow-card transition-colors duration-200 hover:bg-primary-hover sm:w-auto"
+              >
+                {t("landing.hero_cta_start")}
+                <ArrowRight size={18} />
+              </Link>
+              <a
+                href="#features"
+                className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-border bg-surface px-7 text-sm font-semibold text-text-secondary transition-colors duration-200 hover:border-text-muted hover:text-text-primary sm:w-auto"
+              >
+                {t("landing.hero_cta_learn")}
+              </a>
+            </motion.div>
+
+            <motion.div
+              variants={heroItem}
+              className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-3 lg:justify-start"
+            >
+              {trustPoints.map(({ icon: Icon, key }) => (
+                <div key={key} className="inline-flex items-center gap-2 text-xs font-medium text-text-muted">
+                  <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
+                  {t(`landing.${key}`)}
                 </div>
-                {/* Centered title */}
-                <span className="absolute inset-y-0 left-0 flex w-full items-center justify-center text-xs font-medium text-text-primary/80 pointer-events-none">
-                  {t("landing.tagline")} · {t("landing.feature_dashboard")}
-                </span>
-              </div>
+              ))}
+            </motion.div>
+          </div>
 
-              <div className="space-y-4 p-5">
-                {/* Row 1: Balance Card + Net Worth Card */}
-                <div className="flex flex-col md:flex-row gap-4">
-                  {/* Balance card — solid brand */}
-                  <div className="rounded-xl bg-primary p-5 text-on-primary w-full">
-                    <p className="text-xs font-medium text-white/80">{t("landing.mock_balance")}</p>
-                    <p className="mt-1.5 text-2xl font-bold">{t("landing.mock_balance_amount")}</p>
-                    <div className="mt-3 flex items-center justify-center gap-2">
-                      <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-semibold">
-                        {t("landing.mock_balance_change")}
-                      </span>
-                      <span className="text-xs text-white/70">{t("landing.mock_balance_change_label")}</span>
-                    </div>
-                  </div>
-
-                  {/* Net Worth card — solid accent */}
-                  <div className="rounded-xl bg-accent-secondary p-5 text-white w-full">
-                    <p className="text-xs font-medium text-white/80">{t("landing.mock_net_worth")}</p>
-                    <p className="mt-1.5 text-2xl font-bold">{t("landing.mock_net_worth_amount")}</p>
-                    <div className="mt-3 flex items-center justify-center gap-2">
-                      <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-semibold">
-                        {t("landing.mock_net_worth_change")}
-                      </span>
-                      <span className="text-xs text-white/70">{t("landing.mock_balance_change_label")}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Row 2: Quick Actions */}
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-medium text-text-muted">{t("landing.mock_quick_actions")}</span>
-                  {(["transfer", "pay", "top_up"] as const).map((action) => (
-                    <span
-                      key={action}
-                      className="rounded-lg border border-border bg-surface-alt/70 px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-text-muted/30 hover:text-text-primary"
-                    >
-                      {t(`landing.mock_${action}`)}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Row 3: Mini Chart + Insights */}
-                <div className="flex flex-col md:flex-row gap-4">
-                  {/* Chart — 3 cols */}
-                  <div className="col-span-3 w-full rounded-xl border border-border bg-surface-alt/50 p-4">
-                    <p className="mb-3 text-xs font-medium text-text-muted">{t("landing.mock_chart_title")}</p>
-                    <svg
-                      viewBox="0 0 290 100"
-                      className="w-full"
-                      preserveAspectRatio="xMidYMid meet"
-                    >
-                      <defs>
-                        <linearGradient id="incomeArea" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.28" />
-                          <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
-                        </linearGradient>
-                        <linearGradient id="expenseArea" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#723EC3" stopOpacity="0.28" />
-                          <stop offset="100%" stopColor="#723EC3" stopOpacity="0" />
-                        </linearGradient>
-                      </defs>
-
-                      {/* Area fills (render first so lines draw on top) */}
-                      <path
-                        d="M 10,22 C 25,24 40,30 55,29 C 70,28 85,15 100,16 C 115,18 130,39 145,38 C 160,37 175,11 190,10 C 205,11 220,43 235,44 C 250,51 265,50 280,53 L 280,82 L 10,82 Z"
-                        fill="url(#incomeArea)"
-                      />
-                      <path
-                        d="M 10,44 C 25,41 40,34 55,35 C 70,36 85,52 100,50 C 115,49 130,28 145,26 C 160,25 175,42 190,41 C 205,40 220,20 235,19 C 250,28 265,38 280,47 L 280,82 L 10,82 Z"
-                        fill="url(#expenseArea)"
-                      />
-
-                      {/* Income line */}
-                      <path
-                        d="M 10,22 C 25,24 40,30 55,29 C 70,28 85,15 100,16 C 115,18 130,39 145,38 C 160,37 175,11 190,10 C 205,11 220,43 235,44 C 250,51 265,50 280,53"
-                        fill="none"
-                        stroke="#3B82F6"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-
-                      {/* Expense line */}
-                      <path
-                        d="M 10,44 C 25,41 40,34 55,35 C 70,36 85,52 100,50 C 115,49 130,28 145,26 C 160,25 175,42 190,41 C 205,40 220,20 235,19 C 250,28 265,38 280,47"
-                        fill="none"
-                        stroke="#723EC3"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-
-                      {/* X-axis labels */}
-                      {[
-                        { x: 10, day: "mon" },
-                        { x: 55, day: "tue" },
-                        { x: 100, day: "wed" },
-                        { x: 145, day: "thu" },
-                        { x: 190, day: "fri" },
-                        { x: 235, day: "sat" },
-                        { x: 280, day: "sun" },
-                      ].map((l) => (
-                        <text key={l.day} x={l.x} y="96" textAnchor="middle" className="fill-text-muted" fontSize="9">
-                          {t(`landing.mock_chart_${l.day}`)}
-                        </text>
-                      ))}
-                    </svg>
-                    {/* Legend */}
-                    <div className="mt-3 flex items-center gap-4">
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-2.5 w-2.5 rounded-sm bg-primary/60" />
-                        <span className="text-[11px] text-text-muted">{t("landing.mock_chart_income")}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-2.5 w-2.5 rounded-sm bg-accent-secondary/60" />
-                        <span className="text-[11px] text-text-muted">{t("landing.mock_chart_expense")}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Insights — 2 cols */}
-                  <div className="col-span-2 rounded-xl border border-border bg-surface-alt/50 p-4">
-                    <p className="mb-3 text-xs font-medium text-text-muted">{t("landing.mock_insight_title")}</p>
-                    <div className="space-y-3">
-                      <div className="flex rounded-lg border border-border justify-center bg-surface p-3">
-                        <Lightbulb className="mb-1 h-4 w-4 text-accent-secondary" />
-                        <p className="text-xs leading-relaxed text-text-secondary">{t("landing.mock_insight_1")}</p>
-                      </div>
-                      <div className="flex rounded-lg border border-border justify-center bg-surface p-3">
-                        <Lightbulb className="mb-1 h-4 w-4 text-primary" />
-                        <p className="text-xs leading-relaxed text-text-secondary">{t("landing.mock_insight_2")}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <motion.div variants={heroItem} className="w-full min-w-0 lg:pl-2">
+            <LandingDashboardPreview />
           </motion.div>
         </motion.div>
       </section>
@@ -309,12 +186,15 @@ export default function LandingPage() {
         className="relative z-10 px-6 pb-24"
       >
         <div className="mx-auto max-w-6xl">
-          <div className="mb-14">
-            <h2 className="text-3xl font-bold text-text-primary sm:text-4xl">
+          <div className="mb-10 max-w-2xl">
+            <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+              {t("landing.features_eyebrow")}
+            </p>
+            <h2 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl">
               {t("landing.features_title")}
             </h2>
-            <p className="mt-2 text-text-muted">
-              {t("landing.subtitle")}
+            <p className="mt-3 max-w-xl leading-7 text-text-muted">
+              {t("landing.features_subtitle")}
             </p>
           </div>
 
@@ -323,21 +203,20 @@ export default function LandingPage() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+            className="grid grid-cols-1 gap-x-6 sm:grid-cols-2 lg:grid-cols-4"
           >
             {features.map((f, i) => (
               <motion.div key={f.key} variants={fadeUp}>
                 <Link
                   href={`/${f.key === "dashboard" ? "dashboard" : f.key}`}
-                  className={`group block rounded-2xl border p-7 transition-all duration-200 ${
-                    i % 2 === 0
-                      ? "border-border bg-surface hover:shadow-md hover:border-text-muted/30"
-                      : "border-transparent bg-surface-alt/70 hover:border-border hover:bg-surface"
-                  }`}
+                  className="group flex h-full flex-col border-t border-border py-6 transition-colors duration-200 hover:border-primary"
                 >
-                  <f.icon className={`mb-4 h-7 w-7 transition-transform duration-200 group-hover:scale-110 ${
-                    i % 2 === 0 ? "text-primary" : "text-accent-secondary"
-                  }`} />
+                  <div className="mb-6 flex items-center justify-between">
+                    <span className="font-mono text-[11px] text-text-muted">
+                      0{i + 1}
+                    </span>
+                    <f.icon className="h-5 w-5 text-primary transition-transform duration-200 group-hover:-translate-y-0.5" />
+                  </div>
                   <h3 className="text-base font-semibold text-text-primary">
                     {t(`landing.feature_${f.key}`)}
                   </h3>
@@ -361,8 +240,11 @@ export default function LandingPage() {
         className="relative z-10 border-t border-border bg-surface px-6 py-24"
       >
         <div className="mx-auto max-w-5xl">
-          <div className="mb-14">
-            <h2 className="text-3xl font-bold text-text-primary sm:text-4xl">
+          <div className="mb-10 max-w-2xl">
+            <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+              {t("landing.hiw_eyebrow")}
+            </p>
+            <h2 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl">
               {t("landing.hiw_title")}
             </h2>
             <p className="mt-2 text-text-muted">
@@ -379,14 +261,12 @@ export default function LandingPage() {
           >
             {howItWorks.map((step, i) => (
               <motion.div key={step.key} variants={fadeUp}>
-                <div className="group rounded-2xl border border-border bg-surface p-8 text-center transition-all duration-200 hover:shadow-md">
-                  <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 transition-colors duration-200 group-hover:bg-primary/20">
-                    <step.icon className="h-7 w-7 text-primary" />
+                <div className="group h-full border-t border-border py-6 transition-colors duration-200 hover:border-primary sm:py-7">
+                  <div className="mb-8 flex items-center justify-between">
+                    <span className="font-mono text-xs font-semibold text-primary">0{i + 1}</span>
+                    <step.icon className="h-5 w-5 text-text-muted transition-colors group-hover:text-primary" />
                   </div>
-                  <div className="mb-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                    {i + 1}
-                  </div>
-                  <h3 className="mt-3 text-lg font-semibold text-text-primary">
+                  <h3 className="text-lg font-semibold text-text-primary">
                     {t(`landing.hiw_${step.key}_title`)}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-text-muted">
@@ -409,8 +289,11 @@ export default function LandingPage() {
         className="relative z-10 border-t border-border bg-surface px-6 py-24"
       >
         <div className="mx-auto max-w-5xl">
-          <div className="mb-14">
-            <h2 className="text-3xl font-bold text-text-primary sm:text-4xl">
+          <div className="mb-10 max-w-2xl">
+            <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+              {t("landing.benefits_eyebrow")}
+            </p>
+            <h2 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl">
               {t("landing.benefits_title")}
             </h2>
             <p className="mt-2 text-text-muted">
@@ -427,7 +310,7 @@ export default function LandingPage() {
           >
             {/* Hero benefit — full width, featured */}
             <motion.div variants={fadeUp}>
-              <div className="rounded-2xl border border-border bg-surface p-8 transition-all duration-200 hover:shadow-md sm:flex sm:items-center sm:gap-8">
+              <div className="rounded-2xl border border-border bg-surface-alt/60 p-8 transition-colors duration-200 hover:border-primary/40 sm:flex sm:items-center sm:gap-8">
                 <div className="mb-5 flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 sm:mb-0">
                   <WifiOff className="h-8 w-8 text-primary" />
                 </div>
@@ -449,7 +332,7 @@ export default function LandingPage() {
             >
               {[benefits[1], benefits[2]].map((b) => (
                 <motion.div key={b.titleKey} variants={fadeUp}>
-                  <div className="group rounded-2xl border border-border bg-surface p-7 transition-all duration-200 hover:shadow-md hover:border-text-muted/30">
+                  <div className="group rounded-2xl border border-border bg-surface-alt/60 p-7 transition-colors duration-200 hover:border-primary/40">
                     <b.icon className="mb-4 h-7 w-7 text-primary" />
                     <h3 className="text-base font-semibold text-text-primary">
                       {t(`landing.${b.titleKey}`)}
@@ -462,6 +345,87 @@ export default function LandingPage() {
               ))}
             </motion.div>
           </motion.div>
+        </div>
+      </motion.section>
+
+      {/* ─── Downloads & source ─── */}
+      <motion.section
+        id="downloads"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        variants={fadeUp}
+        className="relative z-10 border-t border-border bg-surface px-6 py-20 sm:py-24"
+      >
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div className="max-w-2xl">
+              <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                {t("landing.downloads_eyebrow")}
+              </p>
+              <h2 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl">
+                {t("landing.downloads_title")}
+              </h2>
+              <p className="mt-3 leading-7 text-text-muted">
+                {t("landing.downloads_subtitle")}
+              </p>
+            </div>
+            <a
+              href="https://github.com/codenamezaxx/FinSpace"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold text-text-secondary transition-colors hover:border-text-muted hover:text-text-primary"
+            >
+              <ExternalLink className="h-4 w-4" />
+              {t("landing.github_repository")}
+            </a>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-surface-alt/60 p-6 sm:p-7">
+              <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Smartphone className="h-5 w-5" />
+              </div>
+              <h3 className="text-lg font-semibold text-text-primary">
+                {t("landing.android_download_title")}
+              </h3>
+              <p className="mt-2 min-h-12 text-sm leading-6 text-text-muted">
+                {t("landing.android_download_desc")}
+              </p>
+              <a
+                href="https://github.com/codenamezaxx/FinSpace/releases/download/v1.0.0/FinSpace-1.0.0.apk"
+                className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover"
+              >
+                <Download className="h-4 w-4" />
+                {t("landing.android_download_button")}
+              </a>
+              <p className="mt-3 text-xs leading-5 text-text-muted">
+                {t("landing.android_download_note")}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-surface-alt/60 p-6 sm:p-7">
+              <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <MonitorDown className="h-5 w-5" />
+              </div>
+              <h3 className="text-lg font-semibold text-text-primary">
+                {t("landing.desktop_download_title")}
+              </h3>
+              <p className="mt-2 min-h-12 text-sm leading-6 text-text-muted">
+                {t("landing.desktop_download_desc")}
+              </p>
+              <a
+                href="https://github.com/codenamezaxx/FinSpace/releases/download/v1.0.0/FinSpace_0.1.0_x64-setup.exe"
+                className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-semibold text-text-primary transition-colors hover:border-primary hover:text-primary"
+              >
+                <Download className="h-4 w-4" />
+                {t("landing.desktop_download_button")}
+              </a>
+              <p className="mt-3 text-xs leading-5 text-text-muted">
+                {t("landing.desktop_download_note")}
+              </p>
+            </div>
+          </div>
         </div>
       </motion.section>
 
@@ -521,17 +485,20 @@ export default function LandingPage() {
         variants={fadeUp}
         className="relative z-10 px-6 py-24"
       >
-        <div className="mx-auto max-w-3xl text-center">
-          <div className="rounded-2xl border border-border bg-surface px-8 py-16 sm:px-16">
-            <h2 className="text-3xl font-bold text-text-primary sm:text-4xl">
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-2xl bg-primary px-6 py-12 text-center sm:px-12 sm:py-16">
+            <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-on-primary/70">
+              {t("landing.cta_eyebrow")}
+            </p>
+            <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-on-primary sm:text-4xl">
               {t("landing.cta_title")}
             </h2>
-            <p className="mx-auto mt-4 max-w-md text-text-muted">
+            <p className="mx-auto mt-4 max-w-md leading-7 text-on-primary/80">
               {t("landing.cta_subtitle")}
             </p>
             <Link
               href="/dashboard"
-              className="mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-on-primary shadow-lg transition-all duration-200 hover:bg-primary-hover hover:shadow-xl"
+              className="mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-surface px-8 text-sm font-semibold text-primary transition-colors duration-200 hover:bg-surface-alt"
             >
               {t("landing.hero_cta_start")}
               <ArrowRight size={18} />
@@ -546,7 +513,7 @@ export default function LandingPage() {
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-alt px-4 py-2 text-xs font-medium text-text-muted transition-all duration-200 hover:border-text-muted/30 hover:bg-surface-alt hover:text-text-secondary"
         >
-          <ChevronUp size={14} className="transition-transform duration-200 group-" />
+          <ChevronUp size={14} className="transition-transform duration-200 group-hover:-translate-y-0.5" />
           {t("landing.button_back_to_top")}
         </button>
       </div>

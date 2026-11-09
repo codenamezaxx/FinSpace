@@ -48,7 +48,7 @@ export function NetWorthCard({
 
   return (
     <div
-      className={`rounded-2xl bg-surface p-6 lg:shadow-lg shadow-black/20 transition-all duration-200 lg:hover:shadow-xl hover:shadow-black/30 ${className}`}
+      className={`rounded-2xl bg-surface p-6 lg:shadow-lg shadow-black/20 transition-all duration-200${className}`}
       style={style}
     >
       <p className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">

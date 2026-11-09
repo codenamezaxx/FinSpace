@@ -10,11 +10,13 @@ import {
   Eye,
   EyeOff,
   LayoutDashboard,
+  LogIn,
   Wallet,
   TrendingUp,
   Wrench,
   Settings,
   LogOut,
+  User,
   Plus,
   PanelLeftClose,
   PanelLeftOpen,
@@ -148,7 +150,7 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
   const { openAddTransaction } = useTransactionModal();
   const { t } = useLanguage();
   const { isHidden, toggle } = useBalancePrivacy();
-  const { user, isLoggedIn, logout } = useCloudAuth();
+  const { user, isLoggedIn, login, logout } = useCloudAuth();
   const collapsedAccountRef = useRef<HTMLDetailsElement>(null);
 
   const handleLogout = useCallback(async () => {
@@ -162,6 +164,18 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
       console.error("Logout failed:", error);
     }
   }, [logout]);
+
+  const handleLogin = useCallback(async () => {
+    if (collapsedAccountRef.current) {
+      collapsedAccountRef.current.open = false;
+    }
+
+    try {
+      await login();
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
+  }, [login]);
 
   useEffect(() => {
     if (!isCollapsed) return;
@@ -455,17 +469,19 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
         </nav>
 
         {/* Account — Above Settings */}
-        {isLoggedIn && user && (
+        {(
           isCollapsed ? (
             <div className="relative flex justify-center border-t border-border px-2 py-3">
               <details ref={collapsedAccountRef} className="group relative">
                 <summary
                   className="list-none cursor-pointer rounded-full outline-none ring-offset-2 ring-offset-surface-alt focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden"
                   aria-label={t("profile.profile")}
-                  title={user.name || t("profile.profile")}
+                  title={user?.name || t("profile.profile")}
                 >
-                  <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-xs font-bold text-on-primary">
-                    {user.picture ? (
+                  <div className={`flex h-9 w-9 items-center justify-center overflow-hidden rounded-full text-xs font-bold ${
+                    isLoggedIn ? "bg-primary text-on-primary" : "border border-border bg-surface text-text-muted"
+                  }`}>
+                    {isLoggedIn && user?.picture ? (
                       <img
                         src={user.picture}
                         alt=""
@@ -473,19 +489,30 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      user.name.charAt(0).toUpperCase() || "?"
+                      isLoggedIn ? user?.name.charAt(0).toUpperCase() || "?" : <User className="h-4 w-4" />
                     )}
                   </div>
                 </summary>
                 <div className="absolute bottom-0 left-full z-50 ml-2 min-w-36 rounded-xl border border-border bg-surface p-1.5 shadow-xl">
-                  <button
-                    type="button"
-                    onClick={() => void handleLogout()}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-text-secondary transition-colors hover:bg-surface-alt hover:text-danger hover:cursor-pointer"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    {t("profile.sign_out")}
-                  </button>
+                  {isLoggedIn ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleLogout()}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-text-secondary transition-colors hover:bg-surface-alt hover:text-danger hover:cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      {t("profile.sign_out")}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void handleLogin()}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-text-secondary transition-colors hover:bg-surface-alt hover:text-primary hover:cursor-pointer"
+                    >
+                      <LogIn className="h-4 w-4" />
+                      {t("profile.sign_in")}
+                    </button>
+                  )}
                 </div>
               </details>
             </div>
@@ -493,10 +520,12 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
             <div className="border-t border-border p-2.5">
               <div className="flex items-center gap-2 rounded-2xl p-2.5">
                 <div
-                  className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-xs font-bold text-on-primary"
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold ${
+                    isLoggedIn ? "bg-primary text-on-primary" : "border border-border bg-surface text-text-muted"
+                  }`}
                   aria-hidden="true"
                 >
-                  {user.picture ? (
+                  {isLoggedIn && user?.picture ? (
                     <img
                       src={user.picture}
                       alt=""
@@ -504,26 +533,41 @@ export function NavigationBar({ isCollapsed = false, onToggle, onScan }: Navigat
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    user.name.charAt(0).toUpperCase() || "?"
+                    isLoggedIn ? user?.name.charAt(0).toUpperCase() || "?" : <User className="h-4 w-4" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-semibold text-text-primary">
-                    {user.name || t("profile.user")}
+                    {isLoggedIn && user ? user.name || t("profile.user") : t("profile.guest")}
                   </p>
-                  <p className="truncate text-[11px] text-text-muted">
-                    {user.email}
-                  </p>
+                  {isLoggedIn && user && (
+                    <p className="truncate text-[11px] text-text-muted">
+                      {user.email}
+                    </p>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => void handleLogout()}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-alt hover:text-danger hover:cursor-pointer"
-                  aria-label={t("profile.sign_out")}
-                  title={t("profile.sign_out")}
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
+                {isLoggedIn ? (
+                  <button
+                    type="button"
+                    onClick={() => void handleLogout()}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-alt hover:text-danger hover:cursor-pointer"
+                    aria-label={t("profile.sign_out")}
+                    title={t("profile.sign_out")}
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => void handleLogin()}
+                    className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 hover:cursor-pointer"
+                    aria-label={t("profile.sign_in")}
+                    title={t("profile.sign_in")}
+                  >
+                    <LogIn className="h-4 w-4" />
+                    {t("profile.sign_in")}
+                  </button>
+                )}
               </div>
             </div>
           )

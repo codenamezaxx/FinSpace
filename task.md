@@ -265,6 +265,10 @@ Audit desain anti-"AI slop": hilangkan efek generik (gradient kartu, frosted gla
 - [x] Balance Privacy (2026-10-29): global eye-icon toggle in TopBar (desktop) & NavigationBar (mobile) to mask/unmask all nominal amounts (net balance, net worth, pocket balances, asset/liability/debt values, transaction amounts) with localStorage persistence; `useBalancePrivacy` hook + `formatCurrencyPrivacy` utility; all display components updated (NetWorthCard, PocketCard, TransactionCard/List/DetailModal, AssetAllocation, DebtList, MonthlyChart); 279 tests pass (49 files), tsc clean
 
 ## Phase 10: Deployment & Final Acceptance Testing
+- [x] Expand Landing Page product information; rebuild dashboard preview to match the real dashboard layout in a macOS-style window, and add GitHub Release download links for Android APK and Windows installer.
+- [ ] Publish `FinSpace-Android.apk` and `FinSpace-Setup.exe` as assets on the latest GitHub Release so Landing Page download buttons resolve.
+- [x] Redesign Landing Page with an editorial split hero, product-native dashboard preview, restrained feature/process sections, and responsive EN/ID messaging.
+- [x] Keep the desktop sidebar account area visible for logged-out users with a localized Guest/Tamu placeholder and sign-in action, including the collapsed sidebar.
 - [x] Version bump 1.8.7 -> 1.8.8 (`npm version --no-git-tag-version`; package.json + lockfile updated, app version displays read `APP_VERSION` automatically).
 - [x] Reduce device push reminders to one daily Vercel Hobby-compatible Cron run at 12:00 UTC.
 - [x] Remove the redundant “All Pockets” action and move balance transfer to a primary button aligned with the Pockets page heading.

@@ -3,9 +3,10 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { NavigationBar } from "../NavigationBar";
 import { BalancePrivacyProvider } from "@/lib/balancePrivacy";
 
-const { useCloudAuthMock, logoutMock } = vi.hoisted(() => ({
+const { useCloudAuthMock, logoutMock, loginMock } = vi.hoisted(() => ({
   useCloudAuthMock: vi.fn(),
   logoutMock: vi.fn(),
+  loginMock: vi.fn(),
 }));
 
 vi.mock("@/hooks/useCloudAuth", () => ({
@@ -39,6 +40,7 @@ function renderWithProviders(ui: React.ReactElement) {
 describe("NavigationBar", () => {
   beforeEach(() => {
     logoutMock.mockReset();
+    loginMock.mockReset();
     useCloudAuthMock.mockReturnValue({
       user: {
         name: "Test User",
@@ -47,6 +49,7 @@ describe("NavigationBar", () => {
       },
       isLoggedIn: true,
       logout: logoutMock,
+      login: loginMock,
     });
   });
 
@@ -121,5 +124,36 @@ describe("NavigationBar", () => {
     fireEvent.click(screen.getByRole("button", { name: "Keluar" }));
     expect(accountMenu?.open).toBe(false);
     expect(logoutMock).toHaveBeenCalledOnce();
+  });
+
+  it("shows a guest profile and sign-in button when logged out", () => {
+    useCloudAuthMock.mockReturnValue({
+      user: null,
+      isLoggedIn: false,
+      login: loginMock,
+      logout: logoutMock,
+    });
+    renderWithProviders(<NavigationBar />);
+
+    expect(screen.getByText("Tamu")).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Masuk" }));
+    expect(loginMock).toHaveBeenCalledOnce();
+  });
+
+  it("offers sign-in from the collapsed guest profile menu", () => {
+    useCloudAuthMock.mockReturnValue({
+      user: null,
+      isLoggedIn: false,
+      login: loginMock,
+      logout: logoutMock,
+    });
+    const { container } = renderWithProviders(<NavigationBar isCollapsed />);
+    const accountMenu = container.querySelector("details");
+
+    expect(accountMenu).not.toBeNull();
+    if (accountMenu) fireEvent.click(accountMenu.querySelector("summary")!);
+    fireEvent.click(screen.getByRole("button", { name: "Masuk" }));
+    expect(loginMock).toHaveBeenCalledOnce();
+    expect(accountMenu?.open).toBe(false);
   });
 });

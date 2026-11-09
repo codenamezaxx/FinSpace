@@ -18,6 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: "landing.nav_features", href: "#features" },
   { labelKey: "landing.nav_works", href: "#how-it-works" },
   { labelKey: "landing.nav_benefits", href: "#benefits" },
+  { labelKey: "landing.nav_downloads", href: "#downloads" },
   { labelKey: "landing.hero_cta_start", href: "#cta" },
 ];
 
@@ -82,7 +83,7 @@ export default function LandingNav() {
       >
         <div className={`mx-auto flex h-16 max-w-300 items-center justify-between rounded-xl px-4 sm:px-6 md:mt-4 transition-all duration-300 ${
           scrolled
-            ? "bg-surface-alt/50 shadow-lg"
+            ? "bg-surface-alt shadow-lg"
             : "bg-transparent"
         }`}>
           {/* Left: Logo */}
@@ -104,6 +105,7 @@ export default function LandingNav() {
               { label: t("landing.nav_features"), href: "#features" },
               { label: t("landing.nav_works"), href: "#how-it-works" },
               { label: t("landing.nav_benefits"), href: "#benefits" },
+              { label: t("landing.nav_downloads"), href: "#downloads" },
               { label: t("landing.nav_faq"), href: "#faq" },
             ].map((link) => (
               <a
@@ -150,7 +152,7 @@ export default function LandingNav() {
       <div
         className={`fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b px-4 transition-all duration-300 lg:hidden ${
           scrolled
-            ? "border-border bg-surface-alt/80 "
+            ? "border-border bg-surface-alt"
             : "border-transparent bg-surface-alt/40"
         }`}
       >
